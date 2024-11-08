@@ -1,14 +1,21 @@
 import { FaFlask, FaClipboardList, FaShoppingCart, FaUser, FaBars, FaSearch } from 'react-icons/fa';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showSignInPopup, setShowSignInPopup] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSignInClick = () => {
+    setShowSignInPopup(true);
+  };
 
   return (
     <nav className="bg-black px-8 py-4 fixed top-0 w-full z-50">
       <div className="flex items-center justify-between">
         {/* Logo raushan bna rha hai*/}
-        <div className="text-white text-xl font-bold mr-4">
+        <div className="text-white text-xl font-bold mr-4" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
           WH 
         </div>
 
@@ -24,19 +31,19 @@ export default function Navbar() {
 
         {/* Desktop Menu */}
         <div className="hidden md:flex space-x-4">
-          <button className="flex items-center bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400">
+          <button className="flex items-center bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400" onClick={() => navigate('/labs')}>
             <FaFlask className="mr-2" />
             Labs
           </button>
-          <button className="flex items-center bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400">
+          <button className="flex items-center bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400" onClick={() => navigate('/tests')}>
             <FaClipboardList className="mr-2" />
             Tests
           </button>
-          <button className="flex items-center bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400">
+          <button className="flex items-center bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400" onClick={() => navigate('/cart')}>
             <FaShoppingCart className="mr-2" />
             Cart
           </button>
-          <button className="bg-transparent text-white rounded-full p-2 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600">
+          <button className="bg-transparent text-white rounded-full p-2 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600" onClick={handleSignInClick}>
             <FaUser />
           </button>
         </div>
@@ -65,9 +72,43 @@ export default function Navbar() {
             <FaShoppingCart className="mr-2" />
             Cart
           </button>
-          <button className="w-full flex items-center justify-center bg-transparent text-white rounded-full p-2 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600">
+          <button className="w-full flex items-center justify-center bg-transparent text-white rounded-full p-2 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600" onClick={handleSignInClick}>
             <FaUser />
           </button>
+        </div>
+      )}
+      {/* Sign In Popup */}
+      {showSignInPopup && (
+        <div className="fixed  inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="backdrop-blur-md bg-white/30 p-8 rounded-lg shadow-lg border border-white/20 w-96 h-64">
+            <h2 className="text-2xl font-bold mb-6 text-center text-white">Sign In as</h2>
+            <div className="space-y-4">
+              <button 
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-400 text-white px-6 py-3 rounded-lg hover:from-blue-500 hover:to-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400 backdrop-blur-sm bg-opacity-80"
+                onClick={() => {
+                  setShowSignInPopup(false);
+                  navigate('/labsSignin');
+                }}
+              >
+                LABS
+              </button>
+              <button 
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-400 text-white px-6 py-3 rounded-lg hover:from-blue-500 hover:to-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400 backdrop-blur-sm bg-opacity-80"
+                onClick={() => {
+                  setShowSignInPopup(false);
+                  navigate('/patientsSignin');
+                }}
+              >
+                PATIENTS
+              </button>
+            </div>
+            <button 
+              className="absolute top-2 right-2 text-white hover:text-gray-200"
+              onClick={() => setShowSignInPopup(false)}
+            >
+              ✕
+            </button>
+          </div>
         </div>
       )}
     </nav>

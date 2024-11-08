@@ -1,7 +1,11 @@
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Navbar from '../components/navbar';
 import Footer from '../components/footer';
 import dna from '../assets/doctor.png';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const Home = () => {
   const sectionRef = useRef(null);
@@ -12,6 +16,7 @@ const Home = () => {
   const ratingCard = useRef(null);
   const featuresContainer = useRef(null);
   const featureItem = useRef(null);
+  const numberRefs = useRef([]);
 
   const steps = [
     { id: 1, title: 'Research', description: 'Conduct thorough research to understand the problem.' },
@@ -25,10 +30,44 @@ const Home = () => {
     { title: 'Feature 3', description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.lorem Lorem ipsum dolor sit amet consect' }
   ];
 
+  const stats = [
+    { number: 20, label: 'Years of Experience' },
+    { number: 173, label: 'Projects Done' },
+    { number: 1500, label: 'Trusted Clients' },
+    { number: 52, label: 'Expert Team' }
+  ];
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    const numbers = numberRefs.current;
+
+    numbers.forEach((number, index) => {
+      const targetNumber = stats[index].number;
+
+      gsap.to(number, {
+        innerHTML: targetNumber,
+        duration: 2,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: section,
+          start: "top 80%",
+          onEnter: () => gsap.to(number, {
+            innerHTML: targetNumber,
+            duration: 2,
+            snap: { innerHTML: 1 },
+            ease: "power2.out"
+          })
+        }
+      });
+    });
+  }, []);
+
   return (
     <div className='bg-black'>
       <Navbar />
-      <div className="h-screen relative">
+
+      {/* First Section */}
+      <div className="h-screen relative mb-32">
         <div className="absolute inset-0 bg-center bg-cover bg-no-repeat" style={{ backgroundImage: `url("https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExazY2MGJiZW9vZGF1ZnF0ZWRnNTU4cnQyOXZ3cXU2enI1dDl5aTNzOSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/QTfa8EZ9dQAHzF4e06/giphy.webp")`, opacity: 0.5 }}></div>
         <div className="container mx-auto px-4 h-full flex space-x-[12rem] items-center relative">
           <div className="w-1/2 ml-[-3rem]">
@@ -46,7 +85,8 @@ const Home = () => {
         </div>
       </div>
 
-      <section className="bg-black text-white py-12 px-4 sm:px-6 lg:px-8" ref={sectionRef}>
+      {/* Second Section */}
+      <section className="bg-black text-white py-12 px-4 sm:px-6 lg:px-8 mb-32" ref={sectionRef}>
         <div className="text-center mb-10">
           <h2 className="text-lg sm:text-xl text-blue-400 mb-2 gsap-title" ref={titleRef}>Our Process</h2>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold gsap-subtitle" ref={subtitleRef}>Step-by-<span className="text-blue-500">Step to Achieving</span> Your Goals</h1>
@@ -68,7 +108,8 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="bg-black text-white py-16 px-4 sm:px-6 lg:px-8">
+      {/* Third Section */}
+      <section className="bg-black text-white py-16 px-4 sm:px-6 lg:px-8 mb-32">
         <div className="container mx-auto flex flex-col lg:flex-row items-center justify-between">
           {/* Left Side: Image and Overlapping Rating Card */}
           <div className="relative w-full lg:w-1/2 p-6" ref={imageContainer}>
@@ -117,6 +158,49 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* Fourth Section */}
+      <div ref={sectionRef} className="bg-[url('https://img.freepik.com/free-photo/blue-smooth-wall-textured-background_53876-106133.jpg?t=st=1726913187~exp=1726916787~hmac=4b9ef068bb436e5223621b0f35904d262046d4a4738fb40f11f3ed2143e68b68&w=1480')] bg-cover bg-center text-white py-16 px-4 sm:px-6 lg:px-8 relative before:content-[''] before:absolute before:inset-0 before:bg-black before:bg-opacity-30 before:backdrop-blur-sm mb-32">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative z-9">
+        {stats.map((stat, index) => (
+          <div key={index} className="bg-blue-600 bg-opacity-20 rounded-xl shadow-xl p-6 flex flex-col items-center justify-center transform transition duration-300 hover:scale-105 backdrop-filter backdrop-blur-lg border border-blue-300 border-opacity-30">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-2 text-white">
+              <span ref={el => numberRefs.current[index] = el}>0</span>
+              {stat.number > 100 ? '+' : ''}
+            </h2>
+            <p className="text-lg sm:text-xl lg:text-2xl text-center text-blue-100">{stat.label}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Fifth Section */}
+    <section className="relative bg-black py-12 px-4 sm:px-6 lg:px-8 mb-32">
+      {/* Background image */}
+      <div className="bg-blue-500 bg-opacity-80 rounded-xl shadow-xl w-full max-w-7xl mx-auto overflow-hidden">
+        {/* Replace with your actual image */}
+        <div className="relative">
+          <img
+            src="https://images.pexels.com/photos/380768/pexels-photo-380768.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" // Placeholder for your image
+            alt="Background"
+            className="w-full object-cover h-[300px] lg:h-[400px]"
+          />
+          {/* Overlay Text */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50 p-8 rounded-xl">
+            <h2 className="text-3xl lg:text-5xl font-bold text-white mb-4 text-center">
+              <span className="text-blue-400">Unlock Your Potential</span>, Reach Out <br /> and Transform Your Business!
+            </h2>
+            <p className="text-white text-center mb-6 max-w-md mx-auto">
+              Commodo facilisis egestas maximus volutpat iaculis maecenas augue tortor aptent. Effictur interdum laoreet ullamcorper des velit purus praesent conubia magna.
+            </p>
+            {/* CTA Button */}
+            <button className="bg-white text-black px-6 py-2 rounded-full shadow-lg hover:bg-blue-600 hover:text-white transition">
+              Contact Us
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
       <Footer />
     </div>
   );
