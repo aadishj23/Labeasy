@@ -30,7 +30,7 @@ const SigninLab = () => {
                 url: "http://localhost:5000/api/v1/auth/signinlab",
                 method: "POST",
                 data: JSON.stringify({
-                    email: signInData.Name,
+                    email: signInData.Email,
                     password: signInData.Password
                 }),
                 headers: {
@@ -40,7 +40,7 @@ const SigninLab = () => {
             localStorage.setItem('token', JSON.stringify(response.data.token))
             localStorage.setItem('lab_name', JSON.stringify(response.data.labName))
             setLoggedIn(true)
-            navigate('/')
+            navigate('/labsdashboard')
         } catch (error) {
             console.error(error)
             setError('Invalid Credentials')
@@ -58,17 +58,17 @@ const SigninLab = () => {
                 onSubmit={handleSubmitSignIn}
             >
                 <label
-                    htmlFor="email-phone"
+                    htmlFor="email"
                     className="block text-gray-700 text-sm font-bold mb-2"
                 >
-                    EMAIL/PHONE
+                    EMAIL
                 </label>
                 <input
                     type="text"
-                    id="email-phone"
-                    placeholder="Enter Email/Phone"
-                    name="Name"
-                    value={signInData.Name}
+                    id="email"
+                    placeholder="Enter Email"
+                    name="Email"
+                    value={signInData.Email}
                     onChange={handleChangeSignIn}
                     className="w-full px-3 py-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
                     required
@@ -122,7 +122,7 @@ const SigninLab = () => {
                             Signing In...
                         </div>
                     ) : (
-                        'Sign In'
+                        'Sign In as Lab'
                     )}
                 </button>
                 <p className="mt-4 text-center text-gray-600"> Don't have an account? <a href="/signuplab" className="text-blue-500">Sign Up</a></p>

@@ -1,17 +1,27 @@
 import { FaFlask, FaClipboardList, FaShoppingCart, FaUser, FaBars, FaSearch } from 'react-icons/fa';
 import { useState } from 'react';
 import { loggedin } from '../store/atoms/loggedin';
-import { useSetRecoilState } from 'recoil';
+import { useRecoilState } from 'recoil';
 import { useNavigate } from 'react-router-dom';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showSignInPopup, setShowSignInPopup] = useState(false);
-  const setLoggedIn = useSetRecoilState(loggedin);
+  const [isLoggedIn ,setLoggedIn] = useRecoilState(loggedin);
   const navigate = useNavigate();
 
   const handleSignInClick = () => {
     setShowSignInPopup(true);
+  };
+
+
+  const handleLogout = () => {
+    setLoggedIn(false);
+    localStorage.removeItem('token');
+    localStorage.removeItem('lab_name');
+    localStorage.removeItem('name');
+    setShowSignInPopup(false);
+    navigate('/');
   };
 
   return (
@@ -84,6 +94,18 @@ export default function Navbar() {
       {showSignInPopup && (
         <div className="fixed  inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="backdrop-blur-md bg-white/30 p-8 rounded-lg shadow-lg border border-white/20 w-96 h-64">
+          {isLoggedIn ? (
+              <div className='mt-8'>
+                <h2 className="text-2xl font-bold mb-6 text-center text-white">Confirm Logout ?</h2>
+                <button
+                  className="w-full bg-gradient-to-r from-blue-600 to-blue-400 text-white px-6 py-3 rounded-lg hover:from-blue-500 hover:to-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400 backdrop-blur-sm bg-opacity-80"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <div>
             <h2 className="text-2xl font-bold mb-6 text-center text-white">Sign In as</h2>
             <div className="space-y-4">
               <button 
@@ -105,6 +127,7 @@ export default function Navbar() {
                 PATIENTS
               </button>
             </div>
+          </div>)}
             <button 
               className="absolute top-2 right-2 text-white hover:text-gray-200"
               onClick={() => setShowSignInPopup(false)}

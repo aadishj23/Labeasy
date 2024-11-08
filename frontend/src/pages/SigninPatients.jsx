@@ -30,7 +30,7 @@ const SigninPatient = () => {
                 url: "http://localhost:5000/api/v1/auth/signinuser",
                 method: "POST",
                 data: JSON.stringify({
-                    email: signInData.Name,
+                    email: signInData.Email,
                     password: signInData.Password
                 }),
                 headers: {
@@ -58,17 +58,17 @@ const SigninPatient = () => {
                 onSubmit={handleSubmitSignIn}
             >
                 <label
-                    htmlFor="email-phone"
+                    htmlFor="email"
                     className="block text-gray-700 text-sm font-bold mb-2"
                 >
-                    EMAIL/PHONE
+                    EMAIL
                 </label>
                 <input
                     type="text"
-                    id="email-phone"
-                    placeholder="Enter Email/Phone"
-                    name="Name"
-                    value={signInData.Name}
+                    id="email"
+                    placeholder="Enter Email"
+                    name="Email"
+                    value={signInData.Email}
                     onChange={handleChangeSignIn}
                     className="w-full px-3 py-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
                     required
@@ -122,7 +122,7 @@ const SigninPatient = () => {
                             Signing In...
                         </div>
                     ) : (
-                        'Sign In'
+                        'Sign In as User'
                     )}
                 </button>
                 <p className="mt-4 text-center text-gray-600"> Don't have an account? <a href="/signupuser" className="text-blue-500">Sign Up</a></p>

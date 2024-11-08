@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import Navbar from './navbar';
 import Footer from './footer';
+import { loggedin } from '../store/atoms/loggedin';
+import { useRecoilValue } from 'recoil';
 import { FaTrash, FaShoppingCart } from 'react-icons/fa';
 
 function Cart() {
   const [cartItems, setCartItems] = useState([]);
+  const isLoggedIn = useRecoilValue(loggedin);
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
@@ -32,6 +35,9 @@ function Cart() {
   };
 
   const handleCheckout = () => {
+    if(!isLoggedIn) {
+      alert('Please sign in to proceed to checkout.');
+    }
     // Implement checkout logic here
     alert('Proceeding to checkout...');
   };

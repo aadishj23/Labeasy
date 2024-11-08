@@ -168,7 +168,7 @@ function SignupPatient() {
                             Signing Up...
                         </div>
                     ) : (
-                        'Sign Up'
+                        'Sign Up as User'
                     )}
                 </button>
             </form>
