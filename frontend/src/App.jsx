@@ -2,8 +2,11 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Tests from './pages/Tests';
 import Labs from './pages/Labs';
-// import LabsSignin from './pages/SigninLab';
-import PatientsSignin from './pages/SigninPatients';
+import SigninLab from './pages/SigninLab';
+import SignUpLab from './pages/SignUpLab';
+import SignupPatient from './pages/SignUpPatients';
+import SigninPatient from './pages/SigninPatients';
+import { RecoilRoot } from 'recoil';
 
 export default function App() {
   return (
@@ -13,8 +16,10 @@ export default function App() {
         <Route path="*" element={<div>Page not found</div>} />
         <Route path="/tests" element={<Tests />} />
         <Route path="/labs" element={<Labs />} />
-        {/* <Route path="/labsSignin" element={<LabsSignin />} /> */}
-        <Route path="/patientsSignin" element={<PatientsSignin />} />
+        <Route path="/signinlab" element={<RecoilRoot><SigninLab /></RecoilRoot>} />
+        <Route path="/signuplab" element={<SignUpLab />} />
+        <Route path="/signupuser" element={<RecoilRoot><SignupPatient /></RecoilRoot>} />
+        <Route path="/signinuser" element={<RecoilRoot><SigninPatient /></RecoilRoot>} />
       </Routes>
     </BrowserRouter>
   );

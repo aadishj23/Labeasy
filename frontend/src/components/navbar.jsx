@@ -1,10 +1,13 @@
 import { FaFlask, FaClipboardList, FaShoppingCart, FaUser, FaBars, FaSearch } from 'react-icons/fa';
 import { useState } from 'react';
+import { loggedin } from '../store/atoms/loggedin';
+import { useSetRecoilState } from 'recoil';
 import { useNavigate } from 'react-router-dom';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showSignInPopup, setShowSignInPopup] = useState(false);
+  const setLoggedIn = useSetRecoilState(loggedin);
   const navigate = useNavigate();
 
   const handleSignInClick = () => {
@@ -16,7 +19,7 @@ export default function Navbar() {
       <div className="flex items-center justify-between">
         {/* Logo raushan bna rha hai*/}
         <div className="text-white text-xl font-bold mr-4" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-          WH 
+          {JSON.parse(localStorage.getItem('lab_name') || localStorage.getItem('name') || '"Welcome"')}
         </div>
 
         {/* Search Bar */}
@@ -87,7 +90,7 @@ export default function Navbar() {
                 className="w-full bg-gradient-to-r from-blue-600 to-blue-400 text-white px-6 py-3 rounded-lg hover:from-blue-500 hover:to-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400 backdrop-blur-sm bg-opacity-80"
                 onClick={() => {
                   setShowSignInPopup(false);
-                  navigate('/labsSignin');
+                  navigate('/signinlab');
                 }}
               >
                 LABS
@@ -96,7 +99,7 @@ export default function Navbar() {
                 className="w-full bg-gradient-to-r from-blue-600 to-blue-400 text-white px-6 py-3 rounded-lg hover:from-blue-500 hover:to-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400 backdrop-blur-sm bg-opacity-80"
                 onClick={() => {
                   setShowSignInPopup(false);
-                  navigate('/patientsSignin');
+                  navigate('/signinuser');
                 }}
               >
                 PATIENTS
@@ -111,6 +114,27 @@ export default function Navbar() {
           </div>
         </div>
       )}
+
+      {/* Logout popup */}
+      {/* {showSignInPopup && setLoggedIn && (
+        <div className="fixed  inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="backdrop-blur-md bg-white/30 p-8 rounded-lg shadow-lg border border-white/20 w-96 h-64">
+            <button
+            className="w-full bg-gradient-to-r from-blue-600 to-blue-400 text-white px-6 py-3 rounded-lg hover:from-blue-500 hover:to-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400 backdrop-blur-sm bg-opacity-80"
+            onClick={
+              ()=>{
+                setLoggedIn(false);
+                localStorage.removeItem('token');
+                localStorage.removeItem('lab_name');
+                localStorage.removeItem('name');
+                setShowSignInPopup(false);
+                navigate('/');
+            }}>
+              Logout
+            </button>
+          </div>
+        </div>
+      )} */}
     </nav>
   );
 }
