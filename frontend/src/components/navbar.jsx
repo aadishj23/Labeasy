@@ -18,7 +18,7 @@ export default function Navbar() {
     <nav className="bg-black px-8 py-4 fixed top-0 w-full z-50">
       <div className="flex items-center justify-between">
         {/* Logo raushan bna rha hai*/}
-        <div className="text-white text-xl font-bold mr-4" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+        <div className="text-white text-xl font-bold mr-4" onClick={() => navigate('/')} style={{ cursor: 'pointer', fontFamily: 'Bank Gothic' }}>
           {JSON.parse(localStorage.getItem('lab_name') || localStorage.getItem('name') || '"Welcome"')}
         </div>
 
