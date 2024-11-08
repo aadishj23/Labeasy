@@ -16,7 +16,11 @@ const auth = (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token,jwtSecret); 
-        req.body.userID = decoded.userid;
+        if(decoded.type === "lab") {
+            req.body.labID = decoded.labid;
+        } else{
+            req.body.userID = decoded.userid;
+        }
         next();
     } catch(err) {
         return res.status(403).json({

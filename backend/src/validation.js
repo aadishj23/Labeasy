@@ -26,4 +26,10 @@ const signinSchema = zod.object({
     password: zod.string().min(8)
 })
 
-module.exports={signupUserSchema, signinSchema, signupLabSchema}
+const testSchema = zod.object({
+    test_name: zod.string(),
+    test_price: zod.string(),
+    test_description: zod.string()
+})
+
+module.exports={signupUserSchema, signinSchema, signupLabSchema,testSchema}

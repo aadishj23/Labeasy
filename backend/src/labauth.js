@@ -61,6 +61,7 @@ router.post('/signinlab', async (req, res) => {
                 if (jwtSecret) {
                     const token = jwt.sign({
                         labid: lab?.id,
+                        type: "lab",
                     }, jwtSecret, { expiresIn: '10d' });
                     res.status(200).send({
                         token,

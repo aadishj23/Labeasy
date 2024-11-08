@@ -54,6 +54,7 @@ router.post('/signinuser', async (req, res) => {
                 if (jwtSecret) {
                     const token = jwt.sign({
                         userid: user?.id,
+                        type: "user",
                     }, jwtSecret, { expiresIn: '10d' });
                     res.status(200).send({
                         token,

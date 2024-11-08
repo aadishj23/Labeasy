@@ -48,8 +48,7 @@ model Tests {
 model LabTest {
   lab_id    String
   test_id   String
-  lab       Lab      @relation(fields: [lab_id], references: [id])
-  test      Tests    @relation(fields: [test_id], references: [id])
-
+  lab       Lab      @relation(fields: [lab_id], references: [id], onDelete: Cascade)
+  test      Tests    @relation(fields: [test_id], references: [id], onDelete: Cascade)
   @@id([lab_id, test_id]) 
 }
