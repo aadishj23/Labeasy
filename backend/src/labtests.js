@@ -63,6 +63,29 @@ router.post('/getlabsfortest', auth, async (req, res) => {  //to view labs for a
     }
 });
 
+router.post('/gettestsforlab', auth, async (req, res) => {  //to view tests for a particular lab
+    const {lab_name} = req.body;
+    try {
+        const lab= await prisma.lab.findUnique({
+            where: {
+                lab_name: lab_name
+            }
+        });
+        const tests = await prisma.labTest.findMany({
+            where: {
+                lab_id: lab.id
+            }
+        });
+        res.status(200).json({ 
+            "message": "Tests fetched successfully", 
+            "tests": tests
+        });
+    } catch(error){
+        console.error("Error in /gettestsforlab route:", error); 
+        res.status(500).json({ message: "An error occurred", error });
+    }
+});
+
 router.put('/updatelabtest/:id', auth, async (req, res) => {
     const {test_price, labID} = req.body;
     try {
@@ -87,51 +110,21 @@ router.put('/updatelabtest/:id', auth, async (req, res) => {
     }
 });
 
-// router.delete('/deletelabtest/:id', auth, async (req, res) => {
-//     try {
-//         const labtest = await prisma.labTest.delete({
-//             where: {
-//                 lab_id_test_id: {
-//                     lab_id: req.body.labID,
-//                     test_id: req.params.id
-//                 }
-//             }
-//         });
-//         res.status(200).json({ 
-//             "message": "Lab test deleted successfully", 
-//             "labtest": labtest
-//         });
-//     } catch(error){
-//         console.error("Error in /deletelabtest route:", error); 
-//         res.status(500).json({ message: "An error occurred", error });
-//     }
-// });
-
 router.delete('/deletelabtest/:id', auth, async (req, res) => {
-    const { labID } = req.body;  // Extract labID from the request body
-    const testID = req.params.id;  // Extract testID from the URL parameter
-
-    // Log to check values are defined
-    console.log("Deleting lab test with labID:", labID, "and testID:", testID);
-
-    if (!labID) {
-        return res.status(400).json({ message: "labID is required in the request body." });
-    }
-
     try {
         const labtest = await prisma.labTest.delete({
             where: {
                 lab_id_test_id: {
-                    lab_id: labID,
-                    test_id: testID
+                    lab_id: req.body.labID,
+                    test_id: req.params.id
                 }
             }
         });
         res.status(200).json({ 
-            message: "Lab test deleted successfully", 
-            labtest
+            "message": "Lab test deleted successfully", 
+            "labtest": labtest
         });
-    } catch(error) {
+    } catch(error){
         console.error("Error in /deletelabtest route:", error); 
         res.status(500).json({ message: "An error occurred", error });
     }

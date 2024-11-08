@@ -23,7 +23,7 @@ model User {
 
 model Lab {
   id         String    @id @default(dbgenerated())
-  lab_name   String
+  lab_name   String     @unique
   owner_name String
   phone      String    @unique
   email      String    @unique
