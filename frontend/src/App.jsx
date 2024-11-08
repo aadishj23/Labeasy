@@ -4,6 +4,7 @@ import Tests from './pages/Tests';
 import Labs from './pages/Labs';
 // import LabsSignin from './pages/SigninLab';
 import PatientsSignin from './pages/SigninPatients';
+import Cart from './components/Cart';
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
         <Route path="/labs" element={<Labs />} />
         {/* <Route path="/labsSignin" element={<LabsSignin />} /> */}
         <Route path="/patientsSignin" element={<PatientsSignin />} />
+        <Route path="/cart" element={<Cart />} />
       </Routes>
     </BrowserRouter>
   );
