@@ -2,32 +2,41 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require("bcrypt")
 const jwt=  require("jsonwebtoken")
-const {signinSchema,signupSchema}=require("./validation")
+const PrismaClient = require('@prisma/client').PrismaClient;
+const {signupUserSchema, signinSchema}=require("./validation")
+const { nanoid } = require('nanoid');
 
-router.post('/signup', async (req, res) => {
-    const { name, email, phone, password } = req.body;
-    const parsedData = signupSchema.safeParse(req.body);
-    if (!parsedData.success) {
-        res.status(400).send(parsedData.error);
-    } else{
-        const hashedPassword = await bcrypt.hash(password, 10);
+const prisma = new PrismaClient();
+
+router.post('/signupuser', async (req, res) => {
+    try{
+        const { name, email, phone, password } = req.body;
+        const parsedData = signupUserSchema.safeParse(req.body);
+        if (!parsedData.success) {
+            res.status(400).send(parsedData.error);
+        } else{
+            const hashedPassword = await bcrypt.hash(password, 10);
             const user = await prisma.user.create({
                 data: {
-                  id: nanoid(),      
-                  name,
-                  email,
-                  phone,
-                  password:hashedPassword,
+                    id: nanoid(),      
+                    name,
+                    email,
+                    phone,
+                    password:hashedPassword,
                 },
             });
             res.status(200).json({ 
                 "message": "User created successfully", 
                 "user": user 
             });
+        }
+    } catch (error) {
+        console.error("Error in /signup route:", error); 
+        res.status(500).json({ message: "An error occurred", error });
     }
 });
 
-router.post('/signin', async (req, res) => {
+router.post('/signinuser', async (req, res) => {
     const signinData = signinSchema.safeParse(req.body);
     if (!signinData.success) {
         res.status(400).send(signinData.error);
@@ -46,8 +55,9 @@ router.post('/signin', async (req, res) => {
                     const token = jwt.sign({
                         userid: user?.id,
                     }, jwtSecret, { expiresIn: '10d' });
-                    res.send({
+                    res.status(200).send({
                         token,
+                        type: "user",
                         name: user?.name,
                     });
                 } else {

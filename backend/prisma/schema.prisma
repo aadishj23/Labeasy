@@ -19,31 +19,37 @@ model User {
   name     String
   email    String    @unique
   phone    String    @unique
-  // quizzes  QuizData[]
 }
 
-model lab {
-  id       String    @id @default(dbgenerated())
+model Lab {
+  id         String    @id @default(dbgenerated())
   lab_name   String
   owner_name String
-  phone    String    @unique
-  email    String    @unique
-  password String
-  license_no String   @unique
+  phone      String    @unique
+  email      String    @unique
+  password   String
+  license_no String    @unique
   gst_no     String    @unique
   address    String
   city       String
   state      String
   pincode    String
-  // tests     Tests[]
+  labTests   LabTest[]
 }
 
 model Tests {
-  id       String    @id @default(dbgenerated())
-  test_name String
-  test_price String
+  id              String    @id @default(dbgenerated())
+  test_name       String
+  test_price      String
   test_description String
-  lab_id    String
-  // lab       lab      @relation(fields: [lab_id], references: [id])
+  labTests        LabTest[]
+}
 
+model LabTest {
+  lab_id    String
+  test_id   String
+  lab       Lab      @relation(fields: [lab_id], references: [id])
+  test      Tests    @relation(fields: [test_id], references: [id])
+
+  @@id([lab_id, test_id]) 
 }

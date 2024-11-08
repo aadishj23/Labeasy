@@ -9,7 +9,7 @@ const auth = (req, res, next) => {
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(403).json({
-            message: 'Please Login First to start the quiz'
+            message: 'Please Login First'
         }); 
     }
     const token = authHeader.split(' ')[1];
