@@ -1,4 +1,15 @@
 -- CreateTable
+CREATE TABLE "User" (
+    "id" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "phone" TEXT NOT NULL,
+
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Lab" (
     "id" TEXT NOT NULL,
     "lab_name" TEXT NOT NULL,
@@ -20,7 +31,6 @@ CREATE TABLE "Lab" (
 CREATE TABLE "Tests" (
     "id" TEXT NOT NULL,
     "test_name" TEXT NOT NULL,
-    "test_price" TEXT NOT NULL,
     "test_description" TEXT NOT NULL,
 
     CONSTRAINT "Tests_pkey" PRIMARY KEY ("id")
@@ -29,10 +39,20 @@ CREATE TABLE "Tests" (
 -- CreateTable
 CREATE TABLE "LabTest" (
     "lab_id" TEXT NOT NULL,
+    "lab_name" TEXT NOT NULL,
     "test_id" TEXT NOT NULL,
+    "test_price" TEXT NOT NULL,
+    "test_name" TEXT NOT NULL,
+    "test_description" TEXT NOT NULL,
 
     CONSTRAINT "LabTest_pkey" PRIMARY KEY ("lab_id","test_id")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_phone_key" ON "User"("phone");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Lab_phone_key" ON "Lab"("phone");
@@ -46,8 +66,11 @@ CREATE UNIQUE INDEX "Lab_license_no_key" ON "Lab"("license_no");
 -- CreateIndex
 CREATE UNIQUE INDEX "Lab_gst_no_key" ON "Lab"("gst_no");
 
--- AddForeignKey
-ALTER TABLE "LabTest" ADD CONSTRAINT "LabTest_lab_id_fkey" FOREIGN KEY ("lab_id") REFERENCES "Lab"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+-- CreateIndex
+CREATE UNIQUE INDEX "Tests_test_name_key" ON "Tests"("test_name");
 
 -- AddForeignKey
-ALTER TABLE "LabTest" ADD CONSTRAINT "LabTest_test_id_fkey" FOREIGN KEY ("test_id") REFERENCES "Tests"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "LabTest" ADD CONSTRAINT "LabTest_lab_id_fkey" FOREIGN KEY ("lab_id") REFERENCES "Lab"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "LabTest" ADD CONSTRAINT "LabTest_test_id_fkey" FOREIGN KEY ("test_id") REFERENCES "Tests"("id") ON DELETE CASCADE ON UPDATE CASCADE;

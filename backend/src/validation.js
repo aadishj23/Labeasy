@@ -28,7 +28,6 @@ const signinSchema = zod.object({
 
 const testSchema = zod.object({
     test_name: zod.string(),
-    test_price: zod.string(),
     test_description: zod.string()
 })
 

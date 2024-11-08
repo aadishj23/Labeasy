@@ -39,15 +39,18 @@ model Lab {
 
 model Tests {
   id              String    @id @default(dbgenerated())
-  test_name       String
-  test_price      String
+  test_name       String    @unique
   test_description String
   labTests        LabTest[]
 }
 
 model LabTest {
   lab_id    String
+  lab_name  String
   test_id   String
+  test_price      String
+  test_name String
+  test_description String
   lab       Lab      @relation(fields: [lab_id], references: [id], onDelete: Cascade)
   test      Tests    @relation(fields: [test_id], references: [id], onDelete: Cascade)
   @@id([lab_id, test_id]) 

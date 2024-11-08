@@ -7,9 +7,9 @@ const { nanoid } = require('nanoid');
 
 const prisma = new PrismaClient();
 
-router.post('/addtest', auth ,  async (req, res) => {
+router.post('/addtest',  async (req, res) => {  //admin login
     try{
-        const { test_name, test_price, test_description , labID } = req.body;
+        const { test_name, test_description } = req.body;
         const parsedData = testSchema.safeParse(req.body);
         if (!parsedData.success) {
             res.status(400).send(parsedData.error);
@@ -18,14 +18,7 @@ router.post('/addtest', auth ,  async (req, res) => {
                 data: {
                     id: nanoid(),      
                     test_name,
-                    test_price,
                     test_description,
-                },
-            });
-            await prisma.labTest.create({
-                data: {
-                    lab_id: labID,
-                    test_id: test.id,
                 },
             });
             res.status(200).json({ 
@@ -39,9 +32,22 @@ router.post('/addtest', auth ,  async (req, res) => {
     }
 });
 
-router.put('/updatetest/:id', auth , async (req, res) => {
+router.get('/gettests', auth , async (req, res) => {  //to render tests on page
     try{
-        const { test_name, test_price, test_description } = req.body;
+        const tests = await prisma.tests.findMany();
+        res.status(200).json({ 
+            "message": "Tests fetched successfully", 
+            "tests": tests
+        });
+    } catch (error) {
+        console.error("Error in /gettests route:", error); 
+        res.status(500).json({ message: "An error occurred", error });
+    }
+});
+
+router.put('/updatetest/:id' , async (req, res) => {  //admin login
+    try{
+        const { test_name, test_description } = req.body;
         const parsedData = testSchema.safeParse(req.body);
         if (!parsedData.success) {
             res.status(400).send(parsedData.error);
@@ -52,9 +58,17 @@ router.put('/updatetest/:id', auth , async (req, res) => {
                 },
                 data: {
                     test_name,
-                    test_price,
                     test_description,
                 },
+            });
+            await prisma.labTest.updateMany({
+                where: {
+                    test_id: req.params.id
+                },
+                data: {
+                    test_name,
+                    test_description,
+                }
             });
             res.status(200).json({ 
                 "message": "Test updated successfully", 
@@ -67,7 +81,7 @@ router.put('/updatetest/:id', auth , async (req, res) => {
     }
 });
 
-router.delete('/deletetest/:id', auth , async (req, res) => {
+router.delete('/deletetest/:id' , async (req, res) => {  //admin login
     try{
         const test = await prisma.tests.delete({
             where: {
