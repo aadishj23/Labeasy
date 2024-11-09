@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { loggedin } from '../store/atoms/loggedin';
 import { useRecoilState } from 'recoil';
 import { useNavigate } from 'react-router-dom';
+import logo from '../assets/logocbs.png';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -29,7 +30,7 @@ export default function Navbar() {
       <div className="flex items-center justify-between">
         {/* Logo raushan bna rha hai*/}
         <div className="text-white text-xl font-bold mr-4" onClick={() => navigate('/')} style={{ cursor: 'pointer', fontFamily: 'Bank Gothic' }}>
-          {JSON.parse(localStorage.getItem('lab_name') || localStorage.getItem('name') || '"Welcome"')}
+          <img src={logo} alt="Logo" className="w-[12rem] " />
         </div>
 
         {/* Search Bar */}
