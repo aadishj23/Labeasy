@@ -64,16 +64,11 @@ router.post('/getlabsfortest', auth, async (req, res) => {  //to view labs for a
 });
 
 router.post('/gettestsforlab', auth, async (req, res) => {  //to view tests for a particular lab
-    const {lab_name} = req.body;
+    const {labID} = req.body;
     try {
-        const lab= await prisma.lab.findUnique({
-            where: {
-                lab_name: lab_name
-            }
-        });
         const tests = await prisma.labTest.findMany({
             where: {
-                lab_id: lab.id
+                lab_id: labID
             }
         });
         res.status(200).json({ 
