@@ -1,25 +1,60 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Navbar from '../components/navbar'
 import Footer from '../components/footer'
+import axios from 'axios'
 import { FaChevronDown, FaEdit, FaTrash } from 'react-icons/fa';
 
 function Labsdashboard() {
   const [tests, setTests] = useState([]);
   const [formData, setFormData] = useState({
     testName: '',
-    description: '',
     price: ''
   });
 
-  const handleSubmit = (e) => {
+  const gettests = async () => {
+    try{
+        const response = await axios({
+            url: "http://localhost:5000/api/v1/tests/gettestsforlab",
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${JSON.parse(localStorage.getItem('token'))}`,
+            },
+        })
+        setTests(response.data.tests)
+    } catch (error) {
+        console.error(error)
+    }
+};
+
+useEffect(() => {
+    gettests()
+}, []);
+
+const handleSubmit = async (e) => {
     e.preventDefault();
-    setTests([...tests, formData]);
-    setFormData({
-      testName: '',
-      description: '', 
-      price: ''
-    });
-  };
+    try{
+        await axios({
+            url: "http://localhost:5000/api/v1/tests/addlabtest",
+            method: "POST",
+            data: JSON.stringify({
+                test_name: formData.testName,
+                test_price: formData.price
+            }),
+            headers: {
+                'Content-Type': 'application/json',
+                "Authorization": `Bearer ${JSON.parse(localStorage.getItem('token'))}`,
+            },
+        })
+        gettests()
+        setFormData({
+        testName: '',
+        price: ''
+        });
+    } catch (error) {
+        console.error(error)
+    }
+};
 
   const handleChange = (e) => {
     setFormData({
@@ -28,9 +63,20 @@ function Labsdashboard() {
     });
   };
 
-  const handleDelete = (index) => {
-    const newTests = tests.filter((_, i) => i !== index);
-    setTests(newTests);
+  const handleDelete = async (id) => {
+    try{
+      const newTests= await axios({
+        url: `http://localhost:5000/api/v1/tests/deletelabtest/${id}`,
+        method: "DELETE",
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${JSON.parse(localStorage.getItem('token'))}`
+        },
+      })
+      gettests()
+    } catch (error) {
+      console.error(error)
+    }
   };
 
   return (
@@ -54,6 +100,7 @@ function Labsdashboard() {
                 value={formData.testName}
                 onChange={handleChange}
                 className="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-blue-500 appearance-none cursor-pointer"
+                required
               >
                 <option value="" disabled>Select a test</option>
                 <option value="Complete blood count (CBC) with ESR">Complete blood count (CBC) with ESR</option>
@@ -71,18 +118,6 @@ function Labsdashboard() {
           </div>
 
           <div>
-            <label htmlFor="description" className="block text-gray-300 mb-2">Description</label>
-            <textarea
-              id="description"
-              value={formData.description}
-              onChange={handleChange}
-              rows="4"
-              className="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-blue-500"
-              placeholder="Enter test description"
-            ></textarea>
-          </div>
-
-          <div>
             <label htmlFor="price" className="block text-gray-300 mb-2">Price (₹)</label>
             <input
               type="number"
@@ -91,6 +126,7 @@ function Labsdashboard() {
               onChange={handleChange}
               className="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-blue-500"
               placeholder="Enter test price"
+              required
             />
           </div>
           <button
@@ -109,14 +145,13 @@ function Labsdashboard() {
             {tests.map((test, index) => (
               <div key={index} className="bg-gray-800 p-4 rounded-lg flex justify-between items-center">
                 <div>
-                  <h3 className="text-white font-semibold">{test.testName}</h3>
-                  <p className="text-gray-400 text-sm mt-1">{test.description}</p>
-                  <p className="text-gray-300 mt-1">₹{test.price}</p>
+                  <h3 className="text-white font-semibold">{test.test_name}</h3>
+                  <p className="text-gray-300 mt-1">₹{test.test_price}</p>
                 </div>
                 <div className="flex space-x-2">
                   <button 
                     className="p-2 text-red-500 hover:text-red-400"
-                    onClick={() => handleDelete(index)}
+                    onClick={() => handleDelete(test.test_id)}
                   >
                     <FaTrash />
                   </button>

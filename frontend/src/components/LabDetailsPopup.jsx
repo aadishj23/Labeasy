@@ -54,9 +54,9 @@ function LabDetailsPopup({ testId, testName, onClose }) {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold">₹{lab.price}</div>
+                  <div className="text-2xl font-bold">₹{0.8*lab.originalPrice}</div>
                   <div className="text-gray-500 line-through text-sm">₹{lab.originalPrice}</div>
-                  <div className="text-green-600 text-sm font-semibold">{lab.discount}</div>
+                  <div className="text-green-600 text-sm font-semibold">20% off</div>
                 </div>
               </div>
               
