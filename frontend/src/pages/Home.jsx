@@ -69,43 +69,43 @@ const Home = () => {
       <Navbar />
 
       {/* First Section */}
-      <div className="h-screen relative mb-32">
+      <div className="min-h-screen relative mb-16 md:mb-32">
         <div className="absolute inset-0 bg-center bg-cover bg-no-repeat" style={{ backgroundImage: `url("https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExZjdoNWh5YWoxdm9nczQyazNnN3c5bTMydWRsdGdndHB5MTR1cW43bCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/QTfa8EZ9dQAHzF4e06/giphy.webp")`, opacity: 0.5 }}></div>
-        <div className="container mx-auto px-4 h-full flex space-x-[12rem] items-center relative">
-          <div className="w-1/2 ml-[-3rem] bg-black bg-opacity-30 backdrop-filter backdrop-blur-md p-10 rounded-md border border-gray-700/50">
-            <h1 className="text-5xl font-bold mb-12 bg-gradient-to-r from-blue-500 via-blue-100 to-gray-500 text-transparent bg-clip-text animate-gradient">WELCOME TO LABEASY</h1>
-            <p className="text-white text-xl text-justify">
+        <div className="container mx-auto px-4 h-full flex flex-col md:flex-row md:space-x-12 lg:space-x-[12rem] items-center relative py-24 md:py-36">
+          <div className="w-full md:w-1/2 md:ml-[-3rem] bg-black bg-opacity-30 backdrop-filter backdrop-blur-md p-6 md:p-10 rounded-md border border-gray-700/50 mb-8 md:mb-0">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 md:mb-12 bg-gradient-to-r from-blue-500 via-blue-100 to-gray-500 text-transparent bg-clip-text animate-gradient">WELCOME TO LABEASY</h1>
+            <p className="text-white text-base md:text-lg lg:text-xl text-justify">
              Discover a healthier you with real-time lab bookings, personalized recommendations, and secure report storage that lets you track your health milestones effortlessly.
             </p>
-            <Link to="/tests" className="mt-14 px-8 py-3 text-lg font-semibold rounded-full bg-gradient-to-r from-blue-500 via-blue-300 to-gray-500 text-white 
+            <Link to="/tests" className="mt-8 md:mt-14 px-6 md:px-8 py-2 md:py-3 text-base md:text-lg font-semibold rounded-full bg-gradient-to-r from-blue-500 via-blue-300 to-gray-500 text-white 
             transform hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/50 inline-block">
               Book now
             </Link>
           </div>
-          <div className="w-[50%] h-[80%] flex justify-center">
-            <img src={dna} alt="DNA" className="w-full h-full " />
+          <div className="w-full md:w-[50%] h-[300px] md:h-[80%]  flex justify-center">
+            <img src={dna} alt="DNA" className="w-full h-full object-contain" />
           </div>
         </div>
       </div>
 
       {/* Second Section */}
-      <section className="bg-black text-white py-12 px-4 sm:px-6 lg:px-8 mb-32" ref={sectionRef}>
-        <div className="text-center mb-10">
-          <h2 className="text-lg sm:text-xl text-blue-400 mb-2 gsap-title" ref={titleRef}>Our Process</h2>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold gsap-subtitle" ref={subtitleRef}>How Labeasy <span className="text-blue-500">Works</span></h1>
+      <section className="bg-black text-white py-8 md:py-12 px-4 sm:px-6 lg:px-8 mb-16 md:mb-32" ref={sectionRef}>
+        <div className="text-center mb-8 md:mb-10">
+          <h2 className="text-base md:text-lg lg:text-xl text-blue-400 mb-2 gsap-title" ref={titleRef}>Our Process</h2>
+          <h1 className="text-xl md:text-3xl lg:text-4xl font-bold gsap-subtitle" ref={subtitleRef}>How Labeasy <span className="text-blue-500">Works</span></h1>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8 max-w-6xl mx-auto">
           {steps.map((step, index) => (
             <div
               key={step.id}
-              className="p-8 border border-gray-700 rounded-lg text-center transition-all duration-300 transform hover:border-blue-500 bg-black bg-opacity-50 backdrop-filter backdrop-blur-sm gsap-card relative mt-10"
+              className="p-6 md:p-8 border border-gray-700 rounded-lg text-center transition-all duration-300 transform hover:border-blue-500 bg-black bg-opacity-50 backdrop-filter backdrop-blur-sm gsap-card relative mt-8 md:mt-10"
               data-index={index}
               ref={(el) => (cardRefs.current[index] = el)}
             >
-              <div className="text-3xl sm:text-4xl mb-4">{step.icon}</div>
-              <h3 className="text-lg sm:text-xl font-semibold mb-2">{step.title}</h3>
-              <p className="text-sm sm:text-base text-gray-400">{step.description}</p>
-              <div className="absolute top-0 left-0 text-white text-8xl font-bold z-[-1]" style={{ transform: 'translateX(-50%) translateY(-50%)' }}>{index + 1}</div>
+              <div className="text-2xl md:text-3xl lg:text-4xl mb-3 md:mb-4">{step.icon}</div>
+              <h3 className="text-base md:text-lg lg:text-xl font-semibold mb-2">{step.title}</h3>
+              <p className="text-xs md:text-sm lg:text-base text-gray-400">{step.description}</p>
+              <div className="absolute top-0 left-0 text-white text-6xl md:text-8xl font-bold z-[-1]" style={{ transform: 'translateX(-50%) translateY(-50%)' }}>{index + 1}</div>
             </div>
           ))}
         </div>

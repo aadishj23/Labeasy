@@ -15,7 +15,7 @@ function TestCard({ testId = 1 }) {
           <h2 className="text-lg font-bold">{test.name}</h2>
           <p className="mt-2">{test.availableLabs} Labs available</p>
           
-          <div className="absolute top-2 right-2 bg-orange-500 text-white text-xs font-semibold px-2 py-1 rounded">
+          <div className="absolute bottom-2 right-2 bg-orange-500 text-white text-xs font-semibold px-2 py-1 rounded">
             {test.discount}
           </div>
           
