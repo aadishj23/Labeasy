@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import labTests from '../data/labTests.json';
 import LabDetailsPopup from './LabDetailsPopup';
 
-function LabCard({ testId = 1 }) {
+function TestCard({ testId = 1 }) {
   const [showDetails, setShowDetails] = useState(false);
   const test = labTests.labTests.find(test => test.id === testId);
 
@@ -66,8 +66,8 @@ function LabCard({ testId = 1 }) {
   );
 }
 
-LabCard.propTypes = {
+TestCard.propTypes = {
   testId: PropTypes.number
 };
 
-export default LabCard;
+export default TestCard;

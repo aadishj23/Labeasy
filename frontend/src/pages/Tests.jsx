@@ -1,6 +1,6 @@
 import Navbar from '../components/navbar';
 import Footer from '../components/footer';
-import LabCard from '../components/LabCard';
+import TestCard from '../components/TestCard';
 const Tests = () => {
   return (
     <div className="bg-black">
@@ -12,14 +12,14 @@ const Tests = () => {
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-8">
-              <LabCard testId={1} />
-              <LabCard testId={2} />
-              <LabCard testId={3} />
+              <TestCard testId={1} />
+              <TestCard testId={2} />
+              <TestCard testId={3} />
             </div>
             <div className="space-y-8">
-              <LabCard testId={4} />
-              <LabCard testId={5} />
-              <LabCard testId={6} />
+              <TestCard testId={4} />
+              <TestCard testId={5} />
+              <TestCard testId={6} />
             </div>
           </div>
         </div>
