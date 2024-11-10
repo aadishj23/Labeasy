@@ -10,48 +10,65 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("DATABASE_URL")r
 }
 
 model User {
-  id       String    @id @default(dbgenerated())
-  password String
-  name     String
-  email    String    @unique
-  phone    String    @unique
+  id        String     @id @default(dbgenerated())
+  password  String
+  name      String
+  email     String     @unique
+  phone     String     @unique
+  userTests UserTest[]
 }
 
 model Lab {
-  id         String    @id @default(dbgenerated())
+  id         String     @id @default(dbgenerated())
   lab_name   String     @unique
   owner_name String
-  phone      String    @unique
-  email      String    @unique
+  phone      String     @unique
+  email      String     @unique
   password   String
-  license_no String    @unique
-  gst_no     String    @unique
+  license_no String     @unique
+  gst_no     String     @unique
   address    String
   city       String
   state      String
   pincode    String
   labTests   LabTest[]
+  userTests  UserTest[]
 }
 
 model Tests {
-  id              String    @id @default(dbgenerated())
-  test_name       String    @unique
+  id               String     @id @default(dbgenerated())
+  test_name        String     @unique
   test_description String
-  labTests        LabTest[]
+  labTests         LabTest[]
+  userTests        UserTest[]
 }
 
 model LabTest {
-  lab_id    String
-  lab_name  String
-  test_id   String
-  test_price      String
-  test_name String
+  lab_id           String
+  lab_name         String
+  test_id          String
+  test_price       String
+  test_name        String
   test_description String
-  lab       Lab      @relation(fields: [lab_id], references: [id], onDelete: Cascade)
-  test      Tests    @relation(fields: [test_id], references: [id], onDelete: Cascade)
-  @@id([lab_id, test_id]) 
+  lab              Lab    @relation(fields: [lab_id], references: [id], onDelete: Cascade)
+  test             Tests  @relation(fields: [test_id], references: [id], onDelete: Cascade)
+  @@id([lab_id, test_id])
+}
+
+model UserTest {
+  id            String   @id @default(dbgenerated())
+  user_id       String
+  lab_id        String
+  test_id       String
+  purchase_date DateTime @default(now())
+  test_price    String
+  drive_link    String?
+  user          User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  lab           Lab      @relation(fields: [lab_id], references: [id], onDelete: Cascade)
+  test          Tests    @relation(fields: [test_id], references: [id], onDelete: Cascade)
+  @@unique([user_id, test_id, lab_id])
 }
