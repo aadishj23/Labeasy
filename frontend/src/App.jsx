@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Tests from './pages/Tests';
-import Labs from './pages/Labs';
+import Results from './pages/Results';
 import SigninLab from './pages/SigninLab';
 import SignUpLab from './pages/SignUpLab';
 import SignupPatient from './pages/SignUpPatients';
@@ -17,7 +17,7 @@ export default function App() {
         <Route path="/" element={<RecoilRoot><Home /></RecoilRoot>} />
         <Route path="*" element={<div>Page not found</div>} />
         <Route path="/tests" element={<RecoilRoot><Tests /></RecoilRoot>} />
-        <Route path="/labs" element={<RecoilRoot><Labs /></RecoilRoot>} />
+        <Route path="/results" element={<RecoilRoot><Results /></RecoilRoot>} />
         <Route path="/signinlab" element={<RecoilRoot><SigninLab /></RecoilRoot>} />
         <Route path="/signuplab" element={<RecoilRoot><SignUpLab /></RecoilRoot>} />
         <Route path="/signupuser" element={<RecoilRoot><SignupPatient /></RecoilRoot>} />

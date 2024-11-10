@@ -45,9 +45,9 @@ export default function Navbar() {
 
         {/* Desktop Menu */}
         <div className="hidden md:flex space-x-4">
-          <button className="flex items-center bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400" onClick={() => navigate('/labs')}>
+          <button className="flex items-center bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400" onClick={() => navigate('/results')}>
             <FaFlask className="mr-2" />
-            Labs
+            Results
           </button>
           <button className="flex items-center bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400" onClick={() => navigate('/tests')}>
             <FaClipboardList className="mr-2" />
