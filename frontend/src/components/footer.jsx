@@ -1,13 +1,19 @@
 import { FaInstagram, FaFacebook, FaTwitter, FaLinkedin } from 'react-icons/fa';
+import logo from '../assets/logocbs.png';
+import { useNavigate } from 'react-router-dom';
+
 
 const Footer = () => {
+  const navigate = useNavigate();
   return (
     <footer className="bg-black text-white py-10 border-t border-white">
       <div className="container mx-auto flex flex-col space-y-8">
         <div className="flex flex-col md:flex-row justify-between items-center md:items-start space-y-8 md:space-y-0 md:space-x-8">
           {/* Left Section */}
           <div className="flex flex-col items-center md:items-start">
-            <h1 className="text-lg font-bold">Logo</h1>
+          <div className="text-white text-xl font-bold mr-4" onClick={() => navigate('/')} style={{ cursor: 'pointer', fontFamily: 'Bank Gothic' }}>
+          <img src={logo} alt="Logo" className="w-[12rem] " />
+        </div>
             <div className="flex space-x-4 mt-4">
               <FaInstagram className="text-white text-2xl cursor-pointer hover:text-gray-400" />
               <FaFacebook className="text-white text-2xl cursor-pointer hover:text-gray-400" />
