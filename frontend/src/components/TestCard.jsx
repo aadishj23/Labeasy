@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import labTests from '../data/labTests.json';
 import LabDetailsPopup from './LabDetailsPopup';
 
-function TestCard({ testId = 1 }) {
+function TestCard({ name , testId}) {
   const [showDetails, setShowDetails] = useState(false);
   const test = labTests.labTests.find(test => test.id === testId);
 
@@ -12,11 +12,11 @@ function TestCard({ testId = 1 }) {
       <div className="bg-gray-100 rounded-lg shadow-lg flex p-4 w-full max-w-lg mx-auto">
         {/* Left Section */}
         <div className="bg-blue-800 text-white p-4 rounded-lg w-2/3 relative">
-          <h2 className="text-lg font-bold">{test.name}</h2>
-          <p className="mt-2">{test.availableLabs} Labs available</p>
+          <h2 className="text-lg font-bold">{name}</h2>
+          <p className="mt-2">4 Labs available</p>
           
           <div className="absolute bottom-2 right-2 bg-orange-500 text-white text-xs font-semibold px-2 py-1 rounded">
-            {test.discount}
+            20% off
           </div>
           
           <div className="absolute bottom-4 left-4">
@@ -41,7 +41,7 @@ function TestCard({ testId = 1 }) {
                 <path d="M..." />
               </svg>
             </span>
-            <p className="text-gray-700 text-sm">{test.testsIncluded} tests included</p>
+            <p className="text-gray-700 text-sm">10 tests included</p>
           </div>
           
           <div className="flex items-center space-x-2">
@@ -50,7 +50,7 @@ function TestCard({ testId = 1 }) {
                 <path d="M..." />
               </svg>
             </span>
-            <p className="text-gray-700 text-sm">Report in {test.reportTime}</p>
+            <p className="text-gray-700 text-sm">Report in 12hrs</p>
           </div>
         </div>
       </div>
@@ -58,7 +58,7 @@ function TestCard({ testId = 1 }) {
       {showDetails && (
         <LabDetailsPopup 
           testId={test.id}
-          testName={test.name}
+          testName={name}
           onClose={() => setShowDetails(false)}
         />
       )}

@@ -27,7 +27,7 @@ const SigninLab = () => {
         setIsLoading(true)
         try {
             const response = await axios({
-                url: "http://localhost:5000/api/v1/auth/signinlab",
+                url: "http://localhost:3000/api/v1/auth/signinlab",
                 method: "POST",
                 data: JSON.stringify({
                     email: signInData.Email,

@@ -26,7 +26,7 @@ function SignupPatient() {
             setIsLoading(true)
             try {
                 await axios({
-                    url: "http://localhost:5000/api/v1/auth/signupuser",
+                    url: "http://localhost:3000/api/v1/auth/signupuser",
                     method: "POST",
                     data: JSON.stringify({
                         name: signUpData.Name,

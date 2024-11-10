@@ -15,7 +15,7 @@ function Labsdashboard() {
 	const getTestsData = async () => {
 		try {
 			const response = await axios({
-				url: "http://localhost:5000/api/v1/tests/gettests",
+				url: "http://localhost:3000/api/v1/tests/gettests",
 				method: "GET",
 				headers: {
 					"Content-Type": "application/json",
@@ -35,7 +35,7 @@ function Labsdashboard() {
 	const gettests = async () => {
 		try {
 			const response = await axios({
-				url: "http://localhost:5000/api/v1/tests/gettestsforlab",
+				url: "http://localhost:3000/api/v1/tests/gettestsforlab",
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -56,7 +56,7 @@ function Labsdashboard() {
 		e.preventDefault();
 		try {
 			await axios({
-				url: "http://localhost:5000/api/v1/tests/addlabtest",
+				url: "http://localhost:3000/api/v1/tests/addlabtest",
 				method: "POST",
 				data: JSON.stringify({
 					test_name: formData.testName,
@@ -87,7 +87,7 @@ function Labsdashboard() {
 	const handleDelete = async (id) => {
 		try {
 			const newTests = await axios({
-				url: `http://localhost:5000/api/v1/tests/deletelabtest/${id}`,
+				url: `http://localhost:3000/api/v1/tests/deletelabtest/${id}`,
 				method: "DELETE",
 				headers: {
 					"Content-Type": "application/json",
