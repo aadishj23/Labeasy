@@ -1,11 +1,32 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import labTests from '../data/labTests.json';
 import LabDetailsPopup from './LabDetailsPopup';
+import axios from 'axios';
 
 function TestCard({ name , testId}) {
   const [showDetails, setShowDetails] = useState(false);
-  const test = labTests.labTests.find(test => test.id === testId);
+  const [labsList, setLabsList] = useState([]);
+
+  const handleLabs = async () => {
+    setShowDetails(true)
+    try {
+      const response = await axios({
+        url: "http://localhost:3000/api/v1/tests/getlabsfortest",
+        method: "POST",
+        data: JSON.stringify({ 
+          test_name: name,
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${JSON.parse(localStorage.getItem('token'))}`,
+        },
+      });
+      setLabsList(response.data.labs);
+      console.log(response.data.labs);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <>
@@ -29,7 +50,7 @@ function TestCard({ name , testId}) {
         {/* Right Section */}
         <div className="flex flex-col items-start justify-between w-1/3 pl-4">
           <button 
-            onClick={() => setShowDetails(true)}
+            onClick={handleLabs}
             className="text-blue-500 border border-blue-500 rounded-md py-2 px-4 w-full mb-4 hover:bg-blue-100"
           >
             Lab details
@@ -57,7 +78,8 @@ function TestCard({ name , testId}) {
 
       {showDetails && (
         <LabDetailsPopup 
-          testId={test.id}
+          testId={testId}
+          labsdata={labsList}
           testName={name}
           onClose={() => setShowDetails(false)}
         />
@@ -67,7 +89,7 @@ function TestCard({ name , testId}) {
 }
 
 TestCard.propTypes = {
-  testId: PropTypes.number
+  testId: PropTypes.string
 };
 
 export default TestCard;

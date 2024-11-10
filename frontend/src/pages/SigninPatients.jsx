@@ -39,6 +39,7 @@ const SigninPatient = () => {
             })
             localStorage.setItem('token', JSON.stringify(response.data.token))
             localStorage.setItem('name', JSON.stringify(response.data.name))
+            localStorage.setItem('type', JSON.stringify(response.data.type))
             setLoggedIn(true)
             navigate('/')
         } catch (error) {
@@ -52,7 +53,7 @@ const SigninPatient = () => {
   return (
     <div>
       <Navbar />
-      <div className="signin flex justify-center items-center min-h-screen bg-gray-100">
+      <div className="signin flex justify-center items-center min-h-screen bg-black">
             <form
                 className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm"
                 onSubmit={handleSubmitSignIn}

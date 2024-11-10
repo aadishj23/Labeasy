@@ -40,7 +40,7 @@ router.post('/addlabtest', auth, async (req, res) => {
     }
 });
 
-router.post('/getlabsfortest', auth, async (req, res) => {  //to view labs for a particular test
+router.post('/getlabsfortest', async (req, res) => {  //to view labs for a particular test
     const {test_name} = req.body;
     try {
         const test= await prisma.tests.findUnique({

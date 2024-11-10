@@ -32,7 +32,7 @@ router.post('/addtest',  async (req, res) => {  //admin login
     }
 });
 
-router.get('/gettests', auth , async (req, res) => {  //to render tests on page
+router.get('/gettests' , async (req, res) => {  //to render tests on page
     try{
         const tests = await prisma.tests.findMany();
         res.status(200).json({ 

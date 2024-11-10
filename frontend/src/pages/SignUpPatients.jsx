@@ -51,7 +51,7 @@ function SignupPatient() {
     }
 
     return (
-        <div className="signup flex justify-center items-center min-h-screen bg-gray-100">
+        <div className="signup flex justify-center items-center min-h-screen bg-black">
             <Navbar />
             <form
                 className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm"

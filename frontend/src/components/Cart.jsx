@@ -24,9 +24,9 @@ function Cart() {
   };
 
   const calculateTotal = (items) => {
-    const sum = items.reduce((acc, item) => acc + item.price, 0);
+    const sum = items.reduce((acc, item) => acc + Number(item.price), 0);
     setTotal(sum);
-  };
+  };  
 
   const removeFromCart = (testId, labId) => {
     const updatedCart = {

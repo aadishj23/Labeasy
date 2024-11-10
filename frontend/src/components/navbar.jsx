@@ -21,6 +21,7 @@ export default function Navbar() {
     localStorage.removeItem('token');
     localStorage.removeItem('lab_name');
     localStorage.removeItem('name');
+    localStorage.removeItem('type');
     setShowSignInPopup(false);
     navigate('/');
   };
@@ -44,7 +45,7 @@ export default function Navbar() {
         </div>
 
         {/* Desktop Menu */}
-        <div className="hidden md:flex space-x-4">
+        { (JSON.parse(localStorage.getItem("type")) != 'lab') && (<span className='-mr-40'><div className="hidden md:flex space-x-4">
           <button className="flex items-center bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400" onClick={() => navigate('/results')}>
             <FaFlask className="mr-2" />
             Results
@@ -57,6 +58,9 @@ export default function Navbar() {
             <FaShoppingCart className="mr-2" />
             Cart
           </button>
+          </div>
+          </span>)}
+        <div>
           <button className="bg-transparent text-white rounded-full p-2 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600" onClick={handleSignInClick}>
             <FaUser />
           </button>
@@ -73,16 +77,16 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden mt-4 space-y-2">
-          <button className="w-full flex items-center bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400">
+        <div className="md:hidden mt-4 space-y-2 ">
+          <button className="w-full flex items-center bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400" onClick={() => navigate('/results')} >
             <FaFlask className="mr-2" />
-            Labs
+            Results
           </button>
-          <button className="w-full flex items-center bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400">
+          <button className="w-full flex items-center bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400" onClick={() => navigate('/tests')} >
             <FaClipboardList className="mr-2" />
             Tests
           </button>
-          <button className="w-full flex items-center bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400">
+          <button className="w-full flex items-center bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400" onClick={() => navigate('/cart')}>
             <FaShoppingCart className="mr-2" />
             Cart
           </button>

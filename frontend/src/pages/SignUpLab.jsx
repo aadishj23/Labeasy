@@ -58,7 +58,7 @@ function SignupLab() {
     }
 
     return (
-        <div className="signup flex justify-center items-center min-h-screen bg-gray-100 mt-16">
+        <div className="signup flex justify-center items-center min-h-screen bg-black mt-16">
             <Navbar />
             <form
                 className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm"
