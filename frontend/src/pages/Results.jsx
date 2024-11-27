@@ -1,30 +1,16 @@
 import React, {useEffect, useRef} from "react";
 import Chart from "chart.js/auto";
+import { loggedin } from "../store/atoms/loggedin";
 import Navbar from "../components/navbar";
 import Footer from "../components/footer";
+import { useRecoilValue } from "recoil";
 
 const Results = () => {
+
+	const isLoggedIn = useRecoilValue(loggedin);
+	console.log("Logged in state:", isLoggedIn);
+
 	const chartRef = useRef(null);
-
-	// Generate data function
-	// const generateData = () => {
-	//   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-	//   const data = [];
-	//   let value = 82;
-
-	//   // Generate past values with some random variation
-	//   for (let i = 11; i >= 0; i--) {
-	//     value = value - (Math.random() * 10 - 5); // Random variation between -5 and +5
-	//     data.unshift({ x: months[i], y: Math.round(value) });
-	//   }
-
-	//   // Add current value
-	//   data.push({ x: 'Current', y: 82 });
-
-	//   return data;
-	// };
-
-	// Generate data function with values between 75 and 80
 	const generateData = () => {
 		const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 		const data = [];
@@ -98,54 +84,62 @@ const Results = () => {
 						RESULTS
 					</h1>
 				</div>
-
-				<div className="max-w-6xl mx-auto bg-gray-900 rounded-lg p-6 mb-8">
-					<canvas ref={chartRef} id="hFactorChart"></canvas>
-				</div>
-
-				<div className="max-w-6xl mx-auto bg-gray-900 rounded-lg p-6">
-					<div className="grid grid-cols-3 gap-4 text-white font-semibold mb-4 text-center">
-						<div>Test Name</div>
-						<div>Report Link</div>
-						<div>Test Date</div>
+				{/* {isLoggedIn ? (
+				<div> */}
+					<div className="max-w-6xl mx-auto bg-gray-900 rounded-lg p-6 mb-8">
+						<canvas ref={chartRef} id="hFactorChart"></canvas>
 					</div>
 
-					<div className="space-y-4">
-						{[
-							{
-								name: "Liver Function Test",
-								link: "https://drive.google.com/file/d/1Mgccp4JaQAR0VKQGhjjdxdPb7W9Nwo3R/view?usp=sharing",
-								date: "2024-6-15",
-							},
-							{
-								name: "Leucocytes Test",
-								link: "https://drive.google.com/file/d/1AEeJK8IylqJ0_Eq2cVW_bVIvbIeOvg40/view?usp=sharing",
-								date: "2024-8-10",
-							},
-							{
-								name: "Complete Haemogram Test",
-								link: "https://drive.google.com/file/d/1YUdWe27UtC0kSgZrKMNyWL_4hqGcABJn/view?usp=sharing",
-								date: "2024-10-05",
-							},
-						].map((test, index) => (
-							<div
-								key={index}
-								className="grid grid-cols-3 gap-4 text-gray-300 text-center items-center bg-gray-800 p-4 rounded">
-								<div>{test.name}</div>
-								<div>
-									<a
-										href={test.link}
-										target="_blank"
-										className="text-blue-400 hover:text-blue-300"
-										rel="noopener noreferrer">
-										View Report
-									</a>
+					<div className="max-w-6xl mx-auto bg-gray-900 rounded-lg p-6">
+						<div className="grid grid-cols-3 gap-4 text-white font-semibold mb-4 text-center">
+							<div>Test Name</div>
+							<div>Report Link</div>
+							<div>Test Date</div>
+						</div>
+
+						<div className="space-y-4">
+							{[
+								{
+									name: "Liver Function Test",
+									link: "https://drive.google.com/file/d/1Mgccp4JaQAR0VKQGhjjdxdPb7W9Nwo3R/view?usp=sharing",
+									date: "2024-6-15",
+								},
+								{
+									name: "Leucocytes Test",
+									link: "https://drive.google.com/file/d/1AEeJK8IylqJ0_Eq2cVW_bVIvbIeOvg40/view?usp=sharing",
+									date: "2024-8-10",
+								},
+								{
+									name: "Complete Haemogram Test",
+									link: "https://drive.google.com/file/d/1YUdWe27UtC0kSgZrKMNyWL_4hqGcABJn/view?usp=sharing",
+									date: "2024-10-05",
+								},
+							].map((test, index) => (
+								<div
+									key={index}
+									className="grid grid-cols-3 gap-4 text-gray-300 text-center items-center bg-gray-800 p-4 rounded">
+									<div>{test.name}</div>
+									<div>
+										<a
+											href={test.link}
+											target="_blank"
+											className="text-blue-400 hover:text-blue-300"
+											rel="noopener noreferrer">
+											View Report
+										</a>
+									</div>
+									<div>{test.date}</div>
 								</div>
-								<div>{test.date}</div>
-							</div>
-						))}
+							))}
+						</div>
 					</div>
-				</div>
+				{/* </div>) : (
+					<div className="flex items-center justify-center text-white min-h-[300px]">
+						<h2 className="text-2xl font-semibold">
+							Please log in first to see the test results.
+						</h2>
+				  	</div>
+				)} */}
 			</div>
 
 			<Footer />

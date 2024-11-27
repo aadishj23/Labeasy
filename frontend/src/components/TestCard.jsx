@@ -11,7 +11,7 @@ function TestCard({ name , testId}) {
     setShowDetails(true)
     try {
       const response = await axios({
-        url: "http://localhost:3000/api/v1/tests/getlabsfortest",
+        url: `${import.meta.env.VITE_BACKEND_URL}/api/v1/tests/getlabsfortest`,
         method: "POST",
         data: JSON.stringify({ 
           test_name: name,

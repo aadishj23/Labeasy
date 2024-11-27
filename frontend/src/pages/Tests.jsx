@@ -12,7 +12,7 @@ const Tests = () => {
   const getTestsData = async () => {
     try {
       const response = await axios({
-        url: "http://localhost:3000/api/v1/tests/gettests",
+        url: `${import.meta.env.VITE_BACKEND_URL}/api/v1/tests/gettests`,
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -32,7 +32,7 @@ const Tests = () => {
   }, []);
 
   return (
-    <div className="bg-black">
+    <div className="bg-black min-h-screen">
       <Navbar />
       <div className="pt-16 sm:pt-20 md:pt-24 pb-6 sm:pb-8">
         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-center bg-gradient-to-r from-white via-gray-300 to-black text-transparent bg-clip-text animate-gradient-x relative mb-8 sm:mb-10 md:mb-12 px-4" >

@@ -26,7 +26,7 @@ function SignupPatient() {
             setIsLoading(true)
             try {
                 await axios({
-                    url: "http://localhost:3000/api/v1/auth/signupuser",
+                    url: `${import.meta.env.VITE_BACKEND_URL}/api/v1/auth/signupuser`,
                     method: "POST",
                     data: JSON.stringify({
                         name: signUpData.Name,

@@ -29,10 +29,13 @@ export default function Navbar() {
   return (
     <nav className="bg-black px-8 py-4 fixed top-0 w-full z-50">
       <div className="flex items-center justify-between">
-        {/* Logo raushan bna rha hai*/}
         <div className="text-white text-xl font-bold mr-4" onClick={() => navigate('/')} style={{ cursor: 'pointer', fontFamily: 'Bank Gothic' }}>
           <img src={logo} alt="Logo" className="w-[12rem] " />
         </div>
+
+        {isLoggedIn && <div className="text-white text-xl font-bold mr-4" onClick={() => navigate('/')} style={{ cursor: 'pointer'}}>
+          {JSON.parse(localStorage.getItem("type")) == 'lab' ? JSON.parse(localStorage.getItem('lab_name')) : JSON.parse(localStorage.getItem('name'))}
+        </div>}
 
         {/* Search Bar */}
         <div className="w-1/2 mr-4 relative">

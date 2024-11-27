@@ -12,19 +12,21 @@ import { RecoilRoot } from 'recoil';
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<RecoilRoot><Home /></RecoilRoot>} />
-        <Route path="*" element={<div>Page not found</div>} />
-        <Route path="/tests" element={<RecoilRoot><Tests /></RecoilRoot>} />
-        <Route path="/results" element={<RecoilRoot><Results /></RecoilRoot>} />
-        <Route path="/signinlab" element={<RecoilRoot><SigninLab /></RecoilRoot>} />
-        <Route path="/signuplab" element={<RecoilRoot><SignUpLab /></RecoilRoot>} />
-        <Route path="/signupuser" element={<RecoilRoot><SignupPatient /></RecoilRoot>} />
-        <Route path="/signinuser" element={<RecoilRoot><SigninPatient /></RecoilRoot>} />
-        <Route path="/cart" element={<RecoilRoot><Cart /></RecoilRoot>} />
-        <Route path="/labsdashboard" element={<RecoilRoot><Labsdashboard /></RecoilRoot>} />
-      </Routes>
-    </BrowserRouter>
+    <RecoilRoot>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="*" element={<div>Page not found</div>} />
+          <Route path="/tests" element={<Tests />} />
+          <Route path="/results" element={<Results />} />
+          <Route path="/signinlab" element={<SigninLab />} />
+          <Route path="/signuplab" element={<SignUpLab />} />
+          <Route path="/signupuser" element={<SignupPatient />} />
+          <Route path="/signinuser" element={<SigninPatient />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/labsdashboard" element={<Labsdashboard />} />
+        </Routes>
+      </BrowserRouter>
+    </RecoilRoot>
   );
 }

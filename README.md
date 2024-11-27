@@ -86,7 +86,7 @@ Labeasy is a platform that connects blood collection centers and labs with users
     - Start the frontend server:
       ```bash
       cd frontend
-      npm start
+      npm run dev
       ```
 
 6. **Access the Application**:

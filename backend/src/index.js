@@ -23,6 +23,10 @@ app.use((req, res, next) => {
   next();
 });
 
+app.get('/', (req, res) => {
+  res.send('Hello from Labeasy team');
+});
+
 app.use('/api/v1/auth', [userAuthRoutes,labAuthRoutes]);
 app.use('/api/v1/tests', [test, labtest, testData]);
 app.use('/api/v1/testData', [testData]);
