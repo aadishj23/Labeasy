@@ -8,7 +8,17 @@ import { useRecoilValue } from "recoil";
 const Results = () => {
 
 	const isLoggedIn = useRecoilValue(loggedin);
-	console.log("Logged in state:", isLoggedIn);
+
+	if (!isLoggedIn) {
+		return (
+		  <div className="bg-black min-h-screen flex flex-col justify-center">
+			<Navbar />
+			<div className="pt-20 pb-10 px-4 md:px-8 text-white text-center">
+			  <h1>Please log in to see the test results.</h1>
+			</div>
+		  </div>
+		);
+	  }
 
 	const chartRef = useRef(null);
 	const generateData = () => {
@@ -84,8 +94,6 @@ const Results = () => {
 						RESULTS
 					</h1>
 				</div>
-				{/* {isLoggedIn ? (
-				<div> */}
 					<div className="max-w-6xl mx-auto bg-gray-900 rounded-lg p-6 mb-8">
 						<canvas ref={chartRef} id="hFactorChart"></canvas>
 					</div>
@@ -133,13 +141,6 @@ const Results = () => {
 							))}
 						</div>
 					</div>
-				{/* </div>) : (
-					<div className="flex items-center justify-center text-white min-h-[300px]">
-						<h2 className="text-2xl font-semibold">
-							Please log in first to see the test results.
-						</h2>
-				  	</div>
-				)} */}
 			</div>
 
 			<Footer />
