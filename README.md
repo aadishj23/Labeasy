@@ -34,6 +34,48 @@ https://labeasy.aadish.tech/
 - **LabDetailsPopup Component**: Displays lab listings while maintaining cart functionality.
 - **database/**: PostgreSQL database managed with Prisma for seamless integration and data handling.
 
+## Pages
+
+### 1. Home
+
+![Home](https://drive.google.com/uc?id=1WDKnWV0erGIwXTbJdiwRmVUHHtfTnb6_)
+
+
+### 2. Tests
+
+![Tests](https://drive.google.com/uc?id=18LcJXQcHWqEfigVrj7_KZjHcc2FlWPaW)
+
+
+### 3. Cart
+
+![Cart](https://drive.google.com/uc?id=1576QFBgUUw8uzBbgWL_qzoQ2vI1ld6OA)
+
+
+### 4. SignIn
+
+![SignIn](https://drive.google.com/uc?id=1J5g_VrXPR4wCJZYBxkcfuz6PWKgvMmK6)
+
+
+### 5. SignUp User
+
+![SignUp User](https://drive.google.com/uc?id=1Zi_DWkE-EbvygPfLL8fX2d7DttJgrYEm)
+
+
+### 6. SignUp Lab
+
+![SignUp Lab](https://drive.google.com/uc?id=12GE6c5K0lx4axzoWbWXlScjyqY9T-v29)
+
+
+### 7. Results
+
+![Results](https://drive.google.com/uc?id=1LZ-Rwc2zBHDAdHtkGjou2vZ-LtOKltl1)
+
+
+### 8. Labs Dashboard
+
+![Labs Dashboard](https://drive.google.com/uc?id=1xcnURi8frBq85BjJvKGk5FE59aP7gqji)
+
+
 ## Getting Started
 
 ### Prerequisites
