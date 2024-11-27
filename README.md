@@ -2,6 +2,10 @@
 
 Labeasy is a platform that connects blood collection centers and labs with users looking for affordable and accessible diagnostic tests. Designed especially for tier 2 and tier 3 labs, Labeasy provides an online presence, simplifies price comparisons, and offers unique services such as report storage on the Solana blockchain. It also provides valuable data for insurance companies to streamline premium calculations, creating a comprehensive ecosystem for labs, users, and insurers.
 
+
+## Website
+https://labeasy.aadish.tech/
+
 ## Features
 
 1. **Lab and Test Listings**: Labs and collection centers can list themselves and add diagnostic tests with prices.
