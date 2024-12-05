@@ -29,8 +29,12 @@ export default function Navbar() {
   return (
     <nav className="bg-black px-8 py-4 fixed top-0 w-full z-50">
       <div className="flex items-center justify-between">
-        <div className="text-white text-xl font-bold mr-4" onClick={() => navigate('/')} style={{ cursor: 'pointer', fontFamily: 'Bank Gothic' }}>
+        <div className="text-white text-xl font-bold mr-4 hidden md:block" onClick={() => navigate('/')} style={{ cursor: 'pointer', fontFamily: 'Bank Gothic' }}>
           <img src={logo} alt="Logo" className="w-[12rem] " />
+        </div>
+
+        <div className="text-white text-xl font-bold mr-4 md:hidden" onClick={() => navigate('/')} style={{ cursor: 'pointer', fontFamily: 'Bank Gothic' }}>
+          <img src="./web.png" alt="Logo" className="w-10 " />
         </div>
 
         {isLoggedIn && <div className="text-white text-xl font-bold mr-4" onClick={() => navigate('/')} style={{ cursor: 'pointer'}}>
@@ -38,7 +42,7 @@ export default function Navbar() {
         </div>}
 
         {/* Search Bar */}
-        <div className="w-1/2 mr-4 relative">
+        <div className="w-1/2 mr-4 relative hidden md:block">
           <input
             type="text"
             placeholder="Search for tests..."
@@ -63,7 +67,7 @@ export default function Navbar() {
           </button>
           </div>
           </span>)}
-        <div>
+        <div className="hidden md:flex space-x-4">
           <button className="bg-transparent text-white rounded-full p-2 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600" onClick={handleSignInClick}>
             <FaUser />
           </button>
