@@ -85,15 +85,15 @@ export default function Navbar() {
       {/* Mobile Menu */}
       {isMenuOpen && (
         <div className="md:hidden mt-4 space-y-2 ">
-          <button className="w-full flex items-center bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400" onClick={() => navigate('/results')} >
+          <button className="w-full flex items-center justify-center bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400" onClick={() => navigate('/results')} >
             <FaFlask className="mr-2" />
             Results
           </button>
-          <button className="w-full flex items-center bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400" onClick={() => navigate('/tests')} >
+          <button className="w-full flex items-center justify-center bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400" onClick={() => navigate('/tests')} >
             <FaClipboardList className="mr-2" />
             Tests
           </button>
-          <button className="w-full flex items-center bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400" onClick={() => navigate('/cart')}>
+          <button className="w-full flex items-center justify-center bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400" onClick={() => navigate('/cart')}>
             <FaShoppingCart className="mr-2" />
             Cart
           </button>
