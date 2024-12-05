@@ -4,6 +4,7 @@ import { loggedin } from '../store/atoms/loggedin';
 import { useRecoilState } from 'recoil';
 import { useNavigate } from 'react-router-dom';
 import logo from '../assets/logocbs.png';
+import mobilelogo from '../assets/web.png';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -34,7 +35,7 @@ export default function Navbar() {
         </div>
 
         <div className="text-white text-xl font-bold mr-4 md:hidden" onClick={() => navigate('/')} style={{ cursor: 'pointer', fontFamily: 'Bank Gothic' }}>
-          <img src="./web.png" alt="Logo" className="w-10 " />
+          <img src={mobilelogo} alt="Logo" className="w-10 " />
         </div>
 
         {isLoggedIn && <div className="text-white text-xl font-bold mr-4" onClick={() => navigate('/')} style={{ cursor: 'pointer'}}>
