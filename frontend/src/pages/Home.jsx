@@ -69,7 +69,7 @@ const Home = () => {
       <Navbar />
 
       {/* First Section */}
-      <div className="min-h-screen relative mb-16 md:mb-32">
+      <div className="min-h-screen relative mb-16 md:mb-32 lg:px-20">
         <div className="absolute inset-0 bg-center bg-cover bg-no-repeat" style={{ backgroundImage: `url("https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExZjdoNWh5YWoxdm9nczQyazNnN3c5bTMydWRsdGdndHB5MTR1cW43bCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/QTfa8EZ9dQAHzF4e06/giphy.webp")`, opacity: 0.5 }}></div>
         <div className="container mx-auto px-4 h-full flex flex-col md:flex-row md:space-x-12 lg:space-x-[12rem] items-center relative py-24 md:py-36">
           <div className="w-full md:w-1/2 md:ml-[-3rem] bg-black bg-opacity-30 backdrop-filter backdrop-blur-md p-6 md:p-10 rounded-md border border-gray-700/50 mb-8 md:mb-0">
@@ -89,7 +89,7 @@ const Home = () => {
       </div>
 
       {/* Second Section */}
-      <section className="bg-black text-white py-8 md:py-12 px-4 sm:px-6 lg:px-8 mb-16 md:mb-32" ref={sectionRef}>
+      <section className="bg-black text-white py-8 md:py-12 px-10 sm:px-6 lg:px-8 mb-16 md:mb-32" ref={sectionRef}>
         <div className="text-center mb-8 md:mb-10">
           <h2 className="text-base md:text-lg lg:text-xl text-blue-400 mb-2 gsap-title" ref={titleRef}>Our Process</h2>
           <h1 className="text-xl md:text-3xl lg:text-4xl font-bold gsap-subtitle" ref={subtitleRef}>How Labeasy <span className="text-blue-500">Works</span></h1>

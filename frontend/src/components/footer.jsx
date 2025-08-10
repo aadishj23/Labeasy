@@ -7,7 +7,7 @@ const Footer = () => {
   const navigate = useNavigate();
   return (
     <footer className="bg-black text-white py-10 border-t border-white">
-      <div className="container mx-auto flex flex-col space-y-8">
+      <div className="container mx-auto px-20 flex flex-col space-y-8 mb-10">
         <div className="flex flex-col md:flex-row justify-between items-center md:items-start space-y-8 md:space-y-0 md:space-x-8">
           {/* Left Section */}
           <div className="flex flex-col items-center md:items-start">
@@ -51,10 +51,11 @@ const Footer = () => {
             </div>
           </div>
         </div>
+      </div>
 
         {/* Bottom Section */}
         <div className="border-t border-gray-800 pt-4">
-          <div className="flex flex-col md:flex-row justify-between items-center">
+          <div className="container mx-auto px-20 flex flex-col md:flex-row justify-between items-center">
             <p className="text-xs text-gray-400">
               © 2023 xyz Pvt. Ltd. All rights reserved
             </p>
@@ -64,7 +65,6 @@ const Footer = () => {
             </div>
           </div>
         </div>
-      </div>
     </footer>
   );
 };
