@@ -4,7 +4,7 @@ Labeasy is a platform that connects blood collection centers and labs with users
 
 
 ## Website
-https://labeasy.aadish.tech/
+https://labeasy.aadishjain.dev/
 
 ## Features
 
