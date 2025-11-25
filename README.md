@@ -156,7 +156,3 @@ https://labeasy.aadishjain.dev/
 ## Contributing
 
 Contributions are welcome! Please create a pull request for any enhancements, bug fixes, or new features.
-
-## License
-
-This project is licensed under the MIT License. See the LICENSE file for more details.
