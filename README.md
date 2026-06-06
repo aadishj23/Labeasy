@@ -21,18 +21,23 @@ https://labeasy.aadishjain.dev/
 
 ## Tech Stack
 
-- **Frontend**: React with Recoil for state management
-- **Backend**: Express.js
+- **Framework**: Next.js (App Router) with React and Zustand for state management
+- **Backend**: Next.js Route Handlers (`src/app/api/v1/**`)
 - **Database**: PostgreSQL with Prisma ORM
-- **Blockchain**: Solana for secure report storage
-- **UI Library**: Acternity UI for consistent and modern UI components
+- **Styling**: Tailwind CSS
+- **Blockchain**: Solana for secure report storage (planned)
 
 ## Project Structure
 
-- **frontend/**: Contains the frontend code, built with React and Recoil for state management.
-- **backend/**: Contains the backend code, built with Express.js and Prisma for database interactions.
-- **LabDetailsPopup Component**: Displays lab listings while maintaining cart functionality.
-- **database/**: PostgreSQL database managed with Prisma for seamless integration and data handling.
+A single, unified Next.js app (frontend + API in one same-origin project):
+
+- **src/app/**: Routes. Each `*/page.jsx` re-exports a client view from `src/views/`.
+- **src/app/api/v1/**: REST endpoints (`/auth/*`, `/tests/*`) — the former Express backend.
+- **src/views/**: Page bodies (Home, Tests, Cart, Results, Labs Dashboard, auth pages).
+- **src/components/**: Shared UI (navbar, footer, cart, test card, LabDetailsPopup) and `providers/`.
+- **src/store/**: Zustand store (`useAuthStore`) for global auth state.
+- **src/lib/**: `prisma` (singleton), `auth` (Bearer-token verifier), `validation` (zod schemas).
+- **prisma/**: Prisma schema and migrations for the PostgreSQL database.
 
 ## Pages
 
@@ -80,9 +85,8 @@ https://labeasy.aadishjain.dev/
 
 ### Prerequisites
 
-1. **Node.js** (v14 or higher)
+1. **Node.js** (v18.18 or higher)
 2. **PostgreSQL**
-3. **Prisma**
 
 ### Installation
 
@@ -92,51 +96,39 @@ https://labeasy.aadishjain.dev/
     cd labeasy
     ```
 
-2. **Install dependencies**:
-
-    - Install backend dependencies:
+2. **Configure environment variables**:
+    - Copy the template and fill in real values:
       ```bash
-      cd backend
-      npm install
+      cp .env.example .env
       ```
-
-    - Install frontend dependencies:
-      ```bash
-      cd ../frontend
-      npm install
-      ```
-
-3. **Setup Database**:
-    - Create a PostgreSQL database.
-    - Update the `.env` file in the backend with your database credentials.
+    - `DATABASE_URL` — your PostgreSQL connection string.
+    - `JWT_SECRET` — secret used to sign/verify auth tokens.
 
     ```env
     DATABASE_URL="postgresql://username:password@localhost:5432/labeasy"
+    JWT_SECRET="your_jwt_secret"
     ```
 
-    - Run Prisma migrations:
-      ```bash
-      cd backend
-      npx prisma migrate dev
-      ```
+3. **Install dependencies** (also runs `prisma generate`):
+    ```bash
+    npm install
+    ```
 
-4. **Blockchain Setup**:
-    - Connect the backend to the Solana blockchain for report storage (API keys and configuration for Solana network required).
+4. **Setup Database**:
+    - Apply Prisma migrations:
+      ```bash
+      npx prisma migrate deploy   # or `npx prisma migrate dev` in development
+      ```
 
 5. **Run the Application**:
-    - Start the backend server:
-      ```bash
-      cd backend
-      npm start
-      ```
-    - Start the frontend server:
-      ```bash
-      cd frontend
-      npm run dev
-      ```
+    ```bash
+    npm run dev      # development → http://localhost:3000
+    npm run build    # production build
+    npm run start    # serve the production build
+    ```
 
 6. **Access the Application**:
-    - Open a browser and go to `http://localhost:3000` for the frontend.
+    - Open a browser and go to `http://localhost:3000`.
 
 ## Usage
 

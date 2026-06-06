@@ -1,0 +1,44 @@
+import bcrypt from "bcryptjs";
+import { nanoid } from "nanoid";
+import prisma from "@/lib/prisma";
+import { signupUserSchema } from "@/lib/validation";
+import { verifyOtp } from "@/lib/otp";
+
+export async function POST(request) {
+  try {
+    const body = await request.json();
+    const { name, email, phone, password, otp } = body;
+
+    const parsedData = signupUserSchema.safeParse(body);
+    if (!parsedData.success) {
+      return Response.json(parsedData.error, { status: 400 });
+    }
+
+    const validOtp = await verifyOtp(email, "signup", otp);
+    if (!validOtp) {
+      return Response.json(
+        { message: "Invalid or expired verification code." },
+        { status: 400 }
+      );
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await prisma.user.create({
+      data: {
+        id: nanoid(),
+        name,
+        email,
+        phone,
+        password: hashedPassword,
+      },
+    });
+
+    return Response.json(
+      { message: "User created successfully", user },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error in /signupuser route:", error);
+    return Response.json({ message: "An error occurred", error }, { status: 500 });
+  }
+}
