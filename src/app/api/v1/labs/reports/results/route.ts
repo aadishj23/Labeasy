@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { verifyAuth, unauthorized } from "@/lib/auth";
 import { notifyOrderStatus } from "@/lib/email";
+import { creditOrderEarning } from "@/lib/wallet";
 
 type AnalyteIn = {
   name?: unknown;
@@ -73,6 +74,12 @@ export async function POST(request: Request) {
     await prisma.order.update({
       where: { id: order.id },
       data: { status: "COMPLETED" },
+    });
+    // Order is now complete — credit the lab's wallet.
+    await creditOrderEarning({
+      id: order.id,
+      lab_id: order.lab_id,
+      total: order.total,
     });
     void notifyOrderStatus({
       patientEmail: order.user?.email,

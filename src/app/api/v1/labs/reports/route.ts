@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { verifyAuth, unauthorized } from "@/lib/auth";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { notifyOrderStatus } from "@/lib/email";
+import { creditOrderEarning } from "@/lib/wallet";
 
 const ALLOWED_MIME = ["application/pdf", "image/jpeg", "image/png"];
 const MAX_BYTES = 10 * 1024 * 1024;
@@ -75,6 +76,12 @@ export async function POST(request: Request) {
       await prisma.order.update({
         where: { id: order.id },
         data: { status: "COMPLETED" },
+      });
+      // Order is now complete — credit the lab's wallet.
+      await creditOrderEarning({
+        id: order.id,
+        lab_id: order.lab_id,
+        total: order.total,
       });
       void notifyOrderStatus({
         patientEmail: order.user?.email,

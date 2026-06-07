@@ -22,6 +22,7 @@ import Footer from "@/components/footer";
 import { useAuthStore } from "@/store/useAuthStore";
 import { notifyCartChanged } from "@/lib/cart";
 import DateTimePicker from "@/components/datetime-picker";
+import TimeSelect from "@/components/time-select";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -78,7 +79,16 @@ function Cart() {
   const [collectionType, setCollectionType] = useState<"HOME" | "LAB_VISIT">(
     "LAB_VISIT"
   );
-  const [scheduledAt, setScheduledAt] = useState("");
+  const [scheduledDate, setScheduledDate] = useState(""); // yyyy-MM-dd
+  const [scheduledTime, setScheduledTime] = useState(""); // HH:mm
+  const scheduledAt =
+    scheduledDate && scheduledTime
+      ? (() => {
+          const [y, mo, d] = scheduledDate.split("-").map(Number);
+          const [h, mi] = scheduledTime.split(":").map(Number);
+          return new Date(y, mo - 1, d, h, mi, 0, 0).toISOString();
+        })()
+      : "";
   const [paying, setPaying] = useState(false);
   const [addresses, setAddresses] = useState<any[]>([]);
   const [addressId, setAddressId] = useState("");
@@ -145,7 +155,8 @@ function Cart() {
       return;
     }
     setCollectionType("LAB_VISIT");
-    setScheduledAt("");
+    setScheduledDate("");
+    setScheduledTime("");
     setAddressId("");
     setCouponCode("");
     setAppliedCode("");
@@ -213,6 +224,10 @@ function Cart() {
     if (!group) return;
     if (collectionType === "HOME" && !addressId) {
       toast.error("Please select a home-collection address.");
+      return;
+    }
+    if (!scheduledAt) {
+      toast.error("Please pick a date & time.");
       return;
     }
     setPaying(true);
@@ -499,16 +514,32 @@ function Cart() {
               </div>
             )}
 
-            <div>
-              <label className="mb-1 block text-sm font-medium">
-                Preferred date &amp; time
-              </label>
-              <DateTimePicker
-                value={scheduledAt}
-                onChange={setScheduledAt}
-                withTime
-                variant="future"
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="mb-1 block text-sm font-medium">
+                  Date <span className="text-destructive">*</span>
+                </label>
+                <DateTimePicker
+                  value={scheduledDate}
+                  onChange={(d) => {
+                    setScheduledDate(d);
+                    setScheduledTime(""); // reset time when date changes
+                  }}
+                  variant="future"
+                  placeholder="Pick a date"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium">
+                  Time <span className="text-destructive">*</span>
+                </label>
+                <TimeSelect
+                  value={scheduledTime}
+                  onChange={setScheduledTime}
+                  date={scheduledDate}
+                  disabled={!scheduledDate}
+                />
+              </div>
             </div>
 
             <div>
@@ -586,7 +617,9 @@ function Cart() {
               variant="gradient"
               onClick={handlePay}
               disabled={
-                paying || (collectionType === "HOME" && !addressId)
+                paying ||
+                !scheduledAt ||
+                (collectionType === "HOME" && !addressId)
               }
             >
               {paying ? (

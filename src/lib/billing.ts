@@ -22,11 +22,12 @@ export function isValidPeriod(period: string) {
 }
 
 /**
- * Generate (upsert) platform-fee invoices for every lab that had paid orders
- * in the given month. Re-running updates GMV/fee but preserves invoice status.
+ * Post the monthly platform fee for each lab to its wallet (a debit). The fee is
+ * deducted from the lab's balance (not billed separately). Idempotent per
+ * lab+period via the wallet entry's ref_id; re-running skips already-charged labs.
  * `period` is "YYYY-MM".
  */
-export async function generateInvoices(period: string) {
+export async function runPlatformFees(period: string) {
   const [y, m] = period.split("-").map(Number);
   const from = new Date(y, m - 1, 1);
   const to = new Date(y, m, 1);
@@ -41,15 +42,23 @@ export async function generateInvoices(period: string) {
     gmvByLab.set(o.lab_id, (gmvByLab.get(o.lab_id) || 0) + o.total);
   }
 
-  const invoices = [];
+  let charged = 0;
   for (const [lab_id, gmv] of gmvByLab) {
-    const fee = feeForGmv(Math.round(gmv / 100)) * 100; // paise
-    const invoice = await prisma.invoice.upsert({
-      where: { lab_id_period: { lab_id, period } },
-      update: { gmv, fee }, // keep existing status on re-run
-      create: { lab_id, period, gmv, fee, status: "PENDING" },
+    const feePaise = feeForGmv(Math.round(gmv / 100)) * 100;
+    if (feePaise <= 0) continue;
+    const refId = `fee:${lab_id}:${period}`;
+    const exists = await prisma.walletEntry.findFirst({ where: { ref_id: refId } });
+    if (exists) continue; // already charged this month
+    await prisma.walletEntry.create({
+      data: {
+        lab_id,
+        amount: -feePaise,
+        type: "PLATFORM_FEE",
+        description: `Platform fee for ${period} (GMV ₹${Math.round(gmv / 100)})`,
+        ref_id: refId,
+      },
     });
-    invoices.push(invoice);
+    charged++;
   }
-  return invoices;
+  return charged;
 }

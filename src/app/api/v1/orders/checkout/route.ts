@@ -29,7 +29,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Address is compulsory for home collection.
+    // Address is compulsory for home collection; date/time for every booking.
     const isHome = collectionType === "HOME";
     let address_id: string | null = null;
     if (isHome) {
@@ -47,6 +47,13 @@ export async function POST(request: Request) {
         );
       }
       address_id = addr.id;
+    }
+
+    if (!scheduledAt) {
+      return Response.json(
+        { message: "Please pick a date & time." },
+        { status: 400 }
+      );
     }
 
     // Recompute prices from the DB — never trust client-sent amounts.

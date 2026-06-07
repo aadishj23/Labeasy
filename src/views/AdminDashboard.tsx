@@ -12,14 +12,14 @@ import {
   Loader2,
   Building2,
   ClipboardCheck,
-  Receipt,
   Megaphone,
+  Wallet,
 } from "lucide-react";
 import { adminFetch, clearAdminToken, getAdminToken } from "@/lib/admin-client";
 import AdminLabQueue from "@/components/admin-lab-queue";
 import AdminChangeRequests from "@/components/admin-change-requests";
-import AdminBilling from "@/components/admin-billing";
 import AdminSponsored from "@/components/admin-sponsored";
+import AdminWallet from "@/components/admin-wallet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,7 +44,7 @@ export default function AdminDashboard() {
   const [err, setErr] = useState("");
   const [editing, setEditing] = useState<Test | null>(null);
   const [tab, setTab] = useState<
-    "tests" | "labs" | "requests" | "billing" | "sponsored"
+    "tests" | "labs" | "requests" | "sponsored" | "wallet"
   >("tests");
 
   const loadTests = useCallback(async () => {
@@ -196,16 +196,6 @@ export default function AdminDashboard() {
             <ClipboardCheck className="h-4 w-4" /> Change requests
           </button>
           <button
-            onClick={() => setTab("billing")}
-            className={`-mb-px inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium ${
-              tab === "billing"
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Receipt className="h-4 w-4" /> Billing
-          </button>
-          <button
             onClick={() => setTab("sponsored")}
             className={`-mb-px inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium ${
               tab === "sponsored"
@@ -215,9 +205,29 @@ export default function AdminDashboard() {
           >
             <Megaphone className="h-4 w-4" /> Sponsored
           </button>
+          <button
+            onClick={() => setTab("wallet")}
+            className={`-mb-px inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium ${
+              tab === "wallet"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Wallet className="h-4 w-4" /> Wallet
+          </button>
         </div>
 
-        {tab === "sponsored" ? (
+        {tab === "wallet" ? (
+          <>
+            <h1 className="text-2xl font-bold">Wallet & settlements</h1>
+            <p className="mt-1 text-muted-foreground">
+              Run monthly platform fees and settle balances owed to labs.
+            </p>
+            <div className="mt-8">
+              <AdminWallet />
+            </div>
+          </>
+        ) : tab === "sponsored" ? (
           <>
             <h1 className="text-2xl font-bold">Sponsored listings</h1>
             <p className="mt-1 text-muted-foreground">
@@ -225,16 +235,6 @@ export default function AdminDashboard() {
             </p>
             <div className="mt-8">
               <AdminSponsored />
-            </div>
-          </>
-        ) : tab === "billing" ? (
-          <>
-            <h1 className="text-2xl font-bold">Billing</h1>
-            <p className="mt-1 text-muted-foreground">
-              Generate monthly platform-fee invoices and reconcile payments.
-            </p>
-            <div className="mt-8">
-              <AdminBilling />
             </div>
           </>
         ) : tab === "requests" ? (

@@ -123,8 +123,8 @@ model Lab {
   packages        Package[]
   changeRequests  ProfileChangeRequest[]
   coupons         Coupon[]
-  invoices        Invoice[]
   sponsorships    SponsoredListing[]
+  walletEntries   WalletEntry[]
 }
 
 model LabDocument {
@@ -387,31 +387,35 @@ model CouponRedemption {
   @@index([user_id])
 }
 
-model Invoice {
-  id         String    @id @default(cuid())
-  lab_id     String
-  period     String // "YYYY-MM"
-  gmv        Int // paise — gross merchandise value that month
-  fee        Int // paise — platform fee per GMV slab
-  status     String    @default("PENDING") // PENDING | PAID | WAIVED
-  created_at DateTime  @default(now())
-  paid_at    DateTime?
-  lab        Lab       @relation(fields: [lab_id], references: [id], onDelete: Cascade)
+model WalletEntry {
+  id          String   @id @default(cuid())
+  lab_id      String
+  amount      Int // paise, signed: + = company owes lab, - = lab owes company
+  type        String // ORDER_EARNING | PLATFORM_FEE | SPONSORSHIP | TOPUP | PAYOUT | ADJUSTMENT
+  description String?
+  ref_id      String? // links to order/period/sponsorship/payout; also used for idempotency
+  created_at  DateTime @default(now())
+  lab         Lab      @relation(fields: [lab_id], references: [id], onDelete: Cascade)
 
-  @@unique([lab_id, period])
   @@index([lab_id])
+  @@index([ref_id])
 }
 
 model SponsoredListing {
-  id         String    @id @default(cuid())
-  lab_id     String
-  test_id    String? // null = directory-wide (/labs); set = a specific test page
-  starts_at  DateTime?
-  ends_at    DateTime?
-  active     Boolean   @default(true)
-  created_at DateTime  @default(now())
-  lab        Lab       @relation(fields: [lab_id], references: [id], onDelete: Cascade)
+  id                  String    @id @default(cuid())
+  lab_id              String
+  scope               String    @default("DIRECTORY") // EVERYWHERE | DIRECTORY | TESTS
+  test_ids            String[]  @default([]) // targeted tests when scope = TESTS
+  amount              Int       @default(0) // paise — total price
+  wallet_applied      Int       @default(0) // paise paid from wallet balance
+  starts_at           DateTime?
+  ends_at             DateTime?
+  active              Boolean   @default(false) // activated on payment
+  provider_order_id   String?
+  provider_payment_id String?
+  created_at          DateTime  @default(now())
+  lab                 Lab       @relation(fields: [lab_id], references: [id], onDelete: Cascade)
 
   @@index([lab_id])
-  @@index([test_id])
 }
+

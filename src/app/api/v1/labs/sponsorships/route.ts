@@ -1,16 +1,17 @@
 import prisma from "@/lib/prisma";
-import { verifyAdmin } from "@/lib/admin";
-import { forbidden } from "@/lib/api";
+import { verifyAuth, unauthorized } from "@/lib/auth";
 
-// Admin monitoring: all sponsorships (labs buy them self-serve).
-export async function GET(request: Request) {
-  if (!verifyAdmin(request)) return forbidden();
+// The current lab's sponsorships (paid placements), newest first.
+export async function GET() {
+  const auth = await verifyAuth();
+  if (!auth || auth.type !== "lab") return unauthorized();
 
   const listings = await prisma.sponsoredListing.findMany({
+    where: { lab_id: auth.labID, active: true },
     orderBy: { created_at: "desc" },
-    include: { lab: { select: { lab_name: true } } },
   });
 
+  // Resolve test names for TESTS-scope listings.
   const testIds = [...new Set(listings.flatMap((l) => l.test_ids))];
   const tests = testIds.length
     ? await prisma.tests.findMany({

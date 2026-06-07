@@ -21,7 +21,8 @@ import {
   Package,
   Ticket,
   BarChart3,
-  Receipt,
+  Wallet,
+  Megaphone,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Button } from "@/components/ui/button";
@@ -67,7 +68,8 @@ const LAB_NAV_LINKS = [
   { label: "Analytics", href: "/labsdashboard/analytics", icon: BarChart3 },
   { label: "Packages", href: "/labsdashboard/packages", icon: Package },
   { label: "Coupons", href: "/labsdashboard/coupons", icon: Ticket },
-  { label: "Billing", href: "/labsdashboard/billing", icon: Receipt },
+  { label: "Promote", href: "/labsdashboard/sponsorships", icon: Megaphone },
+  { label: "Wallet", href: "/labsdashboard/wallet", icon: Wallet },
 ];
 
 export default function Navbar() {
