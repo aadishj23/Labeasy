@@ -1,7 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Building2, MapPin, Star, BadgeCheck, ArrowLeft } from "lucide-react";
+import {
+  Building2,
+  MapPin,
+  Star,
+  BadgeCheck,
+  ArrowLeft,
+  Package as PackageIcon,
+  ArrowRight,
+} from "lucide-react";
 import prisma from "@/lib/prisma";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
@@ -17,6 +25,11 @@ async function getLab(slug: string) {
     where: { slug },
     include: {
       labTests: { where: { active: true } },
+      packages: {
+        where: { active: true },
+        orderBy: { created_at: "desc" },
+        include: { _count: { select: { items: true } } },
+      },
       reviews: {
         where: { status: "published" },
         orderBy: { created_at: "desc" },
@@ -126,6 +139,45 @@ export default async function LabPage({
           </div>
         </div>
       </section>
+
+      {lab.packages.length > 0 && (
+        <section className="mx-auto max-w-4xl px-6 pb-4 lg:px-8">
+          <h2 className="mb-4 text-lg font-semibold">
+            Packages{" "}
+            <span className="text-muted-foreground">({lab.packages.length})</span>
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {lab.packages.map((p: any) => (
+              <Link
+                key={p.id}
+                href={`/package/${p.slug}`}
+                className="group rounded-2xl border border-border bg-card p-5 transition-all hover:border-primary/40 hover:shadow-glow-sm"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/15 text-primary">
+                    <PackageIcon className="h-5 w-5" />
+                  </span>
+                  {p.mrp && p.mrp > p.price && (
+                    <Badge variant="warning">Save ₹{p.mrp - p.price}</Badge>
+                  )}
+                </div>
+                <h3 className="mt-4 font-semibold group-hover:text-primary">
+                  {p.name}
+                </h3>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {p._count.items} tests included
+                </p>
+                <div className="mt-3 flex items-center justify-between">
+                  <span className="text-xl font-bold">₹{p.price}</span>
+                  <span className="inline-flex items-center gap-1 text-sm text-primary">
+                    View <ArrowRight className="h-3.5 w-3.5" />
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="mx-auto max-w-4xl px-6 pb-24 lg:px-8">
         <h2 className="mb-4 text-lg font-semibold">

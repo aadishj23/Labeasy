@@ -13,6 +13,7 @@ import {
   Building2,
   Home,
   Loader2,
+  MapPin,
 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
@@ -48,7 +49,8 @@ function loadRazorpay(): Promise<boolean> {
 }
 
 type CartItem = {
-  testId: string;
+  testId?: string;
+  packageId?: string;
   testName: string;
   labId: string;
   labName: string;
@@ -74,6 +76,8 @@ function Cart() {
   );
   const [scheduledAt, setScheduledAt] = useState("");
   const [paying, setPaying] = useState(false);
+  const [addresses, setAddresses] = useState<any[]>([]);
+  const [addressId, setAddressId] = useState("");
 
   useEffect(() => {
     loadCartItems();
@@ -100,10 +104,15 @@ function Cart() {
     return [...map.values()];
   }, [cartItems]);
 
-  const removeFromCart = (testId: string, labId: string) => {
+  const removeFromCart = (item: CartItem) => {
     const updated = {
       cartItems: cartItems.filter(
-        (item) => !(item.testId === testId && item.labId === labId)
+        (i) =>
+          !(
+            i.labId === item.labId &&
+            i.testId === item.testId &&
+            i.packageId === item.packageId
+          )
       ),
     };
     localStorage.setItem("cart", JSON.stringify(updated));
@@ -117,7 +126,7 @@ function Cart() {
     setCartItems(updated.cartItems);
   };
 
-  const openCheckout = (group: LabGroup) => {
+  const openCheckout = async (group: LabGroup) => {
     if (!isLoggedIn) {
       toast.error("Please sign in to book.");
       router.push("/signinuser");
@@ -125,11 +134,29 @@ function Cart() {
     }
     setCollectionType("LAB_VISIT");
     setScheduledAt("");
+    setAddressId("");
     setActiveGroup(group);
+    // Load saved addresses for home-collection selection.
+    try {
+      const res = await fetch("/api/v1/users/profile", { cache: "no-store" });
+      if (res.ok) {
+        const d = await res.json();
+        const addrs = d.addresses || [];
+        setAddresses(addrs);
+        const def = addrs.find((a: any) => a.is_default) || addrs[0];
+        if (def) setAddressId(def.id);
+      }
+    } catch {
+      /* ignore */
+    }
   };
 
   const handlePay = async () => {
     if (!activeGroup) return;
+    if (collectionType === "HOME" && !addressId) {
+      toast.error("Please select a home-collection address.");
+      return;
+    }
     setPaying(true);
     try {
       const checkoutRes = await fetch("/api/v1/orders/checkout", {
@@ -137,9 +164,15 @@ function Cart() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           labId: activeGroup.labId,
-          testIds: activeGroup.items.map((i) => i.testId),
+          testIds: activeGroup.items
+            .filter((i) => i.testId && !i.packageId)
+            .map((i) => i.testId),
+          packageIds: activeGroup.items
+            .filter((i) => i.packageId)
+            .map((i) => i.packageId),
           collectionType,
           scheduledAt: scheduledAt || null,
+          addressId: collectionType === "HOME" ? addressId : null,
         }),
       });
       const data = await checkoutRes.json();
@@ -255,10 +288,17 @@ function Cart() {
                 <div className="divide-y divide-border">
                   {group.items.map((item) => (
                     <div
-                      key={`${item.testId}-${item.labId}`}
+                      key={`${item.testId || item.packageId}-${item.labId}`}
                       className="flex items-center justify-between gap-4 p-4"
                     >
-                      <p className="font-medium">{item.testName}</p>
+                      <p className="font-medium">
+                        {item.testName}
+                        {item.packageId && (
+                          <span className="ml-2 rounded bg-primary/15 px-1.5 py-0.5 text-xs font-medium text-primary">
+                            Package
+                          </span>
+                        )}
+                      </p>
                       <div className="flex items-center gap-3">
                         <span className="font-semibold">
                           ₹{Number(item.price).toFixed(0)}
@@ -267,7 +307,7 @@ function Cart() {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                          onClick={() => removeFromCart(item.testId, item.labId)}
+                          onClick={() => removeFromCart(item)}
                           aria-label="Remove item"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -336,6 +376,58 @@ function Cart() {
               </div>
             </div>
 
+            {collectionType === "HOME" && (
+              <div>
+                <p className="mb-2 text-sm font-medium">
+                  Home-collection address{" "}
+                  <span className="text-destructive">*</span>
+                </p>
+                {addresses.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-border p-3 text-sm text-muted-foreground">
+                    No saved addresses.{" "}
+                    <Link href="/profile" className="text-primary hover:underline">
+                      Add one in your profile
+                    </Link>{" "}
+                    to use home collection.
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {addresses.map((a) => (
+                      <button
+                        key={a.id}
+                        type="button"
+                        onClick={() => setAddressId(a.id)}
+                        className={cn(
+                          "flex w-full items-start gap-2 rounded-xl border p-3 text-left text-sm transition-colors",
+                          addressId === a.id
+                            ? "border-primary/60 bg-primary/10"
+                            : "border-border hover:bg-secondary/40"
+                        )}
+                      >
+                        <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                        <span>
+                          <span className="font-medium">
+                            {a.label || "Address"}
+                          </span>
+                          <span className="block text-muted-foreground">
+                            {[a.line1, a.line2, a.city, a.state, a.pincode]
+                              .filter(Boolean)
+                              .join(", ")}
+                          </span>
+                        </span>
+                      </button>
+                    ))}
+                    <Link
+                      href="/profile"
+                      className="inline-block text-xs text-primary hover:underline"
+                    >
+                      + Manage addresses
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div>
               <label className="mb-1 block text-sm font-medium">
                 Preferred date &amp; time
@@ -371,7 +463,13 @@ function Cart() {
             <Button variant="outline" onClick={() => setActiveGroup(null)}>
               Cancel
             </Button>
-            <Button variant="gradient" onClick={handlePay} disabled={paying}>
+            <Button
+              variant="gradient"
+              onClick={handlePay}
+              disabled={
+                paying || (collectionType === "HOME" && !addressId)
+              }
+            >
               {paying ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />

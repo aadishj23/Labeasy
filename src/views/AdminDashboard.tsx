@@ -11,9 +11,11 @@ import {
   FlaskConical,
   Loader2,
   Building2,
+  ClipboardCheck,
 } from "lucide-react";
 import { adminFetch, clearAdminToken, getAdminToken } from "@/lib/admin-client";
 import AdminLabQueue from "@/components/admin-lab-queue";
+import AdminChangeRequests from "@/components/admin-change-requests";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,7 +35,7 @@ export default function AdminDashboard() {
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState("");
   const [editing, setEditing] = useState<Test | null>(null);
-  const [tab, setTab] = useState<"tests" | "labs">("tests");
+  const [tab, setTab] = useState<"tests" | "labs" | "requests">("tests");
 
   const loadTests = useCallback(async () => {
     const res = await fetch("/api/v1/tests/gettests", { cache: "no-store" });
@@ -164,9 +166,29 @@ export default function AdminDashboard() {
           >
             <Building2 className="h-4 w-4" /> Lab verification
           </button>
+          <button
+            onClick={() => setTab("requests")}
+            className={`-mb-px inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium ${
+              tab === "requests"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <ClipboardCheck className="h-4 w-4" /> Change requests
+          </button>
         </div>
 
-        {tab === "labs" ? (
+        {tab === "requests" ? (
+          <>
+            <h1 className="text-2xl font-bold">Change requests</h1>
+            <p className="mt-1 text-muted-foreground">
+              Approve or reject lab profile changes to verified details.
+            </p>
+            <div className="mt-8">
+              <AdminChangeRequests />
+            </div>
+          </>
+        ) : tab === "labs" ? (
           <>
             <h1 className="text-2xl font-bold">Lab verification</h1>
             <p className="mt-1 text-muted-foreground">

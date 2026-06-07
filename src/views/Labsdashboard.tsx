@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import axios from "axios";
-import { ChevronDown, Trash2, Plus, FlaskConical, LayoutDashboard, ClipboardList } from "lucide-react";
+import { ChevronDown, Trash2, Plus, FlaskConical, LayoutDashboard, ClipboardList, Settings, Package } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import LabVerification from "@/components/lab-verification";
@@ -107,13 +107,29 @@ function Labsdashboard() {
               </p>
             </div>
           </div>
-          <Link
-            href="/labsdashboard/bookings"
-            className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-          >
-            <ClipboardList className="h-4 w-4" />
-            Bookings
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/labsdashboard/packages"
+              className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            >
+              <Package className="h-4 w-4" />
+              Packages
+            </Link>
+            <Link
+              href="/labsdashboard/profile"
+              className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            >
+              <Settings className="h-4 w-4" />
+              Profile
+            </Link>
+            <Link
+              href="/labsdashboard/bookings"
+              className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            >
+              <ClipboardList className="h-4 w-4" />
+              Bookings
+            </Link>
+          </div>
         </div>
 
         <LabVerification />

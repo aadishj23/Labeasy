@@ -16,10 +16,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   try {
-    const [tests, labs] = await Promise.all([
+    const [tests, labs, packages] = await Promise.all([
       prisma.tests.findMany({ select: { slug: true } }),
       prisma.lab.findMany({
         where: { status: "VERIFIED" },
+        select: { slug: true },
+      }),
+      prisma.package.findMany({
+        where: { active: true, lab: { status: "VERIFIED" } },
         select: { slug: true },
       }),
     ]);
@@ -42,7 +46,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.6,
       }));
 
-    return [...staticRoutes, ...testRoutes, ...labRoutes];
+    const packageRoutes: MetadataRoute.Sitemap = packages
+      .filter((p) => p.slug)
+      .map((p) => ({
+        url: `${BASE_URL}/package/${p.slug}`,
+        lastModified: now,
+        changeFrequency: "weekly",
+        priority: 0.6,
+      }));
+
+    return [
+      ...staticRoutes,
+      ...testRoutes,
+      ...labRoutes,
+      ...packageRoutes,
+    ];
   } catch {
     return staticRoutes;
   }

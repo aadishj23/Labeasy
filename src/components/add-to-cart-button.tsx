@@ -5,16 +5,18 @@ import { ShoppingCart, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type Props = {
-  testId: string;
-  testName: string;
+  testId?: string;
+  packageId?: string;
+  testName: string; // also used as the package name
   labId: string;
   labName: string;
-  price: number; // discounted price in rupees
+  price: number; // rupees (discounted for tests, bundle price for packages)
   className?: string;
 };
 
 export default function AddToCartButton({
   testId,
+  packageId,
   testName,
   labId,
   labName,
@@ -23,29 +25,31 @@ export default function AddToCartButton({
 }: Props) {
   const [added, setAdded] = useState(false);
 
+  const matches = (i: any) =>
+    i.labId === labId && i.testId === testId && i.packageId === packageId;
+
   useEffect(() => {
     try {
       const cart = JSON.parse(
         localStorage.getItem("cart") || '{"cartItems":[]}'
       );
-      setAdded(
-        cart.cartItems?.some(
-          (i: any) => i.testId === testId && i.labId === labId
-        )
-      );
+      setAdded(cart.cartItems?.some(matches));
     } catch {
       /* ignore */
     }
-  }, [testId, labId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [testId, packageId, labId]);
 
   const add = () => {
     const cart = JSON.parse(localStorage.getItem("cart") || '{"cartItems":[]}');
-    if (
-      !cart.cartItems.some(
-        (i: any) => i.testId === testId && i.labId === labId
-      )
-    ) {
-      cart.cartItems.push({ testId, testName, labId, labName, price });
+    if (!cart.cartItems.some(matches)) {
+      cart.cartItems.push({
+        ...(packageId ? { packageId } : { testId }),
+        testName,
+        labId,
+        labName,
+        price,
+      });
       localStorage.setItem("cart", JSON.stringify(cart));
     }
     setAdded(true);

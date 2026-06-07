@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { verifyAuth, unauthorized } from "@/lib/auth";
+import { notifyOrderStatus } from "@/lib/email";
 
 const ALLOWED = [
   "CONFIRMED",
@@ -29,6 +30,19 @@ export async function PATCH(request: Request, { params }) {
   const updated = await prisma.order.update({
     where: { id },
     data: { status },
+    include: {
+      user: { select: { email: true } },
+      lab: { select: { lab_name: true } },
+      items: { select: { test_name: true } },
+    },
+  });
+
+  // Lifecycle email to the patient (fire-and-forget).
+  void notifyOrderStatus({
+    patientEmail: updated.user?.email,
+    labName: updated.lab?.lab_name,
+    status: updated.status,
+    items: updated.items,
   });
 
   return Response.json({ ok: true, status: updated.status });

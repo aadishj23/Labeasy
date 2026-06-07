@@ -75,6 +75,79 @@ export async function notifyOrderConfirmed(opts: {
   }
 }
 
+const STATUS_EMAIL: Record<
+  string,
+  { subject: string; heading: string; intro: string }
+> = {
+  CONFIRMED: {
+    subject: "Your Labeasy booking is confirmed",
+    heading: "Booking confirmed",
+    intro: "Your booking is confirmed. We'll keep you posted on each step.",
+  },
+  SAMPLE_COLLECTED: {
+    subject: "Sample collected — Labeasy",
+    heading: "Sample collected",
+    intro: "Your sample has been collected and is on its way to the lab.",
+  },
+  PROCESSING: {
+    subject: "Your tests are being processed — Labeasy",
+    heading: "Processing your tests",
+    intro: "The lab is now processing your sample. Your report is on the way.",
+  },
+  REPORT_READY: {
+    subject: "Your report is ready — Labeasy",
+    heading: "Report ready",
+    intro: "Good news — your report is ready. View it from your bookings.",
+  },
+  COMPLETED: {
+    subject: "Your Labeasy order is complete",
+    heading: "Order completed",
+    intro: "This order is now complete. Thank you for using Labeasy.",
+  },
+  CANCELLED: {
+    subject: "Your Labeasy booking was cancelled",
+    heading: "Booking cancelled",
+    intro: "This booking has been cancelled. Any eligible refund will follow.",
+  },
+};
+
+/**
+ * Email the patient when an order moves to a new lifecycle status.
+ * Fire-and-forget: failures are swallowed so they never block the request.
+ */
+export async function notifyOrderStatus(opts: {
+  patientEmail?: string | null;
+  labName?: string | null;
+  status: string;
+  items: { test_name: string }[];
+}) {
+  const copy = STATUS_EMAIL[opts.status];
+  if (!copy || !opts.patientEmail) return;
+
+  const from = process.env.RESEND_FROM_EMAIL;
+  const site = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "";
+  const list = `<ul style="margin:0 0 16px;padding-left:18px;font-size:14px;color:#e2e8f0;">${opts.items
+    .map((i) => `<li>${i.test_name}</li>`)
+    .join("")}</ul>`;
+  const labRow = opts.labName
+    ? `<p style="margin:0 0 16px;font-size:13px;color:#94a3b8;">Lab: ${opts.labName}</p>`
+    : "";
+  const cta = site
+    ? `<a href="${site}/bookings" style="display:inline-block;margin-top:8px;background:#38bdf8;color:#04121f;text-decoration:none;font-size:14px;font-weight:600;padding:10px 18px;border-radius:8px;">View booking</a>`
+    : "";
+
+  try {
+    await getResend().emails.send({
+      from,
+      to: opts.patientEmail,
+      subject: copy.subject,
+      html: shell(copy.heading, copy.intro, labRow + list + cta),
+    });
+  } catch {
+    /* never block on email */
+  }
+}
+
 const PURPOSE_COPY = {
   signup: {
     subject: "Verify your Labeasy account",

@@ -176,6 +176,12 @@ export default function Navbar() {
                     <span className="text-xs capitalize">{userType ?? "account"}</span>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  {userType === "user" && (
+                    <DropdownMenuItem onClick={() => router.push("/profile")}>
+                      <UserRound className="h-4 w-4" />
+                      My profile
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={() => setShowChangePassword(true)}>
                     <KeyRound className="h-4 w-4" />
                     Change password

@@ -115,6 +115,8 @@ model Lab {
   slots           Slot[]
   orders          Order[]
   reviews         Review[]
+  packages        Package[]
+  changeRequests  ProfileChangeRequest[]
 }
 
 model LabDocument {
@@ -142,6 +144,7 @@ model Tests {
   labTests         LabTest[]
   userTests        UserTest[]
   orderItems       OrderItem[]
+  packageItems     PackageItem[]
 }
 
 model LabTest {
@@ -216,14 +219,17 @@ model Order {
 }
 
 model OrderItem {
-  id        String  @id @default(cuid())
-  order_id  String
-  test_id   String
-  test_name String
-  price     Int
-  order     Order   @relation(fields: [order_id], references: [id], onDelete: Cascade)
-  test      Tests   @relation(fields: [test_id], references: [id])
-  report    Report?
+  id         String   @id @default(cuid())
+  order_id   String
+  kind       String   @default("TEST") // TEST | PACKAGE
+  test_id    String?
+  package_id String?
+  test_name  String
+  price      Int
+  order      Order    @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  test       Tests?   @relation(fields: [test_id], references: [id])
+  package    Package? @relation(fields: [package_id], references: [id])
+  report     Report?
 
   @@index([order_id])
 }
@@ -292,4 +298,45 @@ model Otp {
   created_at DateTime @default(now())
 
   @@index([email, purpose])
+}
+
+model ProfileChangeRequest {
+  id          String   @id @default(cuid())
+  lab_id      String
+  changes     Json
+  status      String   @default("PENDING") // PENDING | APPROVED | REJECTED
+  reviewed_by String?
+  created_at  DateTime @default(now())
+  lab         Lab      @relation(fields: [lab_id], references: [id], onDelete: Cascade)
+
+  @@index([lab_id])
+}
+
+model Package {
+  id          String        @id @default(cuid())
+  lab_id      String
+  name        String
+  slug        String        @unique
+  description String?
+  price       Int // rupees
+  mrp         Int? // rupees (strike-through)
+  category    String?
+  active      Boolean       @default(true)
+  created_at  DateTime      @default(now())
+  lab         Lab           @relation(fields: [lab_id], references: [id], onDelete: Cascade)
+  items       PackageItem[]
+  orderItems  OrderItem[]
+
+  @@index([lab_id])
+}
+
+model PackageItem {
+  id         String  @id @default(cuid())
+  package_id String
+  test_id    String
+  package    Package @relation(fields: [package_id], references: [id], onDelete: Cascade)
+  test       Tests   @relation(fields: [test_id], references: [id])
+
+  @@unique([package_id, test_id])
+  @@index([package_id])
 }

@@ -16,31 +16,69 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json().catch(() => ({}));
-    const { labId, testIds, collectionType, scheduledAt } = body;
+    const { labId, collectionType, scheduledAt, addressId } = body;
+    const testIds: string[] = Array.isArray(body.testIds) ? body.testIds : [];
+    const packageIds: string[] = Array.isArray(body.packageIds)
+      ? body.packageIds
+      : [];
 
-    if (!labId || !Array.isArray(testIds) || testIds.length === 0) {
+    if (!labId || (testIds.length === 0 && packageIds.length === 0)) {
       return Response.json(
-        { message: "labId and at least one test are required." },
+        { message: "labId and at least one item are required." },
         { status: 400 }
       );
+    }
+
+    // Address is compulsory for home collection.
+    const isHome = collectionType === "HOME";
+    let address_id: string | null = null;
+    if (isHome) {
+      if (!addressId) {
+        return Response.json(
+          { message: "Please select a home-collection address." },
+          { status: 400 }
+        );
+      }
+      const addr = await prisma.address.findUnique({ where: { id: addressId } });
+      if (!addr || addr.user_id !== authData.userID) {
+        return Response.json(
+          { message: "That address could not be found." },
+          { status: 400 }
+        );
+      }
+      address_id = addr.id;
     }
 
     // Recompute prices from the DB — never trust client-sent amounts.
-    const labTests = await prisma.labTest.findMany({
-      where: { lab_id: labId, test_id: { in: testIds } },
-    });
-    if (labTests.length === 0) {
+    const labTests = testIds.length
+      ? await prisma.labTest.findMany({
+          where: { lab_id: labId, test_id: { in: testIds } },
+        })
+      : [];
+    const packages = packageIds.length
+      ? await prisma.package.findMany({
+          where: { lab_id: labId, id: { in: packageIds }, active: true },
+        })
+      : [];
+
+    if (labTests.length === 0 && packages.length === 0) {
       return Response.json(
-        { message: "These tests are no longer available at this lab." },
+        { message: "These items are no longer available at this lab." },
         { status: 400 }
       );
     }
 
-    const subtotal = labTests.reduce(
+    // Tests get the 20% storefront discount; packages are already bundle-priced.
+    const testSubtotal = labTests.reduce(
       (sum, lt) => sum + Math.round(Number(lt.test_price) * 100),
       0
     );
-    const discount = Math.round(subtotal * DISCOUNT_RATE);
+    const packageSubtotal = packages.reduce(
+      (sum, p) => sum + Math.round(p.price * 100),
+      0
+    );
+    const subtotal = testSubtotal + packageSubtotal;
+    const discount = Math.round(testSubtotal * DISCOUNT_RATE);
     const total = subtotal - discount;
 
     if (total <= 0) {
@@ -61,17 +99,27 @@ export async function POST(request: Request) {
         user_id: authData.userID as string,
         lab_id: labId,
         status: "PLACED",
-        collection_type: collectionType === "HOME" ? "HOME" : "LAB_VISIT",
+        collection_type: isHome ? "HOME" : "LAB_VISIT",
+        address_id,
         scheduled_at: scheduledAt ? new Date(scheduledAt) : null,
         subtotal,
         discount,
         total,
         items: {
-          create: labTests.map((lt) => ({
-            test_id: lt.test_id,
-            test_name: lt.test_name,
-            price: Math.round(Number(lt.test_price) * 100),
-          })),
+          create: [
+            ...labTests.map((lt) => ({
+              kind: "TEST",
+              test_id: lt.test_id,
+              test_name: lt.test_name,
+              price: Math.round(Number(lt.test_price) * 100),
+            })),
+            ...packages.map((p) => ({
+              kind: "PACKAGE",
+              package_id: p.id,
+              test_name: p.name,
+              price: Math.round(p.price * 100),
+            })),
+          ],
         },
         payment: {
           create: {
