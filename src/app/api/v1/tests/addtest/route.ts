@@ -4,6 +4,7 @@ import { testSchema } from "@/lib/validation";
 import { prismaErrorResponse, forbidden } from "@/lib/api";
 import { verifyAdmin } from "@/lib/admin";
 import { slugify } from "@/lib/slug";
+import { cacheInvalidate } from "@/lib/redis";
 
 export async function POST(request: Request) {
   if (!verifyAdmin(request)) return forbidden();
@@ -29,6 +30,7 @@ export async function POST(request: Request) {
       },
     });
 
+    await cacheInvalidate("tests:all");
     return Response.json(
       { message: "Test created successfully", test },
       { status: 200 }

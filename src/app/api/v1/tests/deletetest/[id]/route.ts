@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { forbidden } from "@/lib/api";
 import { verifyAdmin } from "@/lib/admin";
+import { cacheInvalidate } from "@/lib/redis";
 
 export async function DELETE(request: Request, { params }) {
   if (!verifyAdmin(request)) return forbidden();
@@ -8,6 +9,7 @@ export async function DELETE(request: Request, { params }) {
     const { id } = await params;
     const test = await prisma.tests.delete({ where: { id } });
 
+    await cacheInvalidate("tests:all");
     return Response.json(
       { message: "Test deleted successfully", test },
       { status: 200 }

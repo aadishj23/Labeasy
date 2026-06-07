@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { testSchema } from "@/lib/validation";
 import { prismaErrorResponse, forbidden } from "@/lib/api";
 import { verifyAdmin } from "@/lib/admin";
+import { cacheInvalidate } from "@/lib/redis";
 
 export async function PUT(request: Request, { params }) {
   if (!verifyAdmin(request)) return forbidden();
@@ -31,6 +32,7 @@ export async function PUT(request: Request, { params }) {
       data: { test_name, test_description },
     });
 
+    await cacheInvalidate("tests:all");
     return Response.json(
       { message: "Test updated successfully", test },
       { status: 200 }
