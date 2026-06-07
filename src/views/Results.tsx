@@ -11,12 +11,17 @@ import {
   Loader2,
   FileText,
   AlertTriangle,
+  Stethoscope,
+  Phone,
+  ExternalLink,
+  MapPin,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { suggestSpecialties } from "@/lib/doctor-suggestions";
 
 type Point = { date: string; value: number };
 type Series = {
@@ -68,6 +73,7 @@ const Results = () => {
   const ready = useAuthStore((s) => s.ready);
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [doctors, setDoctors] = useState<any[]>([]);
 
   useEffect(() => {
     if (!isLoggedIn) return;
@@ -116,6 +122,21 @@ const Results = () => {
     const f = flagOf(last.value, s.ref_low, s.ref_high);
     return f === "low" || f === "high";
   });
+
+  // Recommend specialists based on the abnormal analytes.
+  const abnormalKey = abnormal.map((s) => s.name).join("|");
+  useEffect(() => {
+    const names = abnormalKey ? abnormalKey.split("|") : [];
+    const specs = suggestSpecialties(names);
+    if (specs.length === 0) {
+      setDoctors([]);
+      return;
+    }
+    fetch(`/api/v1/doctors?specialties=${encodeURIComponent(specs.join(","))}`)
+      .then((r) => (r.ok ? r.json() : { doctors: [] }))
+      .then((d) => setDoctors(d.doctors || []))
+      .catch(() => setDoctors([]));
+  }, [abnormalKey]);
 
   if (!ready) {
     return (
@@ -213,6 +234,72 @@ const Results = () => {
                       </span>
                     );
                   })}
+                </div>
+              </div>
+            )}
+
+            {abnormal.length > 0 && doctors.length > 0 && (
+              <div className="mb-8 rounded-2xl border border-border bg-card p-5">
+                <p className="flex items-center gap-2 font-semibold">
+                  <Stethoscope className="h-4 w-4 text-primary" /> Recommended
+                  specialists
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Based on your flagged results. Always consult a doctor before
+                  acting on lab values.
+                </p>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {doctors.map((d) => (
+                    <div
+                      key={d.id}
+                      className="flex flex-col rounded-xl border border-border bg-background p-4"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <h3 className="font-medium">{d.name}</h3>
+                        {d.fee != null && (
+                          <span className="text-xs text-muted-foreground">
+                            ₹{d.fee}
+                          </span>
+                        )}
+                      </div>
+                      <Badge variant="secondary" className="mt-1 w-fit">
+                        {d.specialty}
+                      </Badge>
+                      {(d.clinic || d.city || d.pincode) && (
+                        <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
+                          <MapPin className="h-3 w-3" />
+                          {[d.clinic, d.city, d.pincode]
+                            .filter(Boolean)
+                            .join(", ")}
+                        </p>
+                      )}
+                      {d.blurb && (
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          {d.blurb}
+                        </p>
+                      )}
+                      <div className="mt-3 flex gap-2">
+                        {d.consult_url && (
+                          <a
+                            href={d.consult_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 rounded-lg bg-primary/15 px-2.5 py-1.5 text-xs font-medium text-primary hover:bg-primary/25"
+                          >
+                            Book <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
+                        {d.phone && (
+                          <a
+                            href={`tel:${d.phone}`}
+                            className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs hover:bg-secondary/40"
+                          >
+                            <Phone className="h-3 w-3" /> Call
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

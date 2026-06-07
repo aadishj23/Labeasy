@@ -92,6 +92,24 @@ model InsurancePartner {
   @@index([active])
 }
 
+model Doctor {
+  id          String   @id @default(cuid())
+  name        String
+  specialty   String // e.g. Endocrinologist, Cardiologist
+  pincode     String
+  city        String?
+  clinic      String?
+  phone       String?
+  consult_url String? // booking / referral link
+  blurb       String?
+  fee         Int? // consultation fee (rupees)
+  active      Boolean  @default(true)
+  created_at  DateTime @default(now())
+
+  @@index([specialty])
+  @@index([active])
+}
+
 model InsuranceLead {
   id           String           @id @default(cuid())
   partner_id   String
