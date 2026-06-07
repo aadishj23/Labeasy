@@ -64,12 +64,48 @@ model User {
   dob            DateTime?
   gender         String?
   email_verified Boolean    @default(false)
+  insured        Boolean    @default(false) // referred via an insurance partner
+  insurance_discount_pct Int @default(0) // extra test discount for insured users
   created_at     DateTime   @default(now())
   userTests      UserTest[]
   addresses      Address[]
   orders         Order[]
   reports        Report[]
   reviews        Review[]
+  insuranceLeads InsuranceLead[]
+}
+
+model InsurancePartner {
+  id                String          @id @default(cuid())
+  name              String
+  slug              String          @unique
+  logo_url          String?
+  blurb             String?
+  plan_highlights   String[]        @default([])
+  referral_url      String // affiliate base URL
+  test_discount_pct Int             @default(0) // extra test discount for insured users
+  commission_note   String?
+  active            Boolean         @default(true)
+  created_at        DateTime        @default(now())
+  leads             InsuranceLead[]
+
+  @@index([active])
+}
+
+model InsuranceLead {
+  id           String           @id @default(cuid())
+  partner_id   String
+  user_id      String?
+  sub_id       String           @unique // tracking id sent to the insurer
+  status       String           @default("CLICKED") // CLICKED | CONVERTED | REJECTED
+  commission   Int              @default(0) // paise, filled on conversion
+  created_at   DateTime         @default(now())
+  converted_at DateTime?
+  partner      InsurancePartner @relation(fields: [partner_id], references: [id], onDelete: Cascade)
+  user         User?            @relation(fields: [user_id], references: [id], onDelete: SetNull)
+
+  @@index([partner_id])
+  @@index([user_id])
 }
 
 model Address {

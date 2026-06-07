@@ -23,6 +23,7 @@ import {
   BarChart3,
   Wallet,
   Megaphone,
+  ShieldCheck,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Button } from "@/components/ui/button";
@@ -56,6 +57,7 @@ import { readCartCount, CART_EVENT } from "@/lib/cart";
 const NAV_LINKS = [
   { label: "Tests", href: "/tests", icon: FlaskConical },
   { label: "Labs", href: "/labs", icon: Building2 },
+  { label: "Insurance", href: "/insurance", icon: ShieldCheck },
   { label: "Bookings", href: "/bookings", icon: ClipboardList },
   { label: "Reports", href: "/reports", icon: FileText },
   { label: "Results", href: "/results", icon: LineChart },

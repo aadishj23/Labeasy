@@ -85,7 +85,19 @@ export async function POST(request: Request) {
       coupon_id = result.coupon!.id;
     }
 
-    const discount = storefrontDiscount + couponDiscount;
+    // Extra discount for users insured via a partner referral.
+    let insuranceDiscount = 0;
+    const user = await prisma.user.findUnique({
+      where: { id: authData.userID as string },
+      select: { insured: true, insurance_discount_pct: true },
+    });
+    if (user?.insured && user.insurance_discount_pct > 0) {
+      insuranceDiscount = Math.round(
+        (subtotal * user.insurance_discount_pct) / 100
+      );
+    }
+
+    const discount = storefrontDiscount + couponDiscount + insuranceDiscount;
     const total = subtotal - discount;
 
     if (total <= 0) {

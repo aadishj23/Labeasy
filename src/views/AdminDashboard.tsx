@@ -22,6 +22,7 @@ import AdminChangeRequests from "@/components/admin-change-requests";
 import AdminSponsored from "@/components/admin-sponsored";
 import AdminWallet from "@/components/admin-wallet";
 import AdminAnalytics from "@/components/admin-analytics";
+import AdminInsurance from "@/components/admin-insurance";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,7 +47,13 @@ export default function AdminDashboard() {
   const [err, setErr] = useState("");
   const [editing, setEditing] = useState<Test | null>(null);
   const [tab, setTab] = useState<
-    "tests" | "labs" | "requests" | "sponsored" | "wallet" | "analytics"
+    | "tests"
+    | "labs"
+    | "requests"
+    | "sponsored"
+    | "wallet"
+    | "analytics"
+    | "insurance"
   >("tests");
 
   const loadTests = useCallback(async () => {
@@ -227,9 +234,29 @@ export default function AdminDashboard() {
           >
             <BarChart3 className="h-4 w-4" /> Analytics
           </button>
+          <button
+            onClick={() => setTab("insurance")}
+            className={`-mb-px inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium ${
+              tab === "insurance"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <ShieldCheck className="h-4 w-4" /> Insurance
+          </button>
         </div>
 
-        {tab === "analytics" ? (
+        {tab === "insurance" ? (
+          <>
+            <h1 className="text-2xl font-bold">Insurance partners</h1>
+            <p className="mt-1 text-muted-foreground">
+              Manage partner insurers and reconcile referral commissions.
+            </p>
+            <div className="mt-8">
+              <AdminInsurance />
+            </div>
+          </>
+        ) : tab === "analytics" ? (
           <>
             <h1 className="text-2xl font-bold">Platform analytics</h1>
             <p className="mt-1 text-muted-foreground">
