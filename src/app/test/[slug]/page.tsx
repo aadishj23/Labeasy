@@ -7,6 +7,7 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Badge } from "@/components/ui/badge";
 import AddToCartButton from "@/components/add-to-cart-button";
+import { liveSponsoredLabIds } from "@/lib/sponsored";
 
 export const dynamic = "force-dynamic";
 
@@ -79,6 +80,13 @@ export default async function TestPage({
     sort === "rating"
       ? (b.lab.rating_avg || 0) - (a.lab.rating_avg || 0)
       : Number(a.test_price) - Number(b.test_price)
+  );
+
+  // Pin sponsored labs to the top (stable — keeps the chosen sort within groups).
+  const sponsored = await liveSponsoredLabIds(test.id).catch(() => new Set<string>());
+  labTests.sort(
+    (a, b) =>
+      (sponsored.has(b.lab_id) ? 1 : 0) - (sponsored.has(a.lab_id) ? 1 : 0)
   );
 
   const prices = allLabTests.map((lt) => Math.round(Number(lt.test_price) * DISCOUNT));
@@ -195,12 +203,17 @@ export default async function TestPage({
                   className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card p-5 transition-colors hover:border-primary/40"
                 >
                   <div className="min-w-0">
-                    <Link
-                      href={lt.lab.slug ? `/lab/${lt.lab.slug}` : "#"}
-                      className="font-semibold hover:text-primary"
-                    >
-                      {lt.lab_name}
-                    </Link>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Link
+                        href={lt.lab.slug ? `/lab/${lt.lab.slug}` : "#"}
+                        className="font-semibold hover:text-primary"
+                      >
+                        {lt.lab_name}
+                      </Link>
+                      {sponsored.has(lt.lab_id) && (
+                        <Badge variant="warning">Sponsored</Badge>
+                      )}
+                    </div>
                     <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                       {lt.lab.city && (
                         <span className="inline-flex items-center gap-1">

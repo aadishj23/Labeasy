@@ -13,11 +13,13 @@ import {
   Building2,
   ClipboardCheck,
   Receipt,
+  Megaphone,
 } from "lucide-react";
 import { adminFetch, clearAdminToken, getAdminToken } from "@/lib/admin-client";
 import AdminLabQueue from "@/components/admin-lab-queue";
 import AdminChangeRequests from "@/components/admin-change-requests";
 import AdminBilling from "@/components/admin-billing";
+import AdminSponsored from "@/components/admin-sponsored";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,7 +44,7 @@ export default function AdminDashboard() {
   const [err, setErr] = useState("");
   const [editing, setEditing] = useState<Test | null>(null);
   const [tab, setTab] = useState<
-    "tests" | "labs" | "requests" | "billing"
+    "tests" | "labs" | "requests" | "billing" | "sponsored"
   >("tests");
 
   const loadTests = useCallback(async () => {
@@ -203,9 +205,29 @@ export default function AdminDashboard() {
           >
             <Receipt className="h-4 w-4" /> Billing
           </button>
+          <button
+            onClick={() => setTab("sponsored")}
+            className={`-mb-px inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium ${
+              tab === "sponsored"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Megaphone className="h-4 w-4" /> Sponsored
+          </button>
         </div>
 
-        {tab === "billing" ? (
+        {tab === "sponsored" ? (
+          <>
+            <h1 className="text-2xl font-bold">Sponsored listings</h1>
+            <p className="mt-1 text-muted-foreground">
+              Promote labs to the top of the directory or specific test pages.
+            </p>
+            <div className="mt-8">
+              <AdminSponsored />
+            </div>
+          </>
+        ) : tab === "billing" ? (
           <>
             <h1 className="text-2xl font-bold">Billing</h1>
             <p className="mt-1 text-muted-foreground">

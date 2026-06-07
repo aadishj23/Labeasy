@@ -124,6 +124,7 @@ model Lab {
   changeRequests  ProfileChangeRequest[]
   coupons         Coupon[]
   invoices        Invoice[]
+  sponsorships    SponsoredListing[]
 }
 
 model LabDocument {
@@ -399,4 +400,18 @@ model Invoice {
 
   @@unique([lab_id, period])
   @@index([lab_id])
+}
+
+model SponsoredListing {
+  id         String    @id @default(cuid())
+  lab_id     String
+  test_id    String? // null = directory-wide (/labs); set = a specific test page
+  starts_at  DateTime?
+  ends_at    DateTime?
+  active     Boolean   @default(true)
+  created_at DateTime  @default(now())
+  lab        Lab       @relation(fields: [lab_id], references: [id], onDelete: Cascade)
+
+  @@index([lab_id])
+  @@index([test_id])
 }

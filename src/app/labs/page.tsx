@@ -6,6 +6,7 @@ import { resolvePincode, isPincode } from "@/lib/geo";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Badge } from "@/components/ui/badge";
+import { liveSponsoredLabIds } from "@/lib/sponsored";
 
 export const dynamic = "force-dynamic";
 
@@ -75,6 +76,12 @@ export default async function LabsPage({
   const q = sp.q ?? "";
   const sort = sp.sort ?? "rating";
   const { labs, resolvedCity } = await getLabs({ q, sort });
+
+  // Pin directory-sponsored labs to the top (stable within the chosen sort).
+  const sponsored = await liveSponsoredLabIds().catch(() => new Set<string>());
+  labs.sort(
+    (a, b) => (sponsored.has(b.id) ? 1 : 0) - (sponsored.has(a.id) ? 1 : 0)
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -153,12 +160,17 @@ export default async function LabsPage({
                   <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/15 text-primary">
                     <Building2 className="h-5 w-5" />
                   </span>
-                  {lab.rating_count > 0 && (
-                    <Badge variant="success" className="gap-1">
-                      {lab.rating_avg.toFixed(1)}
-                      <Star className="h-3 w-3 fill-current" />
-                    </Badge>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {sponsored.has(lab.id) && (
+                      <Badge variant="warning">Sponsored</Badge>
+                    )}
+                    {lab.rating_count > 0 && (
+                      <Badge variant="success" className="gap-1">
+                        {lab.rating_avg.toFixed(1)}
+                        <Star className="h-3 w-3 fill-current" />
+                      </Badge>
+                    )}
+                  </div>
                 </div>
                 <h3 className="mt-4 font-semibold leading-snug group-hover:text-primary">
                   {lab.lab_name}
