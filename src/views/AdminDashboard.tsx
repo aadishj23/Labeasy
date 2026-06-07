@@ -12,10 +12,12 @@ import {
   Loader2,
   Building2,
   ClipboardCheck,
+  Receipt,
 } from "lucide-react";
 import { adminFetch, clearAdminToken, getAdminToken } from "@/lib/admin-client";
 import AdminLabQueue from "@/components/admin-lab-queue";
 import AdminChangeRequests from "@/components/admin-change-requests";
+import AdminBilling from "@/components/admin-billing";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,7 +41,9 @@ export default function AdminDashboard() {
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState("");
   const [editing, setEditing] = useState<Test | null>(null);
-  const [tab, setTab] = useState<"tests" | "labs" | "requests">("tests");
+  const [tab, setTab] = useState<
+    "tests" | "labs" | "requests" | "billing"
+  >("tests");
 
   const loadTests = useCallback(async () => {
     const res = await fetch("/api/v1/tests/gettests", { cache: "no-store" });
@@ -189,9 +193,29 @@ export default function AdminDashboard() {
           >
             <ClipboardCheck className="h-4 w-4" /> Change requests
           </button>
+          <button
+            onClick={() => setTab("billing")}
+            className={`-mb-px inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium ${
+              tab === "billing"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Receipt className="h-4 w-4" /> Billing
+          </button>
         </div>
 
-        {tab === "requests" ? (
+        {tab === "billing" ? (
+          <>
+            <h1 className="text-2xl font-bold">Billing</h1>
+            <p className="mt-1 text-muted-foreground">
+              Generate monthly platform-fee invoices and reconcile payments.
+            </p>
+            <div className="mt-8">
+              <AdminBilling />
+            </div>
+          </>
+        ) : tab === "requests" ? (
           <>
             <h1 className="text-2xl font-bold">Change requests</h1>
             <p className="mt-1 text-muted-foreground">

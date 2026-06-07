@@ -123,6 +123,7 @@ model Lab {
   packages        Package[]
   changeRequests  ProfileChangeRequest[]
   coupons         Coupon[]
+  invoices        Invoice[]
 }
 
 model LabDocument {
@@ -383,4 +384,19 @@ model CouponRedemption {
 
   @@index([coupon_id])
   @@index([user_id])
+}
+
+model Invoice {
+  id         String    @id @default(cuid())
+  lab_id     String
+  period     String // "YYYY-MM"
+  gmv        Int // paise — gross merchandise value that month
+  fee        Int // paise — platform fee per GMV slab
+  status     String    @default("PENDING") // PENDING | PAID | WAIVED
+  created_at DateTime  @default(now())
+  paid_at    DateTime?
+  lab        Lab       @relation(fields: [lab_id], references: [id], onDelete: Cascade)
+
+  @@unique([lab_id, period])
+  @@index([lab_id])
 }

@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { verifyAuth, unauthorized } from "@/lib/auth";
+import { feeForGmv } from "@/lib/billing";
 
 const PAID = [
   "CONFIRMED",
@@ -9,14 +10,6 @@ const PAID = [
   "COMPLETED",
 ];
 const ACTIVE = ["CONFIRMED", "SAMPLE_COLLECTED", "PROCESSING", "REPORT_READY"];
-
-// Performance-based platform fee on monthly GMV (rupees), per info.txt slabs.
-function feeForGmv(g: number): number {
-  if (g <= 20000) return 0;
-  if (g <= 30000) return 500;
-  if (g <= 50000) return 1000;
-  return 1000 + Math.round((g - 50000) * 0.02); // progressive above ₹50k
-}
 
 export async function GET() {
   const auth = await verifyAuth();
