@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ShoppingCart, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { notifyCartChanged } from "@/lib/cart";
 
 type Props = {
   testId?: string;
@@ -51,6 +52,7 @@ export default function AddToCartButton({
         price,
       });
       localStorage.setItem("cart", JSON.stringify(cart));
+      notifyCartChanged();
     }
     setAdded(true);
   };

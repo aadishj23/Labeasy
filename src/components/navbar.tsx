@@ -44,6 +44,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import ChangePasswordDialog from "@/components/change-password-dialog";
 import { cn } from "@/lib/utils";
+import { readCartCount, CART_EVENT } from "@/lib/cart";
 
 const NAV_LINKS = [
   { label: "Tests", href: "/tests", icon: FlaskConical },
@@ -59,6 +60,7 @@ export default function Navbar() {
   const [authMode, setAuthMode] = useState("signin"); // "signin" | "signup"
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
 
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const userType = useAuthStore((s) => s.type);
@@ -81,7 +83,20 @@ export default function Navbar() {
 
   useEffect(() => {
     setIsMenuOpen(false);
+    setCartCount(readCartCount());
   }, [pathname]);
+
+  // Keep the cart badge in sync (same-tab event + cross-tab storage).
+  useEffect(() => {
+    const update = () => setCartCount(readCartCount());
+    update();
+    window.addEventListener(CART_EVENT, update);
+    window.addEventListener("storage", update);
+    return () => {
+      window.removeEventListener(CART_EVENT, update);
+      window.removeEventListener("storage", update);
+    };
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -149,7 +164,14 @@ export default function Navbar() {
                     : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                 )}
               >
-                <Icon className="h-4 w-4" />
+                <span className="relative">
+                  <Icon className="h-4 w-4" />
+                  {href === "/cart" && cartCount > 0 && (
+                    <span className="absolute -right-2 -top-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold leading-none text-primary-foreground">
+                      {cartCount}
+                    </span>
+                  )}
+                </span>
                 {label}
               </Link>
             ))}
@@ -259,7 +281,14 @@ export default function Navbar() {
                           : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                       )}
                     >
-                      <Icon className="h-5 w-5" />
+                      <span className="relative">
+                        <Icon className="h-5 w-5" />
+                        {href === "/cart" && cartCount > 0 && (
+                          <span className="absolute -right-2 -top-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold leading-none text-primary-foreground">
+                            {cartCount}
+                          </span>
+                        )}
+                      </span>
                       {label}
                     </Link>
                   ))}

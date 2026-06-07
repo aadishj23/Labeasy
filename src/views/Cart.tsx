@@ -18,6 +18,7 @@ import {
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { useAuthStore } from "@/store/useAuthStore";
+import { notifyCartChanged } from "@/lib/cart";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -117,6 +118,7 @@ function Cart() {
     };
     localStorage.setItem("cart", JSON.stringify(updated));
     setCartItems(updated.cartItems);
+    notifyCartChanged();
     toast.warning("Item removed from cart!");
   };
 
@@ -124,6 +126,7 @@ function Cart() {
     const updated = { cartItems: cartItems.filter((i) => i.labId !== labId) };
     localStorage.setItem("cart", JSON.stringify(updated));
     setCartItems(updated.cartItems);
+    notifyCartChanged();
   };
 
   const openCheckout = async (group: LabGroup) => {
