@@ -15,10 +15,8 @@ function Labsdashboard() {
   const [formData, setFormData] = useState({ testName: "", price: "" });
   const [submitting, setSubmitting] = useState(false);
 
-  const authHeaders = () => ({
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${JSON.parse(localStorage.getItem("token"))}`,
-  });
+  // Auth travels in the httpOnly session cookie (sent automatically same-origin).
+  const authHeaders = () => ({ "Content-Type": "application/json" });
 
   const getTestsData = async () => {
     try {

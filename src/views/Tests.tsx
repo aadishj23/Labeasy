@@ -1,40 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import axios from "axios";
-import { Search, FlaskConical, AlertCircle } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Search, FlaskConical } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import TestCard from "@/components/TestCard";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
+import type { Test } from "@/lib/types";
 
-const Tests = () => {
-  const [tests, setTests] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+const Tests = ({ initialTests = [] }: { initialTests?: Test[] }) => {
+  const [tests] = useState<Test[]>(initialTests);
   const [query, setQuery] = useState("");
-
-  useEffect(() => {
-    const getTestsData = async () => {
-      try {
-        const response = await axios({
-          url: `/api/v1/tests/gettests`,
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${JSON.parse(localStorage.getItem("token"))}`,
-          },
-        });
-        setTests(response.data.tests);
-      } catch (err) {
-        setError("Failed to load tests. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    getTestsData();
-  }, []);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -74,23 +50,7 @@ const Tests = () => {
       </section>
 
       <section className="mx-auto max-w-7xl px-6 pb-24 lg:px-8">
-        {loading ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="rounded-2xl border border-border bg-card p-6">
-                <Skeleton className="h-12 w-12 rounded-xl" />
-                <Skeleton className="mt-4 h-6 w-3/4" />
-                <Skeleton className="mt-4 h-4 w-1/2" />
-                <Skeleton className="mt-6 h-10 w-full" />
-              </div>
-            ))}
-          </div>
-        ) : error ? (
-          <div className="flex flex-col items-center gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 py-16 text-center">
-            <AlertCircle className="h-8 w-8 text-destructive" />
-            <p className="text-destructive">{error}</p>
-          </div>
-        ) : filtered.length === 0 ? (
+        {filtered.length === 0 ? (
           <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card py-16 text-center">
             <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary text-muted-foreground">
               <FlaskConical className="h-6 w-6" />

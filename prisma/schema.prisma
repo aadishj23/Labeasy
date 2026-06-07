@@ -1,61 +1,162 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  PATIENT
+  LAB
+  ADMIN
+}
+
+enum LabStatus {
+  PENDING
+  VERIFIED
+  SUSPENDED
+}
+
+enum CollectionType {
+  HOME
+  LAB_VISIT
+}
+
+enum OrderStatus {
+  PLACED
+  CONFIRMED
+  SAMPLE_COLLECTED
+  PROCESSING
+  REPORT_READY
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  CREATED
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum ReportStatus {
+  PENDING
+  READY
 }
 
 model User {
-  id        String     @id @default(dbgenerated())
-  password  String
-  name      String
-  email     String     @unique
-  phone     String     @unique
-  userTests UserTest[]
+  id             String     @id @default(dbgenerated())
+  password       String
+  name           String
+  email          String     @unique
+  phone          String     @unique
+  role           Role       @default(PATIENT)
+  dob            DateTime?
+  gender         String?
+  email_verified Boolean    @default(false)
+  created_at     DateTime   @default(now())
+  userTests      UserTest[]
+  addresses      Address[]
+  orders         Order[]
+  reports        Report[]
+  reviews        Review[]
 }
 
-model Lab {
-  id         String     @id @default(dbgenerated())
-  lab_name   String     @unique
-  owner_name String
-  phone      String     @unique
-  email      String     @unique
-  password   String
-  license_no String     @unique
-  gst_no     String     @unique
-  address    String
+model Address {
+  id         String  @id @default(cuid())
+  user_id    String
+  label      String?
+  line1      String
+  line2      String?
   city       String
   state      String
   pincode    String
-  labTests   LabTest[]
-  userTests  UserTest[]
+  lat        Float?
+  lng        Float?
+  is_default Boolean @default(false)
+  user       User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  orders     Order[]
+
+  @@index([user_id])
+}
+
+model Lab {
+  id              String        @id @default(dbgenerated())
+  lab_name        String        @unique
+  owner_name      String
+  phone           String        @unique
+  email           String        @unique
+  password        String
+  license_no      String        @unique
+  gst_no          String        @unique
+  address         String
+  city            String
+  state           String
+  pincode         String
+  lat             Float?
+  lng             Float?
+  slug            String?       @unique
+  status          LabStatus     @default(PENDING)
+  home_collection Boolean       @default(false)
+  hours           Json?
+  accreditations  String[]      @default([])
+  logo_url        String?
+  rating_avg      Float         @default(0)
+  rating_count    Int           @default(0)
+  created_at      DateTime      @default(now())
+  labTests        LabTest[]
+  userTests       UserTest[]
+  documents       LabDocument[]
+  slots           Slot[]
+  orders          Order[]
+  reviews         Review[]
+}
+
+model LabDocument {
+  id         String   @id @default(cuid())
+  lab_id     String
+  type       String // license | gst | nabl | other
+  url        String
+  verified   Boolean  @default(false)
+  created_at DateTime @default(now())
+  lab        Lab      @relation(fields: [lab_id], references: [id], onDelete: Cascade)
+
+  @@index([lab_id])
 }
 
 model Tests {
-  id               String     @id @default(dbgenerated())
-  test_name        String     @unique
+  id               String      @id @default(dbgenerated())
+  test_name        String      @unique
   test_description String
+  category         String?
+  sample_type      String?
+  fasting_required Boolean     @default(false)
+  parameters       Json?
+  slug             String?     @unique
+  aliases          String[]    @default([])
   labTests         LabTest[]
   userTests        UserTest[]
+  orderItems       OrderItem[]
 }
 
 model LabTest {
-  lab_id           String
-  lab_name         String
-  test_id          String
-  test_price       String
-  test_name        String
-  test_description String
-  lab              Lab    @relation(fields: [lab_id], references: [id], onDelete: Cascade)
-  test             Tests  @relation(fields: [test_id], references: [id], onDelete: Cascade)
+  lab_id                String
+  lab_name              String
+  test_id               String
+  test_price            String
+  home_collection_price String?
+  turnaround_hours      Int?
+  active                Boolean @default(true)
+  test_name             String
+  test_description      String
+  lab                   Lab     @relation(fields: [lab_id], references: [id], onDelete: Cascade)
+  test                  Tests   @relation(fields: [test_id], references: [id], onDelete: Cascade)
+
   @@id([lab_id, test_id])
 }
 
@@ -70,7 +171,115 @@ model UserTest {
   user          User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
   lab           Lab      @relation(fields: [lab_id], references: [id], onDelete: Cascade)
   test          Tests    @relation(fields: [test_id], references: [id], onDelete: Cascade)
+
   @@unique([user_id, test_id, lab_id])
+}
+
+model Slot {
+  id       String   @id @default(cuid())
+  lab_id   String
+  start    DateTime
+  end      DateTime
+  capacity Int      @default(1)
+  booked   Int      @default(0)
+  lab      Lab      @relation(fields: [lab_id], references: [id], onDelete: Cascade)
+  orders   Order[]
+
+  @@index([lab_id, start])
+}
+
+model Order {
+  id              String         @id @default(cuid())
+  user_id         String
+  lab_id          String
+  status          OrderStatus    @default(PLACED)
+  collection_type CollectionType @default(LAB_VISIT)
+  address_id      String?
+  slot_id         String?
+  scheduled_at    DateTime?
+  subtotal        Int
+  discount        Int            @default(0)
+  platform_fee    Int            @default(0)
+  total           Int
+  created_at      DateTime       @default(now())
+  updated_at      DateTime       @updatedAt
+  user            User           @relation(fields: [user_id], references: [id])
+  lab             Lab            @relation(fields: [lab_id], references: [id])
+  address         Address?       @relation(fields: [address_id], references: [id])
+  slot            Slot?          @relation(fields: [slot_id], references: [id])
+  items           OrderItem[]
+  payment         Payment?
+  reports         Report[]
+
+  @@index([user_id])
+  @@index([lab_id])
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  order_id  String
+  test_id   String
+  test_name String
+  price     Int
+  order     Order   @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  test      Tests   @relation(fields: [test_id], references: [id])
+  report    Report?
+
+  @@index([order_id])
+}
+
+model Payment {
+  id                  String        @id @default(cuid())
+  order_id            String        @unique
+  provider            String        @default("razorpay")
+  provider_order_id   String?
+  provider_payment_id String?
+  amount              Int
+  status              PaymentStatus @default(CREATED)
+  created_at          DateTime      @default(now())
+  order               Order         @relation(fields: [order_id], references: [id], onDelete: Cascade)
+}
+
+model Report {
+  id            String       @id @default(cuid())
+  order_id      String
+  order_item_id String?      @unique
+  user_id       String
+  lab_id        String
+  test_id       String?
+  file_url      String?
+  results       Json?
+  status        ReportStatus @default(PENDING)
+  created_at    DateTime     @default(now())
+  order         Order        @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  order_item    OrderItem?   @relation(fields: [order_item_id], references: [id])
+  user          User         @relation(fields: [user_id], references: [id])
+
+  @@index([user_id])
+  @@index([order_id])
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  user_id    String
+  lab_id     String
+  order_id   String?
+  rating     Int
+  comment    String?
+  status     String   @default("published")
+  created_at DateTime @default(now())
+  user       User     @relation(fields: [user_id], references: [id])
+  lab        Lab      @relation(fields: [lab_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, lab_id, order_id])
+  @@index([lab_id])
+}
+
+model Admin {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  password   String
+  created_at DateTime @default(now())
 }
 
 model Otp {

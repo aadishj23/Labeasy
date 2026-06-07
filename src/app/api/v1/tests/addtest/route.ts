@@ -1,8 +1,11 @@
 import { nanoid } from "nanoid";
 import prisma from "@/lib/prisma";
 import { testSchema } from "@/lib/validation";
+import { prismaErrorResponse, forbidden } from "@/lib/api";
+import { verifyAdmin } from "@/lib/admin";
 
-export async function POST(request) {
+export async function POST(request: Request) {
+  if (!verifyAdmin(request)) return forbidden();
   try {
     const body = await request.json();
     const { test_name, test_description } = body;
@@ -22,6 +25,11 @@ export async function POST(request) {
     );
   } catch (error) {
     console.error("Error in /addtest route:", error);
-    return Response.json({ message: "An error occurred", error }, { status: 500 });
+    const friendly = prismaErrorResponse(error);
+    if (friendly) return friendly;
+    return Response.json(
+      { message: "Something went wrong. Please try again." },
+      { status: 500 }
+    );
   }
 }

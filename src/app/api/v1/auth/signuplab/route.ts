@@ -3,6 +3,7 @@ import { nanoid } from "nanoid";
 import prisma from "@/lib/prisma";
 import { signupLabSchema } from "@/lib/validation";
 import { verifyOtp } from "@/lib/otp";
+import { prismaErrorResponse, isAdminEmail } from "@/lib/api";
 
 export async function POST(request) {
   try {
@@ -25,6 +26,13 @@ export async function POST(request) {
     const parsedData = signupLabSchema.safeParse(body);
     if (!parsedData.success) {
       return Response.json(parsedData.error, { status: 400 });
+    }
+
+    if (isAdminEmail(email)) {
+      return Response.json(
+        { message: "This email address is not available." },
+        { status: 409 }
+      );
     }
 
     const validOtp = await verifyOtp(email, "signup", otp);
@@ -59,6 +67,11 @@ export async function POST(request) {
     );
   } catch (error) {
     console.error("Error in /signuplab route:", error);
-    return Response.json({ message: "An error occurred", error }, { status: 500 });
+    const friendly = prismaErrorResponse(error);
+    if (friendly) return friendly;
+    return Response.json(
+      { message: "Something went wrong. Please try again." },
+      { status: 500 }
+    );
   }
 }

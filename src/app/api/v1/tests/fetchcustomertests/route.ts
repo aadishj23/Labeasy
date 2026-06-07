@@ -2,7 +2,7 @@ import prisma from "@/lib/prisma";
 import { verifyAuth, unauthorized } from "@/lib/auth";
 
 export async function GET(request) {
-  const authData = verifyAuth(request);
+  const authData = await verifyAuth();
   if (!authData) return unauthorized();
 
   try {

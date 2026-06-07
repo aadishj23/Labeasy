@@ -144,7 +144,3 @@ A single, unified Next.js app (frontend + API in one same-origin project):
 - **Doctor Referrals**: Integrate local doctor referrals to provide users with medical advice based on reports.
 - **Enhanced Search and Filters**: Advanced filters and search options for finding specific labs or test types.
 - **Mobile App**: Expand accessibility by developing a mobile app for Android and iOS.
-
-## Contributing
-
-Contributions are welcome! Please create a pull request for any enhancements, bug fixes, or new features.

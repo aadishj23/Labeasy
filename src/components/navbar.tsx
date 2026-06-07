@@ -55,11 +55,12 @@ export default function Navbar() {
   const [authMode, setAuthMode] = useState("signin"); // "signin" | "signup"
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [userType, setUserType] = useState(null);
-  const [displayName, setDisplayName] = useState("");
 
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
-  const setLoggedIn = useAuthStore((s) => s.setLoggedIn);
+  const userType = useAuthStore((s) => s.type);
+  const displayName = useAuthStore((s) => s.name);
+  const refresh = useAuthStore((s) => s.refresh);
+  const clearAuth = useAuthStore((s) => s.clear);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -69,31 +70,22 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Hydrate auth state from the httpOnly session cookie.
   useEffect(() => {
-    const safeParse = (key) => {
-      try {
-        return JSON.parse(localStorage.getItem(key));
-      } catch {
-        return null;
-      }
-    };
-    setLoggedIn(!!localStorage.getItem("token"));
-    const type = safeParse("type");
-    setUserType(type);
-    setDisplayName(type === "lab" ? safeParse("lab_name") : safeParse("name"));
-  }, [setLoggedIn]);
+    refresh();
+  }, [refresh]);
 
   useEffect(() => {
     setIsMenuOpen(false);
   }, [pathname]);
 
-  const handleLogout = () => {
-    setLoggedIn(false);
-    ["token", "lab_name", "name", "type"].forEach((k) =>
-      localStorage.removeItem(k)
-    );
-    setUserType(null);
-    setDisplayName("");
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/v1/auth/logout", { method: "POST" });
+    } catch {
+      /* ignore */
+    }
+    clearAuth();
     setIsMenuOpen(false);
     router.push("/");
   };

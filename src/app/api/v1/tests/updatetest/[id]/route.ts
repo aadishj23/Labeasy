@@ -1,7 +1,10 @@
 import prisma from "@/lib/prisma";
 import { testSchema } from "@/lib/validation";
+import { prismaErrorResponse, forbidden } from "@/lib/api";
+import { verifyAdmin } from "@/lib/admin";
 
-export async function PUT(request, { params }) {
+export async function PUT(request: Request, { params }) {
+  if (!verifyAdmin(request)) return forbidden();
   try {
     const { id } = await params;
     const body = await request.json();
@@ -28,6 +31,11 @@ export async function PUT(request, { params }) {
     );
   } catch (error) {
     console.error("Error in /updatetest route:", error);
-    return Response.json({ message: "An error occurred", error }, { status: 500 });
+    const friendly = prismaErrorResponse(error);
+    if (friendly) return friendly;
+    return Response.json(
+      { message: "Something went wrong. Please try again." },
+      { status: 500 }
+    );
   }
 }

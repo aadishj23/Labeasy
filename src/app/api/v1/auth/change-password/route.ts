@@ -1,9 +1,10 @@
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { verifyAuth, unauthorized } from "@/lib/auth";
+import { isStrongPassword, PASSWORD_RULE } from "@/lib/password";
 
-export async function POST(request) {
-  const authData = verifyAuth(request);
+export async function POST(request: Request) {
+  const authData = await verifyAuth();
   if (!authData) return unauthorized();
 
   try {
@@ -15,11 +16,8 @@ export async function POST(request) {
         { status: 400 }
       );
     }
-    if (String(newPassword).length < 8) {
-      return Response.json(
-        { message: "New password must be at least 8 characters" },
-        { status: 400 }
-      );
+    if (!isStrongPassword(newPassword)) {
+      return Response.json({ message: PASSWORD_RULE }, { status: 400 });
     }
 
     const isLab = authData.type === "lab";

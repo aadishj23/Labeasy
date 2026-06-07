@@ -20,11 +20,7 @@ function TestCard({ name, testId }: { name: string; testId: string }) {
       const response = await axios({
         url: `/api/v1/tests/getlabsfortest`,
         method: "POST",
-        data: JSON.stringify({ test_name: name }),
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${JSON.parse(localStorage.getItem("token"))}`,
-        },
+        data: { test_name: name },
       });
       setLabsList(response.data.labs);
     } catch (error) {

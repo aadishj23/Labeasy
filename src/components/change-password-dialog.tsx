@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
+import { isStrongPassword, PASSWORD_RULE } from "@/lib/password";
 
 export default function ChangePasswordDialog({ open, onOpenChange }) {
   const [oldPassword, setOldPassword] = useState("");
@@ -37,6 +38,10 @@ export default function ChangePasswordDialog({ open, onOpenChange }) {
 
   async function handleSubmit(event) {
     event.preventDefault();
+    if (!isStrongPassword(newPassword)) {
+      setErr(PASSWORD_RULE);
+      return;
+    }
     if (newPassword !== confirm) {
       setErr("New passwords don't match");
       return;
@@ -44,16 +49,10 @@ export default function ChangePasswordDialog({ open, onOpenChange }) {
     setErr("");
     setIsLoading(true);
     try {
-      await axios.post(
-        "/api/v1/auth/change-password",
-        { oldPassword, newPassword },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${JSON.parse(localStorage.getItem("token"))}`,
-          },
-        }
-      );
+      await axios.post("/api/v1/auth/change-password", {
+        oldPassword,
+        newPassword,
+      });
       setDone(true);
     } catch (error) {
       setErr(error?.response?.data?.message || "Could not change password.");
@@ -112,6 +111,7 @@ export default function ChangePasswordDialog({ open, onOpenChange }) {
                 required
               />
             </div>
+            <p className="text-xs text-muted-foreground">{PASSWORD_RULE}</p>
             {err && <p className="text-sm text-destructive">{err}</p>}
             <Button type="submit" variant="gradient" className="w-full" disabled={isLoading}>
               {isLoading ? (

@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
 import { ResendCode } from "@/components/ui/resend-code";
+import { isStrongPassword, PASSWORD_RULE } from "@/lib/password";
 
 function ForgotPassword() {
   const [step, setStep] = useState("email"); // "email" | "reset"
@@ -41,6 +42,10 @@ function ForgotPassword() {
 
   async function handleResetSubmit(event) {
     event.preventDefault();
+    if (!isStrongPassword(newPassword)) {
+      setErr(PASSWORD_RULE);
+      return;
+    }
     if (newPassword !== confirm) {
       setErr("Passwords don't match");
       return;
@@ -105,6 +110,7 @@ function ForgotPassword() {
               onChange={(e) => setNewPassword(e.target.value)}
               required
             />
+            <p className="text-xs text-muted-foreground">{PASSWORD_RULE}</p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="confirm">Confirm new password</Label>

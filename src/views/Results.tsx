@@ -3,7 +3,7 @@
 import React, { useEffect, useRef } from "react";
 import Link from "next/link";
 import Chart from "chart.js/auto";
-import { Lock, ExternalLink, FileText, TrendingUp } from "lucide-react";
+import { Lock, ExternalLink, FileText, TrendingUp, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
@@ -30,6 +30,7 @@ const REPORTS = [
 
 const Results = () => {
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+  const ready = useAuthStore((s) => s.ready);
   const chartRef = useRef<HTMLCanvasElement>(null);
 
   const generateData = () => {
@@ -93,6 +94,17 @@ const Results = () => {
     });
     return () => chart.destroy();
   }, [isLoggedIn]);
+
+  if (!ready) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex min-h-screen items-center justify-center">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      </div>
+    );
+  }
 
   if (!isLoggedIn) {
     return (
