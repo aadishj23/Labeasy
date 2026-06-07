@@ -49,37 +49,33 @@ function Bookings() {
   const [reviewErr, setReviewErr] = useState("");
   const [reviewDone, setReviewDone] = useState(false);
   const [reviewExisting, setReviewExisting] = useState(false);
+  // labId -> existing review ({ rating, comment }), so we can label/prefill instantly
+  const [reviewsByLab, setReviewsByLab] = useState<Record<string, any>>({});
 
   useEffect(() => {
     fetch("/api/v1/orders/mine", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : { orders: [] }))
       .then((d) => setOrders(d.orders || []))
       .finally(() => setLoading(false));
+
+    fetch("/api/v1/reviews", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : { reviews: [] }))
+      .then((d) => {
+        const map: Record<string, any> = {};
+        (d.reviews || []).forEach((rv: any) => (map[rv.lab_id] = rv));
+        setReviewsByLab(map);
+      })
+      .catch(() => {});
   }, []);
 
-  const openReview = async (order: any) => {
-    setRating(5);
-    setComment("");
+  const openReview = (order: any) => {
+    const existing = reviewsByLab[order.lab_id];
+    setRating(existing?.rating ?? 5);
+    setComment(existing?.comment ?? "");
     setReviewErr("");
     setReviewDone(false);
-    setReviewExisting(false);
+    setReviewExisting(!!existing);
     setReviewOrder(order);
-    // Pre-fill if the patient already reviewed this lab (one review per lab, editable).
-    try {
-      const res = await fetch(`/api/v1/reviews?labId=${order.lab_id}`, {
-        cache: "no-store",
-      });
-      if (res.ok) {
-        const d = await res.json();
-        if (d.review) {
-          setRating(d.review.rating);
-          setComment(d.review.comment || "");
-          setReviewExisting(true);
-        }
-      }
-    } catch {
-      /* ignore */
-    }
   };
 
   const submitReview = async () => {
@@ -102,6 +98,12 @@ function Bookings() {
         setReviewErr(data.message || "Could not submit review.");
         return;
       }
+      // Reflect the new/updated review locally so buttons show "Edit review".
+      setReviewsByLab((m) => ({
+        ...m,
+        [reviewOrder.lab_id]: { rating, comment },
+      }));
+      setReviewExisting(true);
       setReviewDone(true);
     } finally {
       setSubmitting(false);
@@ -182,6 +184,12 @@ function Bookings() {
                     ))}
                   </div>
 
+                  {order.status === "CANCELLED" && order.cancel_reason && (
+                    <div className="mt-3 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                      Cancelled by lab: {order.cancel_reason}
+                    </div>
+                  )}
+
                   <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4 text-sm">
                     <span className="inline-flex items-center gap-1.5 text-muted-foreground">
                       {order.collection_type === "HOME" ? (
@@ -227,8 +235,16 @@ function Bookings() {
                           size="sm"
                           onClick={() => openReview(order)}
                         >
-                          <Star className="h-4 w-4" />
-                          Rate lab
+                          <Star
+                            className={`h-4 w-4 ${
+                              reviewsByLab[order.lab_id]
+                                ? "fill-amber-400 text-amber-400"
+                                : ""
+                            }`}
+                          />
+                          {reviewsByLab[order.lab_id]
+                            ? `Edit review · ${reviewsByLab[order.lab_id].rating}★`
+                            : `Rate ${order.lab?.lab_name || "lab"}`}
                         </Button>
                       )}
                     </div>

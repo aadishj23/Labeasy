@@ -17,6 +17,9 @@ import {
   UserRound,
   KeyRound,
   ChevronDown,
+  LayoutDashboard,
+  Package,
+  Ticket,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Button } from "@/components/ui/button";
@@ -54,6 +57,13 @@ const NAV_LINKS = [
   { label: "Reports", href: "/reports", icon: FileText },
   { label: "Results", href: "/results", icon: LineChart },
   { label: "Cart", href: "/cart", icon: ShoppingCart },
+];
+
+const LAB_NAV_LINKS = [
+  { label: "Dashboard", href: "/labsdashboard", icon: LayoutDashboard },
+  { label: "Bookings", href: "/labsdashboard/bookings", icon: ClipboardList },
+  { label: "Packages", href: "/labsdashboard/packages", icon: Package },
+  { label: "Coupons", href: "/labsdashboard/coupons", icon: Ticket },
 ];
 
 export default function Navbar() {
@@ -122,7 +132,7 @@ export default function Navbar() {
   };
 
   const isActive = (href) => pathname === href;
-  const visibleLinks = userType === "lab" ? [] : NAV_LINKS;
+  const visibleLinks = userType === "lab" ? LAB_NAV_LINKS : NAV_LINKS;
 
   return (
     <>
@@ -204,6 +214,14 @@ export default function Navbar() {
                     <DropdownMenuItem onClick={() => router.push("/profile")}>
                       <UserRound className="h-4 w-4" />
                       My profile
+                    </DropdownMenuItem>
+                  )}
+                  {userType === "lab" && (
+                    <DropdownMenuItem
+                      onClick={() => router.push("/labsdashboard/profile")}
+                    >
+                      <Building2 className="h-4 w-4" />
+                      Lab profile
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem onClick={() => setShowChangePassword(true)}>

@@ -69,6 +69,27 @@ export async function POST(request: Request) {
       }),
     ]);
 
+    // Record coupon redemption on successful payment (idempotent via order_id unique).
+    if (order.coupon_id) {
+      try {
+        await prisma.$transaction([
+          prisma.couponRedemption.create({
+            data: {
+              coupon_id: order.coupon_id,
+              order_id: order.id,
+              user_id: order.user_id,
+            },
+          }),
+          prisma.coupon.update({
+            where: { id: order.coupon_id },
+            data: { used_count: { increment: 1 } },
+          }),
+        ]);
+      } catch {
+        /* already recorded (unique order_id) — ignore */
+      }
+    }
+
     // Fire-and-forget confirmation emails (never block the response).
     notifyOrderConfirmed({
       patientEmail: order.user?.email,

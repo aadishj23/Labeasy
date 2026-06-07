@@ -71,6 +71,11 @@ function LabBookings() {
   const [rows, setRows] = useState<any[]>([{ ...emptyRow }]);
   const [savingResults, setSavingResults] = useState(false);
 
+  // cancel flow (remark required)
+  const [cancelOrder, setCancelOrder] = useState<any | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelBusy, setCancelBusy] = useState(false);
+
   const load = () => {
     fetch("/api/v1/orders/lab", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : { orders: [] }))
@@ -118,6 +123,25 @@ function LabBookings() {
       }
     } finally {
       setSavingResults(false);
+    }
+  };
+
+  const confirmCancel = async () => {
+    if (!cancelOrder || !cancelReason.trim()) return;
+    setCancelBusy(true);
+    try {
+      const res = await fetch(`/api/v1/orders/${cancelOrder.id}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "CANCELLED", reason: cancelReason.trim() }),
+      });
+      if (res.ok) {
+        setCancelOrder(null);
+        setCancelReason("");
+        load();
+      }
+    } finally {
+      setCancelBusy(false);
     }
   };
 
@@ -221,9 +245,16 @@ function LabBookings() {
 
                 <div className="mt-4 border-t border-border pt-4">
                   {order.status === "CANCELLED" || order.status === "REFUNDED" ? (
-                    <Badge variant="destructive">
-                      {STATUS_LABEL[order.status]}
-                    </Badge>
+                    <div>
+                      <Badge variant="destructive">
+                        {STATUS_LABEL[order.status]}
+                      </Badge>
+                      {order.cancel_reason && (
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          Reason: {order.cancel_reason}
+                        </p>
+                      )}
+                    </div>
                   ) : (
                     <>
                       <div className="flex items-start">
@@ -305,23 +336,27 @@ function LabBookings() {
                         </p>
                       )}
 
-                      <div className="mt-3 flex justify-end">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => {
-                            if (confirm("Cancel this booking?"))
-                              updateStatus(order.id, "CANCELLED");
-                          }}
-                        >
-                          <X className="h-4 w-4" /> Cancel booking
-                        </Button>
-                      </div>
+                      {order.status !== "COMPLETED" && (
+                        <div className="mt-3 flex justify-end">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => {
+                              setCancelReason("");
+                              setCancelOrder(order);
+                            }}
+                          >
+                            <X className="h-4 w-4" /> Cancel booking
+                          </Button>
+                        </div>
+                      )}
                     </>
                   )}
                 </div>
 
+                {order.status !== "CANCELLED" &&
+                order.status !== "REFUNDED" ? (
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <span className="text-sm text-muted-foreground">Reports:</span>
                   {order.reports?.map((r: any, i: number) => (
@@ -363,6 +398,7 @@ function LabBookings() {
                     <ListPlus className="h-4 w-4" /> Enter results
                   </button>
                 </div>
+                ) : null}
               </div>
             ))}
           </div>
@@ -491,6 +527,45 @@ function LabBookings() {
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 "Save results"
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cancel booking (remark required) */}
+      <Dialog
+        open={!!cancelOrder}
+        onOpenChange={(o) => !o && setCancelOrder(null)}
+      >
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Cancel booking</DialogTitle>
+            <DialogDescription>
+              Add a reason — it will be shown to the patient.
+            </DialogDescription>
+          </DialogHeader>
+          <textarea
+            value={cancelReason}
+            onChange={(e) => setCancelReason(e.target.value)}
+            rows={3}
+            placeholder="e.g. Test temporarily unavailable, sample requirements not met…"
+            className="flex w-full rounded-md border border-input bg-secondary/40 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          />
+          <div className="mt-2 flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setCancelOrder(null)}>
+              Keep booking
+            </Button>
+            <Button
+              variant="outline"
+              className="text-destructive"
+              onClick={confirmCancel}
+              disabled={cancelBusy || !cancelReason.trim()}
+            >
+              {cancelBusy ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Cancel booking"
               )}
             </Button>
           </div>

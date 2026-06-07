@@ -14,11 +14,14 @@ import {
   Home,
   Loader2,
   MapPin,
+  Tag,
+  Check,
 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { useAuthStore } from "@/store/useAuthStore";
 import { notifyCartChanged } from "@/lib/cart";
+import DateTimePicker from "@/components/datetime-picker";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -79,6 +82,12 @@ function Cart() {
   const [paying, setPaying] = useState(false);
   const [addresses, setAddresses] = useState<any[]>([]);
   const [addressId, setAddressId] = useState("");
+  // coupon (per checkout group)
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCode, setAppliedCode] = useState("");
+  const [couponDiscount, setCouponDiscount] = useState(0); // paise
+  const [couponMsg, setCouponMsg] = useState("");
+  const [couponBusy, setCouponBusy] = useState(false);
 
   useEffect(() => {
     loadCartItems();
@@ -138,6 +147,10 @@ function Cart() {
     setCollectionType("LAB_VISIT");
     setScheduledAt("");
     setAddressId("");
+    setCouponCode("");
+    setAppliedCode("");
+    setCouponDiscount(0);
+    setCouponMsg("");
     setActiveGroup(group);
     // Load saved addresses for home-collection selection.
     try {
@@ -152,6 +165,47 @@ function Cart() {
     } catch {
       /* ignore */
     }
+  };
+
+  const applyCoupon = async () => {
+    if (!activeGroup || !couponCode.trim()) return;
+    setCouponBusy(true);
+    setCouponMsg("");
+    try {
+      const res = await fetch("/api/v1/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          labId: activeGroup.labId,
+          testIds: activeGroup.items
+            .filter((i) => i.testId && !i.packageId)
+            .map((i) => i.testId),
+          packageIds: activeGroup.items
+            .filter((i) => i.packageId)
+            .map((i) => i.packageId),
+          code: couponCode.trim(),
+        }),
+      });
+      const d = await res.json();
+      if (d.valid) {
+        setAppliedCode(d.code);
+        setCouponDiscount(d.discount);
+        setCouponMsg(`₹${Math.round(d.discount / 100)} off applied`);
+      } else {
+        setAppliedCode("");
+        setCouponDiscount(0);
+        setCouponMsg(d.message || "Invalid coupon.");
+      }
+    } finally {
+      setCouponBusy(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setCouponCode("");
+    setAppliedCode("");
+    setCouponDiscount(0);
+    setCouponMsg("");
   };
 
   const handlePay = async () => {
@@ -177,6 +231,7 @@ function Cart() {
           collectionType,
           scheduledAt: scheduledAt || null,
           addressId: collectionType === "HOME" ? addressId : null,
+          couponCode: appliedCode || null,
         }),
       });
       const data = await checkoutRes.json();
@@ -354,7 +409,13 @@ function Cart() {
           <DialogHeader>
             <DialogTitle>Confirm booking</DialogTitle>
             <DialogDescription>
-              {activeGroup?.labName} · ₹{activeGroup?.total.toFixed(0)}
+              {activeGroup?.labName} · ₹
+              {Math.max(0, (activeGroup?.total ?? 0) - couponDiscount / 100).toFixed(0)}
+              {couponDiscount > 0 && (
+                <span className="ml-1 line-through opacity-60">
+                  ₹{activeGroup?.total.toFixed(0)}
+                </span>
+              )}
             </DialogDescription>
           </DialogHeader>
 
@@ -442,13 +503,61 @@ function Cart() {
               <label className="mb-1 block text-sm font-medium">
                 Preferred date &amp; time
               </label>
-              <input
-                type="datetime-local"
+              <DateTimePicker
                 value={scheduledAt}
-                onChange={(e) => setScheduledAt(e.target.value)}
-                min={new Date().toISOString().slice(0, 16)}
-                className="flex h-10 w-full rounded-md border border-input bg-secondary/40 px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [color-scheme:dark]"
+                onChange={setScheduledAt}
+                withTime
+                variant="future"
               />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium">Coupon code</label>
+              {appliedCode ? (
+                <div className="flex items-center justify-between rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-sm">
+                  <span className="inline-flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary" />
+                    <span className="font-mono font-semibold">{appliedCode}</span>
+                    <span className="text-muted-foreground">— {couponMsg}</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={removeCoupon}
+                    className="text-xs text-muted-foreground hover:text-destructive"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Tag className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <input
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                        placeholder="Enter code"
+                        className="flex h-10 w-full rounded-md border border-input bg-secondary/40 px-3 pl-9 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={applyCoupon}
+                      disabled={couponBusy || !couponCode.trim()}
+                    >
+                      {couponBusy ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        "Apply"
+                      )}
+                    </Button>
+                  </div>
+                  {couponMsg && (
+                    <p className="mt-1 text-xs text-destructive">{couponMsg}</p>
+                  )}
+                </>
+              )}
             </div>
 
             <div className="rounded-xl border border-border bg-secondary/20 p-3">
@@ -486,7 +595,7 @@ function Cart() {
                   Starting…
                 </>
               ) : (
-                `Pay ₹${activeGroup?.total.toFixed(0)}`
+                `Pay ₹${Math.max(0, (activeGroup?.total ?? 0) - couponDiscount / 100).toFixed(0)}`
               )}
             </Button>
           </DialogFooter>

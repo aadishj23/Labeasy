@@ -1,8 +1,8 @@
 import prisma from "@/lib/prisma";
 import { verifyAuth, unauthorized } from "@/lib/auth";
 import { getRazorpay, RAZORPAY_KEY_ID } from "@/lib/razorpay";
-
-const DISCOUNT_RATE = 0.2; // 20% off, matching the storefront pricing
+import { priceGroup } from "@/lib/pricing";
+import { validateCoupon } from "@/lib/coupons";
 
 export async function POST(request: Request) {
   const authData = await verifyAuth();
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json().catch(() => ({}));
-    const { labId, collectionType, scheduledAt, addressId } = body;
+    const { labId, collectionType, scheduledAt, addressId, couponCode } = body;
     const testIds: string[] = Array.isArray(body.testIds) ? body.testIds : [];
     const packageIds: string[] = Array.isArray(body.packageIds)
       ? body.packageIds
@@ -50,16 +50,8 @@ export async function POST(request: Request) {
     }
 
     // Recompute prices from the DB — never trust client-sent amounts.
-    const labTests = testIds.length
-      ? await prisma.labTest.findMany({
-          where: { lab_id: labId, test_id: { in: testIds } },
-        })
-      : [];
-    const packages = packageIds.length
-      ? await prisma.package.findMany({
-          where: { lab_id: labId, id: { in: packageIds }, active: true },
-        })
-      : [];
+    const { labTests, packages, subtotal, storefrontDiscount, payable } =
+      await priceGroup(labId, testIds, packageIds);
 
     if (labTests.length === 0 && packages.length === 0) {
       return Response.json(
@@ -68,17 +60,25 @@ export async function POST(request: Request) {
       );
     }
 
-    // Tests get the 20% storefront discount; packages are already bundle-priced.
-    const testSubtotal = labTests.reduce(
-      (sum, lt) => sum + Math.round(Number(lt.test_price) * 100),
-      0
-    );
-    const packageSubtotal = packages.reduce(
-      (sum, p) => sum + Math.round(p.price * 100),
-      0
-    );
-    const subtotal = testSubtotal + packageSubtotal;
-    const discount = Math.round(testSubtotal * DISCOUNT_RATE);
+    // Optional lab-scoped coupon (re-validated server-side).
+    let couponDiscount = 0;
+    let coupon_id: string | null = null;
+    if (couponCode) {
+      const result = await validateCoupon({
+        labId,
+        code: couponCode,
+        subtotal,
+        payable,
+        userId: authData.userID,
+      });
+      if ("error" in result) {
+        return Response.json({ message: result.error }, { status: 400 });
+      }
+      couponDiscount = result.discount;
+      coupon_id = result.coupon!.id;
+    }
+
+    const discount = storefrontDiscount + couponDiscount;
     const total = subtotal - discount;
 
     if (total <= 0) {
@@ -105,6 +105,7 @@ export async function POST(request: Request) {
         subtotal,
         discount,
         total,
+        coupon_id,
         items: {
           create: [
             ...labTests.map((lt) => ({

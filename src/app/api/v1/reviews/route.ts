@@ -2,22 +2,28 @@ import prisma from "@/lib/prisma";
 import { verifyAuth, unauthorized } from "@/lib/auth";
 import { recomputeLabRating } from "@/lib/reviews";
 
-// Fetch the current patient's review for a given lab (for edit-mode pre-fill).
+// Fetch the patient's review for one lab (?labId=) or all their reviews (no param).
 export async function GET(request: Request) {
   const auth = await verifyAuth();
   if (!auth || auth.type !== "user") return unauthorized();
 
   const labId = new URL(request.url).searchParams.get("labId");
-  if (!labId) return Response.json({ review: null });
 
-  const review = await prisma.review.findUnique({
-    where: {
-      user_id_lab_id: { user_id: auth.userID as string, lab_id: labId },
-    },
-    select: { rating: true, comment: true },
+  if (labId) {
+    const review = await prisma.review.findUnique({
+      where: {
+        user_id_lab_id: { user_id: auth.userID as string, lab_id: labId },
+      },
+      select: { rating: true, comment: true },
+    });
+    return Response.json({ review });
+  }
+
+  const reviews = await prisma.review.findMany({
+    where: { user_id: auth.userID },
+    select: { lab_id: true, rating: true, comment: true },
   });
-
-  return Response.json({ review });
+  return Response.json({ reviews });
 }
 
 export async function POST(request: Request) {

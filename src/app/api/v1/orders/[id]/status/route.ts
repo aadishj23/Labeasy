@@ -16,7 +16,7 @@ export async function PATCH(request: Request, { params }) {
   if (!auth || auth.type !== "lab") return unauthorized();
 
   const { id } = await params;
-  const { status } = await request.json().catch(() => ({}));
+  const { status, reason } = await request.json().catch(() => ({}));
 
   const order = await prisma.order.findUnique({ where: { id } });
   if (!order || order.lab_id !== auth.labID) {
@@ -38,9 +38,21 @@ export async function PATCH(request: Request, { params }) {
     );
   }
 
+  // A cancellation must include a remark shown to the patient.
+  const cancelReason = String(reason || "").trim();
+  if (status === "CANCELLED" && !cancelReason) {
+    return Response.json(
+      { message: "A reason is required to cancel a booking." },
+      { status: 400 }
+    );
+  }
+
   const updated = await prisma.order.update({
     where: { id },
-    data: { status },
+    data: {
+      status,
+      ...(status === "CANCELLED" ? { cancel_reason: cancelReason } : {}),
+    },
     include: {
       user: { select: { email: true } },
       lab: { select: { lab_name: true } },

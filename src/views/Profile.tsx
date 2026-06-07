@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import DateTimePicker from "@/components/datetime-picker";
 import {
   Dialog,
   DialogContent,
@@ -188,11 +189,11 @@ export default function Profile() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="dob">Date of birth</Label>
-                  <Input
-                    id="dob"
-                    type="date"
+                  <DateTimePicker
                     value={form.dob}
-                    onChange={(e) => setForm({ ...form, dob: e.target.value })}
+                    onChange={(v) => setForm({ ...form, dob: v })}
+                    variant="past"
+                    placeholder="Select date of birth"
                   />
                 </div>
                 <div className="space-y-2">
