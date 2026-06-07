@@ -20,6 +20,7 @@ import {
   LayoutDashboard,
   Package,
   Ticket,
+  BarChart3,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Button } from "@/components/ui/button";
@@ -62,6 +63,7 @@ const NAV_LINKS = [
 const LAB_NAV_LINKS = [
   { label: "Dashboard", href: "/labsdashboard", icon: LayoutDashboard },
   { label: "Bookings", href: "/labsdashboard/bookings", icon: ClipboardList },
+  { label: "Analytics", href: "/labsdashboard/analytics", icon: BarChart3 },
   { label: "Packages", href: "/labsdashboard/packages", icon: Package },
   { label: "Coupons", href: "/labsdashboard/coupons", icon: Ticket },
 ];

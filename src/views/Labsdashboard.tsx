@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import axios from "axios";
-import { ChevronDown, Trash2, Plus, FlaskConical, LayoutDashboard, ClipboardList, Settings, Package, Pencil, Check, X, Loader2, Ticket } from "lucide-react";
+import { ChevronDown, Trash2, Plus, FlaskConical, LayoutDashboard, ClipboardList, Settings, Package, Pencil, Check, X, Loader2, Ticket, BarChart3 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import LabVerification from "@/components/lab-verification";
@@ -139,6 +139,13 @@ function Labsdashboard() {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Link
+              href="/labsdashboard/analytics"
+              className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            >
+              <BarChart3 className="h-4 w-4" />
+              Analytics
+            </Link>
             <Link
               href="/labsdashboard/packages"
               className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
