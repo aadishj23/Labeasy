@@ -15,6 +15,7 @@ import {
   Phone,
   ExternalLink,
   MapPin,
+  Sparkles,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import Navbar from "@/components/navbar";
@@ -22,6 +23,7 @@ import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { suggestSpecialties } from "@/lib/doctor-suggestions";
+import RemindersSection from "@/components/reminders-section";
 
 type Point = { date: string; value: number };
 type Series = {
@@ -74,6 +76,8 @@ const Results = () => {
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [doctors, setDoctors] = useState<any[]>([]);
+  const [doctorsPincode, setDoctorsPincode] = useState<string | null>(null);
+  const [summary, setSummary] = useState<any>(null);
 
   useEffect(() => {
     if (!isLoggedIn) return;
@@ -81,6 +85,19 @@ const Results = () => {
       .then((r) => (r.ok ? r.json() : { reports: [] }))
       .then((d) => setReports(d.reports || []))
       .finally(() => setLoading(false));
+    // AI health summary (generated server-side from structured results).
+    fetch("/api/v1/health/summary", { method: "POST" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => setSummary(d))
+      .catch(() => {});
+    // Doctors in the patient's pincode (from their default address).
+    fetch("/api/v1/doctors/recommended", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : { doctors: [], pincode: null }))
+      .then((d) => {
+        setDoctors(d.doctors || []);
+        setDoctorsPincode(d.pincode || null);
+      })
+      .catch(() => {});
   }, [isLoggedIn]);
 
   // Build per-analyte time series from all reports that have structured results.
@@ -123,20 +140,39 @@ const Results = () => {
     return f === "low" || f === "high";
   });
 
-  // Recommend specialists based on the abnormal analytes.
-  const abnormalKey = abnormal.map((s) => s.name).join("|");
-  useEffect(() => {
-    const names = abnormalKey ? abnormalKey.split("|") : [];
-    const specs = suggestSpecialties(names);
-    if (specs.length === 0) {
-      setDoctors([]);
-      return;
-    }
-    fetch(`/api/v1/doctors?specialties=${encodeURIComponent(specs.join(","))}`)
-      .then((r) => (r.ok ? r.json() : { doctors: [] }))
-      .then((d) => setDoctors(d.doctors || []))
-      .catch(() => setDoctors([]));
-  }, [abnormalKey]);
+  // Deterministic health score: % of measurable markers within range.
+  const scored = series.filter((s) => s.ref_low != null || s.ref_high != null);
+  const normalCount = scored.filter((s) => {
+    const last = s.points[s.points.length - 1];
+    return flagOf(last.value, s.ref_low, s.ref_high) === "normal";
+  }).length;
+  const healthScore = scored.length
+    ? Math.round((normalCount / scored.length) * 100)
+    : null;
+  const scoreBand =
+    healthScore == null
+      ? null
+      : healthScore >= 85
+        ? { label: "Excellent", color: "#34d399" }
+        : healthScore >= 70
+          ? { label: "Good", color: "#38bdf8" }
+          : healthScore >= 50
+            ? { label: "Fair", color: "#fbbf24" }
+            : { label: "Needs attention", color: "#f87171" };
+
+  // Sort the local (pincode) doctors so specialties relevant to the patient's
+  // flagged results + AI suggestions appear first.
+  const relevantSpecs = new Set(
+    [
+      ...suggestSpecialties(abnormal.map((s) => s.name)),
+      ...((summary?.suggestedSpecialties as string[]) || []),
+    ].map((s) => s.toLowerCase())
+  );
+  const sortedDoctors = [...doctors].sort((a, b) => {
+    const ar = relevantSpecs.has((a.specialty || "").toLowerCase()) ? 0 : 1;
+    const br = relevantSpecs.has((b.specialty || "").toLowerCase()) ? 0 : 1;
+    return ar - br;
+  });
 
   if (!ready) {
     return (
@@ -208,6 +244,79 @@ const Results = () => {
           </div>
         ) : (
           <>
+            {healthScore != null && scoreBand && (
+              <div className="mb-8 flex items-center gap-5 rounded-2xl border border-border bg-card p-6">
+                <div className="relative h-24 w-24 shrink-0">
+                  <svg viewBox="0 0 100 100" className="h-24 w-24 -rotate-90">
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="42"
+                      fill="none"
+                      stroke="rgba(148,163,184,0.18)"
+                      strokeWidth="9"
+                    />
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="42"
+                      fill="none"
+                      stroke={scoreBand.color}
+                      strokeWidth="9"
+                      strokeLinecap="round"
+                      strokeDasharray={`${(healthScore / 100) * 2 * Math.PI * 42} ${2 * Math.PI * 42}`}
+                    />
+                  </svg>
+                  <span className="absolute inset-0 flex items-center justify-center text-2xl font-bold">
+                    {healthScore}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Health score</p>
+                  <p
+                    className="text-xl font-semibold"
+                    style={{ color: scoreBand.color }}
+                  >
+                    {scoreBand.label}
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {normalCount} of {scored.length} markers in range
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {summary?.summary && (
+              <div className="mb-8 rounded-2xl border border-primary/30 bg-primary/5 p-5">
+                <p className="flex items-center gap-2 font-semibold text-primary">
+                  <Sparkles className="h-4 w-4" /> AI health summary
+                </p>
+                <p className="mt-2 text-sm leading-relaxed">{summary.summary}</p>
+                {Array.isArray(summary.highlights) &&
+                  summary.highlights.length > 0 && (
+                    <ul className="mt-3 space-y-1.5">
+                      {summary.highlights.map((h: any, i: number) => (
+                        <li key={i} className="flex items-start gap-2 text-sm">
+                          <span
+                            className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${
+                              h.status === "high" ? "bg-red-400" : "bg-sky-400"
+                            }`}
+                          />
+                          <span>
+                            <span className="font-medium">{h.name}</span> —{" "}
+                            <span className="text-muted-foreground">{h.note}</span>
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                <p className="mt-3 text-xs text-muted-foreground">
+                  {summary.ai ? "Generated by AI" : "Auto-generated"} · Not
+                  medical advice — please consult a doctor.
+                </p>
+              </div>
+            )}
+
             {abnormal.length > 0 && (
               <div className="mb-8 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5">
                 <p className="flex items-center gap-2 font-semibold text-amber-300">
@@ -238,18 +347,22 @@ const Results = () => {
               </div>
             )}
 
-            {abnormal.length > 0 && doctors.length > 0 && (
+            {sortedDoctors.length > 0 && (
               <div className="mb-8 rounded-2xl border border-border bg-card p-5">
                 <p className="flex items-center gap-2 font-semibold">
-                  <Stethoscope className="h-4 w-4 text-primary" /> Recommended
-                  specialists
+                  <Stethoscope className="h-4 w-4 text-primary" /> Doctors near you
+                  {doctorsPincode && (
+                    <span className="text-sm font-normal text-muted-foreground">
+                      · {doctorsPincode}
+                    </span>
+                  )}
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Based on your flagged results. Always consult a doctor before
-                  acting on lab values.
+                  Specialists in your area, with those relevant to your results
+                  first. Always consult a doctor before acting on lab values.
                 </p>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {doctors.map((d) => (
+                  {sortedDoctors.map((d) => (
                     <div
                       key={d.id}
                       className="flex flex-col rounded-xl border border-border bg-background p-4"
@@ -388,6 +501,8 @@ const Results = () => {
             </div>
           </>
         )}
+
+        {!loading && <RemindersSection />}
       </section>
 
       <Footer />

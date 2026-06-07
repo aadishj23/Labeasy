@@ -19,6 +19,8 @@ import {
   X,
   Check,
 } from "lucide-react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
@@ -93,7 +95,21 @@ function LabBookings() {
         method: "POST",
         body: fd,
       });
-      if (res.ok) load();
+      if (res.ok) {
+        const d = await res.json().catch(() => ({}));
+        if (d.extractedCount > 0) {
+          toast.success(
+            `Report uploaded — ${d.extractedCount} values auto-extracted by AI.`
+          );
+        } else {
+          toast.success("Report uploaded.");
+        }
+        load();
+      } else {
+        toast.error("Upload failed. Please try again.");
+      }
+    } catch {
+      toast.error("Upload failed. Please try again.");
     } finally {
       setUploadingId(null);
     }
@@ -104,7 +120,26 @@ function LabBookings() {
   }, []);
 
   const openResults = (order: any) => {
-    setRows([{ ...emptyRow }]);
+    // Pre-fill with the AI auto-extracted values from ALL of the order's
+    // reports, merged by marker name (newest value wins).
+    const reps = (order.reports || []).filter(
+      (r: any) => Array.isArray(r.results) && r.results.length > 0
+    );
+    const merged = new Map<string, any>();
+    for (const rep of reps) {
+      for (const r of rep.results) {
+        const name = String(r.name ?? "").trim();
+        if (!name) continue;
+        merged.set(name, {
+          name,
+          value: r.value != null ? String(r.value) : "",
+          unit: r.unit ?? "",
+          ref_low: r.ref_low != null ? String(r.ref_low) : "",
+          ref_high: r.ref_high != null ? String(r.ref_high) : "",
+        });
+      }
+    }
+    setRows(merged.size > 0 ? [...merged.values()] : [{ ...emptyRow }]);
     setResultsOrder(order);
   };
 
@@ -160,6 +195,7 @@ function LabBookings() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+      <ToastContainer position="bottom-right" autoClose={4000} theme="dark" />
 
       <section className="mx-auto max-w-5xl px-6 pb-24 pt-28 lg:px-8 lg:pt-36">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">

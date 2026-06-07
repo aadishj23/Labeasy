@@ -3,6 +3,7 @@ import { verifyAuth, unauthorized } from "@/lib/auth";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { notifyOrderStatus } from "@/lib/email";
 import { creditOrderEarning } from "@/lib/wallet";
+import { extractAnalytes } from "@/lib/ai-summary";
 
 const ALLOWED_MIME = ["application/pdf", "image/jpeg", "image/png"];
 const MAX_BYTES = 10 * 1024 * 1024;
@@ -57,6 +58,12 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const url = await uploadToCloudinary(buffer, file.type, "labeasy/reports");
 
+    // Auto-extract structured analyte values from the file (best-effort).
+    const extracted = await extractAnalytes(
+      buffer.toString("base64"),
+      file.type
+    );
+
     const report = await prisma.report.create({
       data: {
         order_id: order.id,
@@ -64,6 +71,7 @@ export async function POST(request: Request) {
         user_id: order.user_id,
         lab_id: order.lab_id,
         file_url: url,
+        results: extracted.length > 0 ? extracted : undefined,
         status: "READY",
       },
     });
@@ -91,7 +99,7 @@ export async function POST(request: Request) {
       });
     }
 
-    return Response.json({ report });
+    return Response.json({ report, extractedCount: extracted.length });
   } catch (e) {
     console.error("Report upload failed:", e);
     return Response.json(

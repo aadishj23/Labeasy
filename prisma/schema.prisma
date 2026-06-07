@@ -73,6 +73,34 @@ model User {
   reports        Report[]
   reviews        Review[]
   insuranceLeads InsuranceLead[]
+  healthSummary  HealthSummary?
+  testReminders  TestReminder[]
+}
+
+model TestReminder {
+  id               String    @id @default(cuid())
+  user_id          String
+  test_name        String
+  interval_days    Int
+  due_at           DateTime
+  active           Boolean   @default(true)
+  last_notified_at DateTime?
+  created_at       DateTime  @default(now())
+  user             User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([due_at])
+}
+
+model HealthSummary {
+  id                   String   @id @default(cuid())
+  user_id              String   @unique
+  summary              String // plain-language overview
+  highlights           Json     @default("[]") // [{ name, status, note }]
+  suggested_specialties String[] @default([])
+  input_hash           String // hash of the analyte inputs (cache key)
+  generated_at         DateTime @default(now()) @updatedAt
+  user                 User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
 model InsurancePartner {
@@ -320,6 +348,7 @@ model Report {
   test_id       String?
   file_url      String?
   results       Json?
+  ai_summary    Json? // cached per-report AI summary
   status        ReportStatus @default(PENDING)
   share_token   String?      @unique
   created_at    DateTime     @default(now())

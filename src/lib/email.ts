@@ -162,6 +162,32 @@ const PURPOSE_COPY = {
   },
 };
 
+/** Remind a patient it's time to re-test. Fire-and-forget friendly. */
+export async function notifyTestReminder(opts: {
+  patientEmail?: string | null;
+  testName: string;
+}) {
+  if (!opts.patientEmail) return;
+  const from = process.env.RESEND_FROM_EMAIL;
+  const cta = `<a href="${
+    process.env.NEXT_PUBLIC_BASE_URL || "https://labeasy.in"
+  }/tests" style="display:inline-block;margin-top:8px;background:#38bdf8;color:#04121f;font-size:14px;font-weight:600;text-decoration:none;padding:10px 18px;border-radius:10px;">Book again</a>`;
+  try {
+    await getResend().emails.send({
+      from,
+      to: opts.patientEmail,
+      subject: `Time to re-test: ${opts.testName}`,
+      html: shell(
+        "Re-test reminder",
+        `It's time to repeat your ${opts.testName}.`,
+        `<p style="margin:0 0 8px;font-size:14px;color:#e2e8f0;">Staying on top of your health is easier with regular check-ups. Book your ${opts.testName} on Labeasy whenever you're ready.</p>${cta}`
+      ),
+    });
+  } catch {
+    /* swallow */
+  }
+}
+
 export async function sendOtpEmail(to, code, purpose = "signup") {
   const copy = PURPOSE_COPY[purpose] ?? PURPOSE_COPY.signup;
   const from = process.env.RESEND_FROM_EMAIL;
