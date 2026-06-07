@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Home from "@/views/Home";
 
 export const metadata: Metadata = {
-  title: "Labeasy — Compare diagnostic labs & book tests at the best price",
+  title: "Labeasy — Compare labs, book tests & understand your results with AI",
   description:
-    "Labeasy lets you compare diagnostic test prices across accredited labs, book online, and keep all your reports in one secure place. Affordable diagnostics for every city.",
+    "Compare diagnostic test prices across accredited labs, book online with home collection, and get AI-powered report summaries, health trends, doctor recommendations, and reminders — all in one secure place.",
   alternates: { canonical: "/" },
 };
 

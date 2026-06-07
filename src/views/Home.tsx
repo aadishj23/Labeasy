@@ -8,12 +8,20 @@ import {
   Search,
   CalendarCheck,
   FileText,
-  Network,
   ShieldCheck,
-  Wallet,
   Star,
   Sparkles,
   Activity,
+  Stethoscope,
+  BellRing,
+  Share2,
+  Percent,
+  Home as HomeIcon,
+  Building2,
+  BarChart3,
+  Megaphone,
+  Wallet,
+  HeartPulse,
 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
@@ -23,39 +31,78 @@ import { Badge } from "@/components/ui/badge";
 const STEPS = [
   {
     icon: Search,
-    title: "Search",
-    description: "Find diagnostic tests and accredited labs near you in seconds.",
+    title: "Search & compare",
+    description:
+      "Compare NABL-accredited labs by price, rating, and distance — by city or pincode.",
   },
   {
     icon: CalendarCheck,
-    title: "Book",
-    description: "Compare prices and book your test with your preferred lab.",
+    title: "Book your way",
+    description:
+      "Home sample collection or a lab visit. Pay securely and apply coupons at checkout.",
   },
   {
     icon: FileText,
-    title: "Get results",
-    description: "Receive your reports digitally, stored securely and always accessible.",
+    title: "Get digital reports",
+    description:
+      "Reports land in your inbox — stored securely, downloadable, and shareable by link.",
+  },
+  {
+    icon: Sparkles,
+    title: "Understand & act",
+    description:
+      "AI summaries, a health score, trends, and nearby specialists matched to your results.",
   },
 ];
 
 const FEATURES = [
   {
-    icon: Network,
-    title: "Wide lab network",
+    icon: Sparkles,
+    title: "AI report summaries",
     description:
-      "Access a vast network of NABL-accredited diagnostic labs across the city.",
+      "Plain-language explanations of your results — abnormal values highlighted, jargon removed.",
+  },
+  {
+    icon: Activity,
+    title: "Health score & trends",
+    description:
+      "A live health score plus every marker tracked over time, so you see the bigger picture.",
+  },
+  {
+    icon: Stethoscope,
+    title: "Doctor recommendations",
+    description:
+      "Specialists near you, matched to your flagged results — book or call in a tap.",
   },
   {
     icon: ShieldCheck,
-    title: "Secure digital reports",
+    title: "Insurance & savings",
     description:
-      "Your results are stored securely and accessible anytime, from anywhere.",
+      "Get insured through partner insurers and unlock extra discounts on every test.",
   },
   {
-    icon: Wallet,
-    title: "Best prices",
+    icon: BellRing,
+    title: "Re-test reminders",
     description:
-      "Compare prices across labs and unlock exclusive discounts on every test.",
+      "Set follow-up reminders so you never miss an important repeat test.",
+  },
+  {
+    icon: Share2,
+    title: "Secure reports & sharing",
+    description:
+      "All your reports in one place — share with a doctor via a private link, revoke anytime.",
+  },
+  {
+    icon: Percent,
+    title: "Packages & coupons",
+    description:
+      "Curated test packages and exclusive coupon codes for the best possible price.",
+  },
+  {
+    icon: HomeIcon,
+    title: "Home collection",
+    description:
+      "Skip the queue — schedule a sample pickup at your doorstep at a time that suits you.",
   },
 ];
 
@@ -64,6 +111,13 @@ const STATS = [
   { value: 1000, suffix: "+", label: "Tests available" },
   { value: 5000, suffix: "+", label: "Happy customers" },
   { value: 98, suffix: "%", label: "Satisfaction" },
+];
+
+const LAB_PERKS = [
+  { icon: Building2, label: "List your full test catalogue" },
+  { icon: BarChart3, label: "Bookings & revenue analytics" },
+  { icon: Megaphone, label: "Promote with sponsored listings" },
+  { icon: Wallet, label: "Wallet & automated settlements" },
 ];
 
 function useInView<T extends Element = HTMLDivElement>(
@@ -128,16 +182,16 @@ const Home = () => {
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/20 text-primary">
                 <Sparkles className="h-3 w-3" />
               </span>
-              NABL-accredited labs, one platform
+              Compare labs · book · AI-powered health insights
             </Badge>
             <h1 className="text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
-              Diagnostic tests,{" "}
-              <span className="text-gradient-primary">simplified.</span>
+              Diagnostics, from booking to{" "}
+              <span className="text-gradient-primary">understanding.</span>
             </h1>
             <p className="mt-6 max-w-lg text-base leading-relaxed text-muted-foreground sm:text-lg">
-              Discover a healthier you with real-time lab bookings, personalised
-              recommendations, and secure report storage that tracks your health
-              milestones effortlessly.
+              Compare accredited labs, book tests at the best price, and get your
+              reports explained in plain language — with trends, a health score,
+              and the right specialist, all in one place.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button asChild variant="gradient" size="lg">
@@ -147,7 +201,7 @@ const Home = () => {
                 </Link>
               </Button>
               <Button asChild variant="outline" size="lg">
-                <Link href="/tests">Explore tests</Link>
+                <Link href="/labs">Find a lab</Link>
               </Button>
             </div>
             <div className="mt-10 flex items-center gap-6">
@@ -190,27 +244,31 @@ const Home = () => {
                   className="object-contain p-6"
                 />
               </div>
-              {/* Floating rating card */}
+              {/* Floating health-score card */}
               <div className="glass absolute -bottom-5 -left-5 animate-float rounded-2xl p-4 shadow-glow-sm">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/20 text-primary">
-                    <Star className="h-5 w-5 fill-current" />
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-400">
+                    <HeartPulse className="h-5 w-5" />
                   </span>
                   <div>
-                    <p className="text-2xl font-bold leading-none">4.9</p>
-                    <p className="text-xs text-muted-foreground">1,000+ reviews</p>
+                    <p className="text-2xl font-bold leading-none">82</p>
+                    <p className="text-xs text-muted-foreground">Health score</p>
                   </div>
                 </div>
               </div>
-              {/* Floating report card */}
-              <div className="glass absolute -right-4 top-8 animate-float rounded-2xl p-4 shadow-glow-sm [animation-delay:1.5s]">
+              {/* Floating AI summary card */}
+              <div className="glass absolute -right-4 -top-2 animate-float rounded-2xl p-4 shadow-glow-sm [animation-delay:1.5s]">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-400">
-                    <Activity className="h-5 w-5" />
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
+                    <Sparkles className="h-5 w-5" />
                   </span>
                   <div>
-                    <p className="text-sm font-semibold leading-none">Report ready</p>
-                    <p className="text-xs text-muted-foreground">in 12 hours</p>
+                    <p className="text-sm font-semibold leading-none">
+                      AI summary ready
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      results explained
+                    </p>
                   </div>
                 </div>
               </div>
@@ -229,19 +287,21 @@ const Home = () => {
             How Labeasy <span className="text-gradient-primary">works</span>
           </h2>
         </div>
-        <div className="mt-14 grid gap-6 md:grid-cols-3">
+        <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {STEPS.map((step, i) => (
             <div
               key={step.title}
-              className="group relative overflow-hidden rounded-2xl border border-border bg-card p-8 transition-all hover:border-primary/40 hover:shadow-glow-sm"
+              className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:border-primary/40 hover:shadow-glow-sm"
             >
-              <span className="absolute right-5 top-4 text-6xl font-bold text-secondary/60 transition-colors group-hover:text-primary/10">
+              <span className="pointer-events-none absolute right-4 top-3 text-5xl font-bold leading-none text-secondary/40 transition-colors group-hover:text-primary/10">
                 {i + 1}
               </span>
               <span className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15 text-primary">
                 <step.icon className="h-6 w-6" />
               </span>
-              <h3 className="relative mt-6 text-xl font-semibold">{step.title}</h3>
+              <h3 className="relative mt-6 pr-8 text-lg font-semibold">
+                {step.title}
+              </h3>
               <p className="relative mt-2 text-sm leading-relaxed text-muted-foreground">
                 {step.description}
               </p>
@@ -250,52 +310,196 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Features */}
+      {/* Everything you get */}
       <section className="border-y border-border bg-card/30">
         <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8 lg:py-28">
-          <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-widest text-primary">
-                Why choose us
-              </p>
-              <h2 className="mt-3 text-3xl font-bold sm:text-4xl">
-                Your health, our priority
-              </h2>
-              <p className="mt-4 max-w-md text-muted-foreground">
-                We make diagnostic testing simple, accessible, and affordable for
-                everyone. With Labeasy, quality healthcare is just a click away.
-              </p>
-              <div className="mt-8 space-y-4">
-                {FEATURES.map((feature) => (
-                  <div
-                    key={feature.title}
-                    className="flex gap-4 rounded-xl border border-transparent p-3 transition-colors hover:border-border hover:bg-secondary/30"
-                  >
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
-                      <feature.icon className="h-5 w-5" />
-                    </span>
-                    <div>
-                      <h3 className="font-semibold">{feature.title}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {feature.description}
-                      </p>
-                    </div>
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-sm font-semibold uppercase tracking-widest text-primary">
+              Everything you get
+            </p>
+            <h2 className="mt-3 text-3xl font-bold sm:text-4xl">
+              More than a booking app —{" "}
+              <span className="text-gradient-primary">a health companion</span>
+            </h2>
+            <p className="mt-4 text-muted-foreground">
+              From the moment you book to long after your results arrive, Labeasy
+              helps you save money and stay on top of your health.
+            </p>
+          </div>
+          <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {FEATURES.map((feature) => (
+              <div
+                key={feature.title}
+                className="group rounded-2xl border border-border bg-card p-6 transition-all hover:border-primary/40 hover:shadow-glow-sm"
+              >
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/15 text-primary transition-transform group-hover:scale-110">
+                  <feature.icon className="h-5 w-5" />
+                </span>
+                <h3 className="mt-5 font-semibold">{feature.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  {feature.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Health intelligence highlight */}
+      <section className="mx-auto max-w-7xl px-6 py-20 lg:px-8 lg:py-28">
+        <div className="grid items-center gap-12 lg:grid-cols-2">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-widest text-primary">
+              Health intelligence
+            </p>
+            <h2 className="mt-3 text-3xl font-bold sm:text-4xl">
+              Your results, finally{" "}
+              <span className="text-gradient-primary">made clear</span>
+            </h2>
+            <p className="mt-4 max-w-md text-muted-foreground">
+              Every report is turned into a plain-language summary, a health
+              score, and trends you can actually follow — with the right
+              specialist suggested when something needs attention.
+            </p>
+            <ul className="mt-8 space-y-3">
+              {[
+                "AI-written summaries that flag what matters",
+                "Per-marker trends across all your reports",
+                "Nearby specialists matched to your results",
+                "Reminders so follow-up tests never slip",
+              ].map((item) => (
+                <li key={item} className="flex items-start gap-3">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+                    <ArrowRight className="h-3 w-3" />
+                  </span>
+                  <span className="text-sm">{item}</span>
+                </li>
+              ))}
+            </ul>
+            <Button asChild variant="gradient" size="lg" className="mt-8">
+              <Link href="/results">
+                View your dashboard
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+
+          {/* Mock dashboard card */}
+          <div className="relative">
+            <div className="absolute -inset-4 -z-10 rounded-3xl bg-primary/10 blur-2xl" />
+            <div className="glass rounded-3xl p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="relative flex h-16 w-16 items-center justify-center">
+                    <svg viewBox="0 0 100 100" className="h-16 w-16 -rotate-90">
+                      <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(148,163,184,0.18)" strokeWidth="10" />
+                      <circle cx="50" cy="50" r="42" fill="none" stroke="#34d399" strokeWidth="10" strokeLinecap="round" strokeDasharray={`${0.82 * 2 * Math.PI * 42} ${2 * Math.PI * 42}`} />
+                    </svg>
+                    <span className="absolute text-lg font-bold">82</span>
+                  </span>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Health score</p>
+                    <p className="font-semibold text-emerald-400">Good</p>
+                  </div>
+                </div>
+                <Badge variant="outline" className="gap-1">
+                  <Sparkles className="h-3 w-3 text-primary" /> AI
+                </Badge>
+              </div>
+
+              <div className="mt-5 rounded-2xl border border-primary/30 bg-primary/5 p-4">
+                <p className="text-sm leading-relaxed">
+                  Most markers look healthy. Your{" "}
+                  <span className="font-medium">Vitamin D</span> is a little low —
+                  worth a chat with a physician.
+                </p>
+              </div>
+
+              <div className="mt-4 grid grid-cols-3 gap-3">
+                {[
+                  { k: "Hemoglobin", v: "14.2", ok: true },
+                  { k: "TSH", v: "6.5", ok: false },
+                  { k: "Vitamin D", v: "18", ok: false },
+                ].map((m) => (
+                  <div key={m.k} className="rounded-xl border border-border bg-card p-3">
+                    <p className="truncate text-xs text-muted-foreground">{m.k}</p>
+                    <p className="mt-1 text-lg font-bold">{m.v}</p>
+                    <span
+                      className={`mt-1 inline-block h-1.5 w-1.5 rounded-full ${
+                        m.ok ? "bg-emerald-400" : "bg-amber-400"
+                      }`}
+                    />
                   </div>
                 ))}
               </div>
-            </div>
 
-            {/* Stats grid */}
-            <div className="grid grid-cols-2 gap-4 sm:gap-6">
-              {STATS.map((stat) => (
+              <div className="mt-4 flex items-center gap-3 rounded-2xl border border-border bg-card p-3">
+                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                  <Stethoscope className="h-4 w-4" />
+                </span>
+                <div className="text-sm">
+                  <p className="font-medium">Dr. Mehta · Endocrinologist</p>
+                  <p className="text-xs text-muted-foreground">2.1 km away</p>
+                </div>
+                <Button size="sm" variant="outline" className="ml-auto">
+                  Book
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats */}
+      <section className="border-y border-border bg-card/30">
+        <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8">
+          <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
+            {STATS.map((stat) => (
+              <div key={stat.label} className="glass rounded-2xl p-6 text-center sm:p-8">
+                <p className="text-3xl font-bold text-gradient-primary sm:text-4xl">
+                  <CountUp value={stat.value} suffix={stat.suffix} />
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* For labs */}
+      <section className="mx-auto max-w-7xl px-6 py-20 lg:px-8 lg:py-28">
+        <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-10 sm:p-14">
+          <div className="absolute right-0 top-0 -z-10 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
+          <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
+            <div>
+              <Badge variant="outline" className="mb-4 gap-1.5">
+                <Building2 className="h-3.5 w-3.5 text-primary" /> For diagnostic labs
+              </Badge>
+              <h2 className="text-3xl font-bold sm:text-4xl">
+                Run a lab? <span className="text-gradient-primary">Grow with Labeasy.</span>
+              </h2>
+              <p className="mt-4 max-w-md text-muted-foreground">
+                Reach more patients, manage bookings and reports, and get paid —
+                all from one dashboard, with analytics and a settlement wallet
+                built in.
+              </p>
+              <Button asChild variant="gradient" size="lg" className="mt-8">
+                <Link href="/signuplab">
+                  Partner with us
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {LAB_PERKS.map((perk) => (
                 <div
-                  key={stat.label}
-                  className="glass rounded-2xl p-6 text-center sm:p-8"
+                  key={perk.label}
+                  className="flex items-center gap-3 rounded-2xl border border-border bg-background/40 p-4"
                 >
-                  <p className="text-3xl font-bold text-gradient-primary sm:text-4xl">
-                    <CountUp value={stat.value} suffix={stat.suffix} />
-                  </p>
-                  <p className="mt-2 text-sm text-muted-foreground">{stat.label}</p>
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary">
+                    <perk.icon className="h-5 w-5" />
+                  </span>
+                  <span className="text-sm font-medium">{perk.label}</span>
                 </div>
               ))}
             </div>
@@ -304,7 +508,7 @@ const Home = () => {
       </section>
 
       {/* CTA */}
-      <section className="mx-auto max-w-7xl px-6 py-20 lg:px-8 lg:py-28">
+      <section className="mx-auto max-w-7xl px-6 pb-20 lg:px-8 lg:pb-28">
         <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-primary/15 via-card to-card p-10 text-center sm:p-16">
           <div className="absolute inset-0 -z-10 spotlight opacity-70" />
           <h2 className="mx-auto max-w-2xl text-3xl font-bold sm:text-4xl">
@@ -312,15 +516,18 @@ const Home = () => {
             <span className="text-gradient-primary">Start your health journey.</span>
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
-            Get access to the best diagnostic labs in your city and take the first
-            step towards better health monitoring.
+            Compare the best diagnostic labs in your city, save on every test, and
+            finally understand what your results mean.
           </p>
-          <div className="mt-8 flex justify-center">
+          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <Button asChild variant="gradient" size="lg">
               <Link href="/tests">
                 Book a test
                 <ArrowRight className="h-4 w-4" />
               </Link>
+            </Button>
+            <Button asChild variant="outline" size="lg">
+              <Link href="/insurance">Explore insurance</Link>
             </Button>
           </div>
         </div>

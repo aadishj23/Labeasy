@@ -169,9 +169,9 @@ export async function notifyTestReminder(opts: {
 }) {
   if (!opts.patientEmail) return;
   const from = process.env.RESEND_FROM_EMAIL;
-  const cta = `<a href="${
-    process.env.NEXT_PUBLIC_BASE_URL || "https://labeasy.in"
-  }/tests" style="display:inline-block;margin-top:8px;background:#38bdf8;color:#04121f;font-size:14px;font-weight:600;text-decoration:none;padding:10px 18px;border-radius:10px;">Book again</a>`;
+  const site =
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://labeasy.in";
+  const cta = `<a href="${site}/tests" style="display:inline-block;margin-top:8px;background:#38bdf8;color:#04121f;font-size:14px;font-weight:600;text-decoration:none;padding:10px 18px;border-radius:10px;">Book again</a>`;
   try {
     await getResend().emails.send({
       from,
