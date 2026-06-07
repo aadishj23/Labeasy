@@ -1,10 +1,11 @@
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { verifyOtp } from "@/lib/otp";
+import { isStrongPassword, PASSWORD_RULE } from "@/lib/password";
 
-export async function POST(request) {
+export async function POST(request: Request) {
   try {
-    const { email, otp, newPassword, type } = await request.json();
+    const { email, otp, newPassword } = await request.json();
 
     if (!email || !otp || !newPassword) {
       return Response.json(
@@ -12,11 +13,8 @@ export async function POST(request) {
         { status: 400 }
       );
     }
-    if (String(newPassword).length < 8) {
-      return Response.json(
-        { message: "Password must be at least 8 characters" },
-        { status: 400 }
-      );
+    if (!isStrongPassword(newPassword)) {
+      return Response.json({ message: PASSWORD_RULE }, { status: 400 });
     }
 
     const normalized = email.toLowerCase().trim();

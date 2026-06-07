@@ -1,6 +1,6 @@
 import "./globals.css";
+import type { ReactNode } from "react";
 import { Inter, Outfit } from "next/font/google";
-import ClientOnly from "@/components/providers/ClientOnly";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -29,11 +29,15 @@ export const viewport = {
   themeColor: "#070b14",
 };
 
-export default function RootLayout({ children }) {
+export default function RootLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   return (
     <html lang="en" className={`dark ${inter.variable} ${outfit.variable}`}>
       <body className="min-h-screen bg-background text-foreground">
-        <ClientOnly>{children}</ClientOnly>
+        {children}
       </body>
     </html>
   );

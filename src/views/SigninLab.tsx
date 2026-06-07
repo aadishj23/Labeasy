@@ -13,7 +13,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 
 const SigninLab = () => {
   const [signInData, setSignInData] = useState({ Email: "", Password: "" });
-  const setLoggedIn = useAuthStore((s) => s.setLoggedIn);
+  const setAuth = useAuthStore((s) => s.setAuth);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -36,14 +36,11 @@ const SigninLab = () => {
         }),
         headers: { "Content-Type": "application/json" },
       });
-      localStorage.setItem("token", JSON.stringify(response.data.token));
-      localStorage.setItem("type", JSON.stringify(response.data.type));
-      localStorage.setItem("lab_name", JSON.stringify(response.data.labName));
-      setLoggedIn(true);
+      setAuth({ name: response.data.name, type: response.data.type });
       router.push("/labsdashboard");
     } catch (err) {
       console.error(err);
-      setError("Invalid credentials");
+      setError(err?.response?.data?.message || "Invalid email or password.");
     } finally {
       setIsLoading(false);
     }

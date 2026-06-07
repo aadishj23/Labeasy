@@ -1,12 +1,12 @@
 import prisma from "@/lib/prisma";
 import { verifyAuth, unauthorized } from "@/lib/auth";
 
-export async function POST(request) {
-  const authData = verifyAuth(request);
+export async function POST(request: Request) {
+  const authData = await verifyAuth();
   if (!authData) return unauthorized();
 
-  const body = await request.json();
-  const labID = authData.labID ?? body.labID;
+  const body = await request.json().catch(() => ({}));
+  const labID = authData.type === "lab" ? authData.labID : body.labID;
 
   try {
     const tests = await prisma.labTest.findMany({ where: { lab_id: labID } });

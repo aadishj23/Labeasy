@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
 import { ResendCode } from "@/components/ui/resend-code";
+import { isStrongPassword, PASSWORD_RULE } from "@/lib/password";
 
 function SignupPatient() {
   const [signUpData, setSignUpData] = useState({
@@ -33,6 +34,7 @@ function SignupPatient() {
   async function sendOtp() {
     await axios.post("/api/v1/auth/send-otp", {
       email: signUpData.Email,
+      phone: signUpData.Phone,
       purpose: "signup",
       type: "user",
     });
@@ -40,6 +42,10 @@ function SignupPatient() {
 
   async function handleDetailsSubmit(event) {
     event.preventDefault();
+    if (!isStrongPassword(signUpData.Password)) {
+      setErr(PASSWORD_RULE);
+      return;
+    }
     if (signUpData.Password !== signUpData.ConfirmPassword) {
       setErr("Password and Confirm Password don't match");
       return;
@@ -179,6 +185,7 @@ function SignupPatient() {
             <PasswordInput id="ConfirmPassword" name="ConfirmPassword" placeholder="Re-enter password" value={signUpData.ConfirmPassword} onChange={handleChange} required />
           </div>
         </div>
+        <p className="text-xs text-muted-foreground">{PASSWORD_RULE}</p>
         {err && <p className="text-sm text-destructive">{err}</p>}
         <Button type="submit" variant="gradient" className="w-full" disabled={isLoading}>
           {isLoading ? (

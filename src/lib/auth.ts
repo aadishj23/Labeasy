@@ -1,28 +1,22 @@
-import jwt from "jsonwebtoken";
+import { getSession } from "@/lib/session";
+
+export type AuthData = {
+  type: "user" | "lab";
+  labID?: string;
+  userID?: string;
+};
 
 /**
- * Verifies the Bearer token on an incoming request.
- * Mirrors the old Express middleware (backend/src/middleware/auth.js):
- * returns { type, labID, userID } on success, or null when missing/invalid.
+ * Resolves the current principal from the httpOnly session cookie.
+ * Returns { type, labID | userID } on success, or null when unauthenticated.
  */
-export function verifyAuth(request) {
-  const authHeader = request.headers.get("authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return null;
+export async function verifyAuth(): Promise<AuthData | null> {
+  const session = await getSession();
+  if (!session) return null;
+  if (session.type === "lab") {
+    return { type: "lab", labID: session.labid };
   }
-
-  const token = authHeader.split(" ")[1];
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (decoded.type === "lab") {
-      return { type: "lab", labID: decoded.labid };
-    }
-    return { type: "user", userID: decoded.userid };
-  } catch (err) {
-    return null;
-  }
+  return { type: "user", userID: session.userid };
 }
 
 export function unauthorized(message = "Please Login First") {

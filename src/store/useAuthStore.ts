@@ -1,17 +1,36 @@
 import { create } from "zustand";
 
+type AccountType = "user" | "lab" | null;
+
 interface AuthState {
   isLoggedIn: boolean;
-  setLoggedIn: (value: boolean) => void;
+  ready: boolean; // true once we've checked the session at least once
+  name: string | null;
+  type: AccountType;
+  setAuth: (data: { name: string | null; type: AccountType }) => void;
+  clear: () => void;
+  refresh: () => Promise<void>;
 }
 
-// Derive the initial logged-in state from the persisted token (client-only).
-const getInitialLoggedIn = () => {
-  if (typeof window === "undefined") return false;
-  return !!localStorage.getItem("token");
-};
-
 export const useAuthStore = create<AuthState>((set) => ({
-  isLoggedIn: getInitialLoggedIn(),
-  setLoggedIn: (value) => set({ isLoggedIn: !!value }),
+  isLoggedIn: false,
+  ready: false,
+  name: null,
+  type: null,
+  setAuth: ({ name, type }) =>
+    set({ isLoggedIn: true, name, type, ready: true }),
+  clear: () => set({ isLoggedIn: false, name: null, type: null, ready: true }),
+  refresh: async () => {
+    try {
+      const res = await fetch("/api/v1/auth/me", { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        set({ isLoggedIn: true, name: data.name, type: data.type, ready: true });
+      } else {
+        set({ isLoggedIn: false, name: null, type: null, ready: true });
+      }
+    } catch {
+      set({ isLoggedIn: false, name: null, type: null, ready: true });
+    }
+  },
 }));
