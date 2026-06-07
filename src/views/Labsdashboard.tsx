@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import axios from "axios";
-import { ChevronDown, Trash2, Plus, FlaskConical, LayoutDashboard, ClipboardList, Settings, Package } from "lucide-react";
+import { ChevronDown, Trash2, Plus, FlaskConical, LayoutDashboard, ClipboardList, Settings, Package, Pencil, Check, X, Loader2 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import LabVerification from "@/components/lab-verification";
@@ -16,6 +16,9 @@ function Labsdashboard() {
   const [tests, setTests] = useState([]);
   const [formData, setFormData] = useState({ testName: "", price: "" });
   const [submitting, setSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [editPrice, setEditPrice] = useState("");
+  const [savingPrice, setSavingPrice] = useState(false);
 
   // Auth travels in the httpOnly session cookie (sent automatically same-origin).
   const authHeaders = () => ({ "Content-Type": "application/json" });
@@ -90,6 +93,34 @@ function Labsdashboard() {
     }
   };
 
+  const startEdit = (test) => {
+    setEditingId(test.test_id);
+    setEditPrice(String(test.test_price));
+  };
+
+  const savePrice = async (testId) => {
+    setSavingPrice(true);
+    try {
+      await axios({
+        url: `/api/v1/tests/updatelabtest/${testId}`,
+        method: "PUT",
+        data: JSON.stringify({ test_price: editPrice }),
+        headers: authHeaders(),
+      });
+      setEditingId(null);
+      gettests();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setSavingPrice(false);
+    }
+  };
+
+  // Only offer tests the lab hasn't already listed.
+  const availableTests = tests.filter(
+    (t) => !labTests.some((lt) => lt.test_id === t.id)
+  );
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -151,9 +182,11 @@ function Labsdashboard() {
                       className="flex h-11 w-full appearance-none rounded-md border border-input bg-secondary/40 px-3.5 pr-10 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <option value="" disabled>
-                        Select a test
+                        {availableTests.length === 0
+                          ? "All tests already added"
+                          : "Select a test"}
                       </option>
-                      {tests.map((test) => (
+                      {availableTests.map((test) => (
                         <option key={test.id} value={test.test_name}>
                           {test.test_name}
                         </option>
@@ -211,28 +244,82 @@ function Labsdashboard() {
                     key={test.test_id}
                     className="flex items-center justify-between gap-4 rounded-xl border border-border bg-secondary/20 p-4 transition-colors hover:border-primary/30"
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
                         <FlaskConical className="h-5 w-5" />
                       </span>
-                      <div>
-                        <h3 className="font-medium leading-snug">
+                      <div className="min-w-0">
+                        <h3 className="truncate font-medium leading-snug">
                           {test.test_name}
                         </h3>
-                        <p className="text-sm text-muted-foreground">
-                          ₹{test.test_price}
-                        </p>
+                        {editingId === test.test_id ? (
+                          <div className="mt-1 flex items-center gap-1">
+                            <span className="text-sm text-muted-foreground">₹</span>
+                            <Input
+                              type="number"
+                              value={editPrice}
+                              onChange={(e) => setEditPrice(e.target.value)}
+                              className="h-8 w-28"
+                              autoFocus
+                            />
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">
+                            ₹{test.test_price}
+                          </p>
+                        )}
                       </div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-9 w-9 text-muted-foreground hover:text-destructive"
-                      onClick={() => handleDelete(test.test_id)}
-                      aria-label="Delete test"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex shrink-0 gap-1">
+                      {editingId === test.test_id ? (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-9 w-9 text-primary"
+                            onClick={() => savePrice(test.test_id)}
+                            disabled={savingPrice}
+                            aria-label="Save price"
+                          >
+                            {savingPrice ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Check className="h-4 w-4" />
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-9 w-9 text-muted-foreground"
+                            onClick={() => setEditingId(null)}
+                            aria-label="Cancel"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-9 w-9 text-muted-foreground hover:text-primary"
+                            onClick={() => startEdit(test)}
+                            aria-label="Edit price"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-9 w-9 text-muted-foreground hover:text-destructive"
+                            onClick={() => handleDelete(test.test_id)}
+                            aria-label="Delete test"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>

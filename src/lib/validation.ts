@@ -35,4 +35,5 @@ export const signinSchema = z.object({
 export const testSchema = z.object({
   test_name: z.string(),
   test_description: z.string(),
+  turnaround_hours: z.coerce.number().int().positive().max(2160).optional(),
 });

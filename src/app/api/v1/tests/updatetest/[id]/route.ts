@@ -17,7 +17,13 @@ export async function PUT(request: Request, { params }) {
 
     const test = await prisma.tests.update({
       where: { id },
-      data: { test_name, test_description },
+      data: {
+        test_name,
+        test_description,
+        ...(parsedData.data.turnaround_hours
+          ? { turnaround_hours: parsedData.data.turnaround_hours }
+          : {}),
+      },
     });
 
     await prisma.labTest.updateMany({

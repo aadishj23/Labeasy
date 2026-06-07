@@ -138,6 +138,7 @@ model Tests {
   category         String?
   sample_type      String?
   fasting_required Boolean     @default(false)
+  turnaround_hours Int         @default(12)
   parameters       Json?
   slug             String?     @unique
   aliases          String[]    @default([])

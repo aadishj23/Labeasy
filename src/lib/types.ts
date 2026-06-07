@@ -12,6 +12,7 @@ export interface Test {
   test_name: string;
   test_description?: string;
   slug?: string | null;
+  turnaround_hours?: number;
 }
 
 export interface CartItem {

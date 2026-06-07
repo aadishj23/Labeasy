@@ -22,6 +22,10 @@ export async function POST(request: Request) {
         test_name,
         test_description,
         slug: slugify(test_name),
+        // omit to use the schema default of 12h
+        ...(parsedData.data.turnaround_hours
+          ? { turnaround_hours: parsedData.data.turnaround_hours }
+          : {}),
       },
     });
 

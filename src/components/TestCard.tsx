@@ -2,7 +2,15 @@ import Link from "next/link";
 import { FlaskConical, Building2, Clock, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-function TestCard({ name, slug }: { name: string; slug: string }) {
+function TestCard({
+  name,
+  slug,
+  turnaround = 12,
+}: {
+  name: string;
+  slug: string;
+  turnaround?: number;
+}) {
   return (
     <Link
       href={`/test/${slug}`}
@@ -28,7 +36,7 @@ function TestCard({ name, slug }: { name: string; slug: string }) {
         </span>
         <span className="inline-flex items-center gap-1.5">
           <Clock className="h-4 w-4 text-primary" />
-          Report in 12 hrs
+          Report in {turnaround} hrs
         </span>
       </div>
 

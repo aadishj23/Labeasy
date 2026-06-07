@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { FlaskConical, Star, MapPin, Building2, ArrowLeft } from "lucide-react";
+import { FlaskConical, Star, MapPin, Building2, ArrowLeft, Clock } from "lucide-react";
 import prisma from "@/lib/prisma";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
@@ -129,6 +129,10 @@ export default async function TestPage({
                   · {labTests.length} lab{labTests.length > 1 ? "s" : ""} available
                 </p>
               )}
+              <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+                <Clock className="h-4 w-4 text-primary" />
+                Report in {test.turnaround_hours ?? 12} hrs
+              </p>
             </div>
           </div>
           {test.test_description && (

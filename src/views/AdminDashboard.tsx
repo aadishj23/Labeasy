@@ -31,7 +31,11 @@ export default function AdminDashboard() {
   const router = useRouter();
   const [authed, setAuthed] = useState(false);
   const [tests, setTests] = useState<Test[]>([]);
-  const [form, setForm] = useState({ test_name: "", test_description: "" });
+  const [form, setForm] = useState({
+    test_name: "",
+    test_description: "",
+    turnaround_hours: "",
+  });
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState("");
   const [editing, setEditing] = useState<Test | null>(null);
@@ -76,14 +80,20 @@ export default function AdminDashboard() {
     try {
       const res = await adminFetch("/api/v1/tests/addtest", {
         method: "POST",
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          test_name: form.test_name,
+          test_description: form.test_description,
+          ...(form.turnaround_hours
+            ? { turnaround_hours: Number(form.turnaround_hours) }
+            : {}),
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
         setErr(data.message || "Could not add test.");
         return;
       }
-      setForm({ test_name: "", test_description: "" });
+      setForm({ test_name: "", test_description: "", turnaround_hours: "" });
       loadTests();
     } finally {
       setSubmitting(false);
@@ -100,6 +110,9 @@ export default function AdminDashboard() {
         body: JSON.stringify({
           test_name: editing.test_name,
           test_description: editing.test_description,
+          ...(editing.turnaround_hours
+            ? { turnaround_hours: Number(editing.turnaround_hours) }
+            : {}),
         }),
       });
       if (res.ok) {
@@ -235,6 +248,21 @@ export default function AdminDashboard() {
                     required
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="turnaround_hours">
+                    Report turnaround (hours)
+                  </Label>
+                  <Input
+                    id="turnaround_hours"
+                    type="number"
+                    min={1}
+                    value={form.turnaround_hours}
+                    onChange={(e) =>
+                      setForm({ ...form, turnaround_hours: e.target.value })
+                    }
+                    placeholder="Default 12"
+                  />
+                </div>
                 {err && <p className="text-sm text-destructive">{err}</p>}
                 <Button
                   type="submit"
@@ -272,6 +300,9 @@ export default function AdminDashboard() {
                       <h3 className="font-medium">{t.test_name}</h3>
                       <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">
                         {t.test_description}
+                      </p>
+                      <p className="mt-1 text-xs text-primary">
+                        Report in {t.turnaround_hours ?? 12}h
                       </p>
                     </div>
                     <div className="flex shrink-0 gap-1">
@@ -332,6 +363,26 @@ export default function AdminDashboard() {
                     setEditing({ ...editing, test_description: e.target.value })
                   }
                   required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit_turnaround">
+                  Report turnaround (hours)
+                </Label>
+                <Input
+                  id="edit_turnaround"
+                  type="number"
+                  min={1}
+                  value={editing.turnaround_hours ?? ""}
+                  onChange={(e) =>
+                    setEditing({
+                      ...editing,
+                      turnaround_hours: e.target.value
+                        ? Number(e.target.value)
+                        : undefined,
+                    })
+                  }
+                  placeholder="Default 12"
                 />
               </div>
               <Button
