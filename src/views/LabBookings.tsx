@@ -11,9 +11,24 @@ import {
   Building2,
   Calendar,
   LayoutGrid,
+  Upload,
+  FileText,
+  ExternalLink,
+  ListPlus,
+  Plus,
+  X,
 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 const STATUS_OPTIONS = [
   "CONFIRMED",
@@ -38,6 +53,13 @@ const rupees = (paise: number) => `₹${Math.round(paise / 100)}`;
 function LabBookings() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
+
+  // structured results entry
+  const emptyRow = { name: "", value: "", unit: "", ref_low: "", ref_high: "" };
+  const [resultsOrder, setResultsOrder] = useState<any | null>(null);
+  const [rows, setRows] = useState<any[]>([{ ...emptyRow }]);
+  const [savingResults, setSavingResults] = useState(false);
 
   const load = () => {
     fetch("/api/v1/orders/lab", { cache: "no-store" })
@@ -46,9 +68,48 @@ function LabBookings() {
       .finally(() => setLoading(false));
   };
 
+  const uploadReport = async (orderId: string, file: File) => {
+    setUploadingId(orderId);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("orderId", orderId);
+      const res = await fetch("/api/v1/labs/reports", {
+        method: "POST",
+        body: fd,
+      });
+      if (res.ok) load();
+    } finally {
+      setUploadingId(null);
+    }
+  };
+
   useEffect(() => {
     load();
   }, []);
+
+  const openResults = (order: any) => {
+    setRows([{ ...emptyRow }]);
+    setResultsOrder(order);
+  };
+
+  const saveResults = async () => {
+    if (!resultsOrder) return;
+    setSavingResults(true);
+    try {
+      const res = await fetch("/api/v1/labs/reports/results", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: resultsOrder.id, results: rows }),
+      });
+      if (res.ok) {
+        setResultsOrder(null);
+        load();
+      }
+    } finally {
+      setSavingResults(false);
+    }
+  };
 
   const updateStatus = async (id: string, status: string) => {
     setOrders((prev) =>
@@ -161,11 +222,181 @@ function LabBookings() {
                     ))}
                   </select>
                 </div>
+
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Reports:</span>
+                  {order.reports?.map((r: any, i: number) => (
+                    <a
+                      key={r.id}
+                      href={r.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 rounded-lg border border-border bg-secondary/30 px-2.5 py-1 text-sm hover:border-primary/40"
+                    >
+                      <FileText className="h-3.5 w-3.5 text-primary" /> Report{" "}
+                      {(order.reports.length > 1 ? i + 1 : "") as any}
+                      <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                    </a>
+                  ))}
+                  <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary">
+                    {uploadingId === order.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Upload className="h-4 w-4" />
+                    )}
+                    Upload report
+                    <input
+                      type="file"
+                      accept="application/pdf,image/jpeg,image/png"
+                      className="hidden"
+                      disabled={uploadingId === order.id}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) uploadReport(order.id, f);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
+                  <button
+                    onClick={() => openResults(order)}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
+                  >
+                    <ListPlus className="h-4 w-4" /> Enter results
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         )}
       </section>
+
+      {/* Structured results entry */}
+      <Dialog
+        open={!!resultsOrder}
+        onOpenChange={(o) => !o && setResultsOrder(null)}
+      >
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Enter results</DialogTitle>
+            <DialogDescription>
+              Add analyte values — these power the patient&apos;s health trends.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2">
+            <div className="hidden gap-2 px-1 text-xs font-medium text-muted-foreground sm:grid sm:grid-cols-[1.4fr_0.8fr_0.7fr_0.7fr_0.7fr_auto]">
+              <span>Analyte</span>
+              <span>Value</span>
+              <span>Unit</span>
+              <span>Ref low</span>
+              <span>Ref high</span>
+              <span />
+            </div>
+            <div className="max-h-72 space-y-2 overflow-y-auto">
+              {rows.map((row, i) => (
+                <div
+                  key={i}
+                  className="grid grid-cols-2 gap-2 sm:grid-cols-[1.4fr_0.8fr_0.7fr_0.7fr_0.7fr_auto]"
+                >
+                  <Input
+                    placeholder="Hemoglobin"
+                    value={row.name}
+                    onChange={(e) =>
+                      setRows((rs) =>
+                        rs.map((r, j) =>
+                          j === i ? { ...r, name: e.target.value } : r
+                        )
+                      )
+                    }
+                  />
+                  <Input
+                    placeholder="13.5"
+                    value={row.value}
+                    onChange={(e) =>
+                      setRows((rs) =>
+                        rs.map((r, j) =>
+                          j === i ? { ...r, value: e.target.value } : r
+                        )
+                      )
+                    }
+                  />
+                  <Input
+                    placeholder="g/dL"
+                    value={row.unit}
+                    onChange={(e) =>
+                      setRows((rs) =>
+                        rs.map((r, j) =>
+                          j === i ? { ...r, unit: e.target.value } : r
+                        )
+                      )
+                    }
+                  />
+                  <Input
+                    placeholder="13"
+                    value={row.ref_low}
+                    onChange={(e) =>
+                      setRows((rs) =>
+                        rs.map((r, j) =>
+                          j === i ? { ...r, ref_low: e.target.value } : r
+                        )
+                      )
+                    }
+                  />
+                  <Input
+                    placeholder="17"
+                    value={row.ref_high}
+                    onChange={(e) =>
+                      setRows((rs) =>
+                        rs.map((r, j) =>
+                          j === i ? { ...r, ref_high: e.target.value } : r
+                        )
+                      )
+                    }
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-10 w-10 text-muted-foreground hover:text-destructive"
+                    onClick={() =>
+                      setRows((rs) =>
+                        rs.length > 1 ? rs.filter((_, j) => j !== i) : rs
+                      )
+                    }
+                    aria-label="Remove row"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setRows((rs) => [...rs, { ...emptyRow }])}
+            >
+              <Plus className="h-4 w-4" /> Add row
+            </Button>
+          </div>
+
+          <div className="mt-2 flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setResultsOrder(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="gradient"
+              onClick={saveResults}
+              disabled={savingResults}
+            >
+              {savingResults ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Save results"
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Footer />
     </div>

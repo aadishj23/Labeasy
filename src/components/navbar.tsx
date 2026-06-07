@@ -9,6 +9,7 @@ import {
   ShoppingCart,
   LineChart,
   ClipboardList,
+  FileText,
   Menu,
   User,
   LogOut,
@@ -50,6 +51,7 @@ const NAV_LINKS = [
   { label: "Tests", href: "/tests", icon: FlaskConical },
   { label: "Labs", href: "/labs", icon: Building2 },
   { label: "Bookings", href: "/bookings", icon: ClipboardList },
+  { label: "Reports", href: "/reports", icon: FileText },
   { label: "Results", href: "/results", icon: LineChart },
   { label: "Cart", href: "/cart", icon: ShoppingCart },
 ];

@@ -10,6 +10,7 @@ import {
   ClipboardList,
   ArrowRight,
   Star,
+  FileText,
 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
@@ -204,16 +205,32 @@ function Bookings() {
                     </span>
                   </div>
 
-                  {order.status !== "PLACED" && (
-                    <div className="mt-3 flex justify-end">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openReview(order)}
-                      >
-                        <Star className="h-4 w-4" />
-                        Rate lab
-                      </Button>
+                  {(order.reports?.length > 0 || order.status !== "PLACED") && (
+                    <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
+                      {order.reports?.map((r: any, i: number) => (
+                        <Button key={r.id} asChild variant="secondary" size="sm">
+                          <a
+                            href={r.file_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <FileText className="h-4 w-4" />
+                            {order.reports.length > 1
+                              ? `Report ${i + 1}`
+                              : "Download report"}
+                          </a>
+                        </Button>
+                      ))}
+                      {order.status !== "PLACED" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openReview(order)}
+                        >
+                          <Star className="h-4 w-4" />
+                          Rate lab
+                        </Button>
+                      )}
                     </div>
                   )}
                 </div>

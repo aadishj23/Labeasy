@@ -8,6 +8,7 @@ const RULES: { prefix: string; role: "lab" | "user"; signin: string }[] = [
   { prefix: "/results", role: "user", signin: "/signinuser" },
   { prefix: "/bookings", role: "user", signin: "/signinuser" },
   { prefix: "/profile", role: "user", signin: "/signinuser" },
+  { prefix: "/reports", role: "user", signin: "/signinuser" },
 ];
 
 async function getRole(token?: string): Promise<string | null> {
@@ -50,5 +51,7 @@ export const config = {
     "/bookings/:path*",
     "/profile",
     "/profile/:path*",
+    "/reports",
+    "/reports/:path*",
   ],
 };

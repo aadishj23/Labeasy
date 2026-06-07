@@ -1,99 +1,121 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import Chart from "chart.js/auto";
-import { Lock, ExternalLink, FileText, TrendingUp, Loader2 } from "lucide-react";
+import {
+  Lock,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Activity,
+  Loader2,
+  FileText,
+  AlertTriangle,
+} from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-const REPORTS = [
-  {
-    name: "Liver Function Test",
-    link: "https://drive.google.com/file/d/1Mgccp4JaQAR0VKQGhjjdxdPb7W9Nwo3R/view?usp=sharing",
-    date: "15 Jun 2024",
-  },
-  {
-    name: "Leucocytes Test",
-    link: "https://drive.google.com/file/d/1AEeJK8IylqJ0_Eq2cVW_bVIvbIeOvg40/view?usp=sharing",
-    date: "10 Aug 2024",
-  },
-  {
-    name: "Complete Haemogram Test",
-    link: "https://drive.google.com/file/d/1YUdWe27UtC0kSgZrKMNyWL_4hqGcABJn/view?usp=sharing",
-    date: "05 Oct 2024",
-  },
-];
+type Point = { date: string; value: number };
+type Series = {
+  name: string;
+  unit?: string | null;
+  ref_low?: number | null;
+  ref_high?: number | null;
+  points: Point[];
+};
+
+function flagOf(v: number, low?: number | null, high?: number | null) {
+  if (low != null && v < low) return "low" as const;
+  if (high != null && v > high) return "high" as const;
+  if (low != null || high != null) return "normal" as const;
+  return null;
+}
+
+function Sparkline({ values }: { values: number[] }) {
+  if (values.length < 2) return null;
+  const w = 140;
+  const h = 40;
+  const pad = 4;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+  const pts = values
+    .map((v, i) => {
+      const x = pad + (i / (values.length - 1)) * (w - 2 * pad);
+      const y = h - pad - ((v - min) / range) * (h - 2 * pad);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+  return (
+    <svg width={w} height={h} className="text-primary">
+      <polyline
+        points={pts}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 const Results = () => {
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const ready = useAuthStore((s) => s.ready);
-  const chartRef = useRef<HTMLCanvasElement>(null);
-
-  const generateData = () => {
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const data = [];
-    let value = 77.5;
-    for (let i = 11; i >= 0; i--) {
-      const variation = (Math.random() - 0.5) * 2;
-      value = Math.max(75, Math.min(80, value + variation));
-      data.unshift({ x: months[i], y: Math.round(value * 10) / 10 });
-    }
-    data.push({ x: "Current", y: 77.5 });
-    return data;
-  };
+  const [reports, setReports] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isLoggedIn || !chartRef.current) return;
-    const accent = "#22d3ee";
-    const grid = "rgba(148, 163, 184, 0.12)";
-    const text = "rgba(226, 232, 240, 0.8)";
-    const ctx = chartRef.current.getContext("2d");
-    const gradient = ctx.createLinearGradient(0, 0, 0, 320);
-    gradient.addColorStop(0, "rgba(34, 211, 238, 0.35)");
-    gradient.addColorStop(1, "rgba(34, 211, 238, 0)");
-
-    const chart = new Chart(ctx, {
-      type: "line",
-      data: {
-        datasets: [
-          {
-            label: "H-Factor",
-            data: generateData(),
-            borderColor: accent,
-            backgroundColor: gradient,
-            tension: 0.4,
-            fill: true,
-            pointRadius: 3,
-            pointBackgroundColor: accent,
-            borderWidth: 2,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          title: {
-            display: true,
-            text: "H-Factor trend — past year",
-            color: text,
-            font: { size: 15, weight: 600 },
-            padding: { bottom: 16 },
-          },
-          legend: { display: false },
-        },
-        scales: {
-          y: { beginAtZero: false, grid: { color: grid }, ticks: { color: text } },
-          x: { grid: { color: grid }, ticks: { color: text } },
-        },
-      },
-    });
-    return () => chart.destroy();
+    if (!isLoggedIn) return;
+    fetch("/api/v1/reports/mine", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : { reports: [] }))
+      .then((d) => setReports(d.reports || []))
+      .finally(() => setLoading(false));
   }, [isLoggedIn]);
+
+  // Build per-analyte time series from all reports that have structured results.
+  const series = useMemo<Series[]>(() => {
+    const map = new Map<string, Series>();
+    const sorted = [...reports].sort(
+      (a, b) =>
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    );
+    for (const rep of sorted) {
+      const rows = Array.isArray(rep.results)
+        ? rep.results
+        : rep.results?.analytes;
+      if (!Array.isArray(rows)) continue;
+      for (const a of rows) {
+        const value = Number(a.value);
+        if (!Number.isFinite(value)) continue;
+        const s =
+          map.get(a.name) ||
+          ({
+            name: a.name,
+            unit: a.unit,
+            ref_low: a.ref_low,
+            ref_high: a.ref_high,
+            points: [],
+          } as Series);
+        s.unit = a.unit ?? s.unit;
+        s.ref_low = a.ref_low ?? s.ref_low;
+        s.ref_high = a.ref_high ?? s.ref_high;
+        s.points.push({ date: rep.created_at, value });
+        map.set(a.name, s);
+      }
+    }
+    return [...map.values()];
+  }, [reports]);
+
+  const abnormal = series.filter((s) => {
+    const last = s.points[s.points.length - 1];
+    const f = flagOf(last.value, s.ref_low, s.ref_high);
+    return f === "low" || f === "high";
+  });
 
   if (!ready) {
     return (
@@ -114,9 +136,9 @@ const Results = () => {
           <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary text-muted-foreground">
             <Lock className="h-7 w-7" />
           </span>
-          <h1 className="text-2xl font-bold">Sign in to view results</h1>
+          <h1 className="text-2xl font-bold">Sign in to view your health data</h1>
           <p className="text-muted-foreground">
-            Your test reports and health trends are private. Please sign in to
+            Your results and health trends are private. Please sign in to
             continue.
           </p>
           <Button asChild variant="gradient">
@@ -134,59 +156,151 @@ const Results = () => {
       <section className="mx-auto max-w-6xl px-6 pb-24 pt-28 lg:px-8 lg:pt-36">
         <div className="mb-8 flex items-center gap-3">
           <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/15 text-primary">
-            <TrendingUp className="h-5 w-5" />
+            <Activity className="h-5 w-5" />
           </span>
           <div>
-            <h1 className="text-3xl font-bold sm:text-4xl">Results</h1>
+            <h1 className="text-3xl font-bold sm:text-4xl">Health dashboard</h1>
             <p className="text-muted-foreground">
-              Track your health trends and access your reports.
+              Trends and flags from your lab results over time.
             </p>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-6">
-          <div className="h-[320px]">
-            <canvas ref={chartRef} />
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
-        </div>
-
-        <div className="mt-8 rounded-2xl border border-border bg-card p-6">
-          <h2 className="mb-4 text-lg font-semibold">Your reports</h2>
-          <div className="hidden grid-cols-[1fr_auto_auto] gap-4 border-b border-border pb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:grid">
-            <span>Test name</span>
-            <span className="w-32 text-center">Report</span>
-            <span className="w-28 text-right">Date</span>
+        ) : series.length === 0 ? (
+          <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card py-20 text-center">
+            <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary text-muted-foreground">
+              <Activity className="h-6 w-6" />
+            </span>
+            <p className="text-muted-foreground">
+              No structured results yet. Once a lab enters your results, trends
+              show up here.
+            </p>
+            <Button asChild variant="outline">
+              <Link href="/reports">
+                <FileText className="h-4 w-4" /> View report PDFs
+              </Link>
+            </Button>
           </div>
-          <div className="divide-y divide-border">
-            {REPORTS.map((report) => (
-              <div
-                key={report.name}
-                className="flex flex-col gap-3 py-4 sm:grid sm:grid-cols-[1fr_auto_auto] sm:items-center sm:gap-4"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-primary">
-                    <FileText className="h-4 w-4" />
-                  </span>
-                  <span className="font-medium">{report.name}</span>
-                </div>
-                <div className="sm:w-32 sm:text-center">
-                  <a
-                    href={report.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
-                  >
-                    View report
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
-                </div>
-                <div className="sm:w-28 sm:text-right">
-                  <Badge variant="secondary">{report.date}</Badge>
+        ) : (
+          <>
+            {abnormal.length > 0 && (
+              <div className="mb-8 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5">
+                <p className="flex items-center gap-2 font-semibold text-amber-300">
+                  <AlertTriangle className="h-4 w-4" /> Needs attention
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {abnormal.map((s) => {
+                    const last = s.points[s.points.length - 1];
+                    const f = flagOf(last.value, s.ref_low, s.ref_high);
+                    return (
+                      <span
+                        key={s.name}
+                        className="rounded-lg border border-border bg-card px-3 py-1.5 text-sm"
+                      >
+                        <span className="font-medium">{s.name}</span>{" "}
+                        <span
+                          className={
+                            f === "high" ? "text-red-400" : "text-sky-400"
+                          }
+                        >
+                          {last.value}
+                          {s.unit ? ` ${s.unit}` : ""} ({f})
+                        </span>
+                      </span>
+                    );
+                  })}
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
+            )}
+
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {series.map((s) => {
+                const last = s.points[s.points.length - 1];
+                const prev = s.points[s.points.length - 2];
+                const f = flagOf(last.value, s.ref_low, s.ref_high);
+                const trend = prev
+                  ? last.value > prev.value
+                    ? "up"
+                    : last.value < prev.value
+                      ? "down"
+                      : "flat"
+                  : null;
+                const range =
+                  s.ref_low != null || s.ref_high != null
+                    ? `Ref: ${s.ref_low ?? "—"}–${s.ref_high ?? "—"}${
+                        s.unit ? ` ${s.unit}` : ""
+                      }`
+                    : null;
+                return (
+                  <div
+                    key={s.name}
+                    className="rounded-2xl border border-border bg-card p-5"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="font-semibold leading-snug">{s.name}</h3>
+                      {f && (
+                        <Badge
+                          variant={
+                            f === "normal"
+                              ? "success"
+                              : f === "high"
+                                ? "destructive"
+                                : "warning"
+                          }
+                        >
+                          {f}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="mt-2 flex items-end gap-2">
+                      <span className="text-2xl font-bold">{last.value}</span>
+                      {s.unit && (
+                        <span className="pb-1 text-sm text-muted-foreground">
+                          {s.unit}
+                        </span>
+                      )}
+                      {trend && trend !== "flat" && (
+                        <span className="pb-1">
+                          {trend === "up" ? (
+                            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                          ) : (
+                            <TrendingDown className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </span>
+                      )}
+                      {trend === "flat" && (
+                        <Minus className="mb-1.5 h-4 w-4 text-muted-foreground" />
+                      )}
+                    </div>
+                    {range && (
+                      <p className="mt-1 text-xs text-muted-foreground">{range}</p>
+                    )}
+                    <div className="mt-3">
+                      <Sparkline values={s.points.map((p) => p.value)} />
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {s.points.length} reading
+                      {s.points.length > 1 ? "s" : ""} · latest{" "}
+                      {new Date(last.date).toLocaleDateString()}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="mt-8">
+              <Button asChild variant="outline">
+                <Link href="/reports">
+                  <FileText className="h-4 w-4" /> View report PDFs
+                </Link>
+              </Button>
+            </div>
+          </>
+        )}
       </section>
 
       <Footer />
