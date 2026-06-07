@@ -9,11 +9,19 @@ import {
   Calendar,
   ClipboardList,
   ArrowRight,
+  Star,
 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 const STATUS_META: Record<string, { label: string; variant: any }> = {
   PLACED: { label: "Awaiting payment", variant: "warning" },
@@ -32,12 +40,72 @@ function Bookings() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // review dialog
+  const [reviewOrder, setReviewOrder] = useState<any | null>(null);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [reviewErr, setReviewErr] = useState("");
+  const [reviewDone, setReviewDone] = useState(false);
+  const [reviewExisting, setReviewExisting] = useState(false);
+
   useEffect(() => {
     fetch("/api/v1/orders/mine", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : { orders: [] }))
       .then((d) => setOrders(d.orders || []))
       .finally(() => setLoading(false));
   }, []);
+
+  const openReview = async (order: any) => {
+    setRating(5);
+    setComment("");
+    setReviewErr("");
+    setReviewDone(false);
+    setReviewExisting(false);
+    setReviewOrder(order);
+    // Pre-fill if the patient already reviewed this lab (one review per lab, editable).
+    try {
+      const res = await fetch(`/api/v1/reviews?labId=${order.lab_id}`, {
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const d = await res.json();
+        if (d.review) {
+          setRating(d.review.rating);
+          setComment(d.review.comment || "");
+          setReviewExisting(true);
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const submitReview = async () => {
+    if (!reviewOrder) return;
+    setSubmitting(true);
+    setReviewErr("");
+    try {
+      const res = await fetch("/api/v1/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          labId: reviewOrder.lab_id,
+          orderId: reviewOrder.id,
+          rating,
+          comment,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setReviewErr(data.message || "Could not submit review.");
+        return;
+      }
+      setReviewDone(true);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -135,12 +203,103 @@ function Bookings() {
                       {rupees(order.total)}
                     </span>
                   </div>
+
+                  {order.status !== "PLACED" && (
+                    <div className="mt-3 flex justify-end">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openReview(order)}
+                      >
+                        <Star className="h-4 w-4" />
+                        Rate lab
+                      </Button>
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
         )}
       </section>
+
+      <Dialog
+        open={!!reviewOrder}
+        onOpenChange={(o) => !o && setReviewOrder(null)}
+      >
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>
+              {reviewExisting ? "Edit your review of" : "Rate"}{" "}
+              {reviewOrder?.lab?.lab_name}
+            </DialogTitle>
+            <DialogDescription>
+              {reviewExisting
+                ? "You've reviewed this lab — update your rating below."
+                : "Share your experience to help other patients."}
+            </DialogDescription>
+          </DialogHeader>
+
+          {reviewDone ? (
+            <div className="flex flex-col items-center gap-3 py-4 text-center">
+              <div className="flex items-center gap-1 text-amber-400">
+                {[...Array(rating)].map((_, i) => (
+                  <Star key={i} className="h-5 w-5 fill-current" />
+                ))}
+              </div>
+              <p className="font-medium">Thanks for your review!</p>
+              <Button variant="outline" onClick={() => setReviewOrder(null)}>
+                Close
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex justify-center gap-1">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setRating(n)}
+                    aria-label={`${n} star${n > 1 ? "s" : ""}`}
+                  >
+                    <Star
+                      className={`h-8 w-8 transition-colors ${
+                        n <= rating
+                          ? "fill-amber-400 text-amber-400"
+                          : "text-muted-foreground"
+                      }`}
+                    />
+                  </button>
+                ))}
+              </div>
+              <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Tell us about the experience (optional)"
+                rows={3}
+                className="flex w-full rounded-md border border-input bg-secondary/40 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              />
+              {reviewErr && (
+                <p className="text-sm text-destructive">{reviewErr}</p>
+              )}
+              <Button
+                variant="gradient"
+                className="w-full"
+                onClick={submitReview}
+                disabled={submitting}
+              >
+                {submitting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : reviewExisting ? (
+                  "Update review"
+                ) : (
+                  "Submit review"
+                )}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <Footer />
     </div>

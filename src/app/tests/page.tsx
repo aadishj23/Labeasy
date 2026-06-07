@@ -15,7 +15,7 @@ export default async function TestsPage() {
   let tests = [];
   try {
     tests = await prisma.tests.findMany({
-      select: { id: true, test_name: true, test_description: true },
+      select: { id: true, test_name: true, test_description: true, slug: true },
       orderBy: { test_name: "asc" },
     });
   } catch (error) {

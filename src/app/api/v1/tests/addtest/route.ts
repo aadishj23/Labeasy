@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { testSchema } from "@/lib/validation";
 import { prismaErrorResponse, forbidden } from "@/lib/api";
 import { verifyAdmin } from "@/lib/admin";
+import { slugify } from "@/lib/slug";
 
 export async function POST(request: Request) {
   if (!verifyAdmin(request)) return forbidden();
@@ -16,7 +17,12 @@ export async function POST(request: Request) {
     }
 
     const test = await prisma.tests.create({
-      data: { id: nanoid(), test_name, test_description },
+      data: {
+        id: nanoid(),
+        test_name,
+        test_description,
+        slug: slugify(test_name),
+      },
     });
 
     return Response.json(

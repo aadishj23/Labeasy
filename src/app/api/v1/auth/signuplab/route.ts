@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { signupLabSchema } from "@/lib/validation";
 import { verifyOtp } from "@/lib/otp";
 import { prismaErrorResponse, isAdminEmail } from "@/lib/api";
+import { slugify } from "@/lib/slug";
 
 export async function POST(request) {
   try {
@@ -44,9 +45,10 @@ export async function POST(request) {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const labId = nanoid();
     const lab = await prisma.lab.create({
       data: {
-        id: nanoid(),
+        id: labId,
         lab_name,
         owner_name,
         email,
@@ -58,6 +60,7 @@ export async function POST(request) {
         state,
         city,
         pincode,
+        slug: `${slugify(lab_name)}-${labId.slice(-4).toLowerCase()}`,
       },
     });
 

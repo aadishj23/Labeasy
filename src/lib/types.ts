@@ -11,6 +11,7 @@ export interface Test {
   id: string;
   test_name: string;
   test_description?: string;
+  slug?: string | null;
 }
 
 export interface CartItem {

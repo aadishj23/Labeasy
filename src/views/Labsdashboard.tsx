@@ -6,6 +6,7 @@ import axios from "axios";
 import { ChevronDown, Trash2, Plus, FlaskConical, LayoutDashboard, ClipboardList } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import LabVerification from "@/components/lab-verification";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -114,6 +115,8 @@ function Labsdashboard() {
             Bookings
           </Link>
         </div>
+
+        <LabVerification />
 
         <div className="grid gap-8 lg:grid-cols-[400px_1fr]">
           {/* Add test form */}

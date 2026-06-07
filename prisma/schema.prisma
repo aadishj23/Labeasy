@@ -260,18 +260,19 @@ model Report {
 }
 
 model Review {
-  id         String   @id @default(cuid())
-  user_id    String
-  lab_id     String
-  order_id   String?
-  rating     Int
-  comment    String?
-  status     String   @default("published")
-  created_at DateTime @default(now())
-  user       User     @relation(fields: [user_id], references: [id])
-  lab        Lab      @relation(fields: [lab_id], references: [id], onDelete: Cascade)
+  id            String   @id @default(cuid())
+  user_id       String?
+  reviewer_name String?
+  lab_id        String
+  order_id      String?
+  rating        Int
+  comment       String?
+  status        String   @default("published")
+  created_at    DateTime @default(now())
+  user          User?    @relation(fields: [user_id], references: [id])
+  lab           Lab      @relation(fields: [lab_id], references: [id], onDelete: Cascade)
 
-  @@unique([user_id, lab_id, order_id])
+  @@unique([user_id, lab_id])
   @@index([lab_id])
 }
 

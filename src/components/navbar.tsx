@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import {
   FlaskConical,
@@ -46,6 +47,7 @@ import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
   { label: "Tests", href: "/tests", icon: FlaskConical },
+  { label: "Labs", href: "/labs", icon: Building2 },
   { label: "Bookings", href: "/bookings", icon: ClipboardList },
   { label: "Results", href: "/results", icon: LineChart },
   { label: "Cart", href: "/cart", icon: ShoppingCart },
@@ -117,8 +119,9 @@ export default function Navbar() {
       >
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:h-[72px] lg:px-8">
           {/* Logo */}
-          <button
-            onClick={() => go("/")}
+          <Link
+            href="/"
+            onClick={() => setIsMenuOpen(false)}
             className="flex items-center gap-2 transition-transform hover:scale-[1.02]"
             aria-label="Labeasy home"
           >
@@ -130,14 +133,15 @@ export default function Navbar() {
               priority
               className="h-8 w-auto lg:h-9"
             />
-          </button>
+          </Link>
 
           {/* Desktop nav */}
           <nav className="hidden items-center gap-1 lg:flex">
             {visibleLinks.map(({ label, href, icon: Icon }) => (
-              <button
+              <Link
                 key={href}
-                onClick={() => go(href)}
+                href={href}
+                onClick={() => setIsMenuOpen(false)}
                 className={cn(
                   "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors",
                   isActive(href)
@@ -147,7 +151,7 @@ export default function Navbar() {
               >
                 <Icon className="h-4 w-4" />
                 {label}
-              </button>
+              </Link>
             ))}
           </nav>
 
@@ -238,9 +242,10 @@ export default function Navbar() {
 
                 <nav className="mt-6 flex flex-col gap-1">
                   {visibleLinks.map(({ label, href, icon: Icon }) => (
-                    <button
+                    <Link
                       key={href}
-                      onClick={() => go(href)}
+                      href={href}
+                      onClick={() => setIsMenuOpen(false)}
                       className={cn(
                         "inline-flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors",
                         isActive(href)
@@ -250,7 +255,7 @@ export default function Navbar() {
                     >
                       <Icon className="h-5 w-5" />
                       {label}
-                    </button>
+                    </Link>
                   ))}
                 </nav>
 

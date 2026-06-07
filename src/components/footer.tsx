@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 /* Brand glyphs as inline SVGs (lucide-react 1.x removed brand icons). */
 const BrandIcon = ({ path, label }) => (
@@ -47,31 +47,42 @@ const Linkedin = (props) => (
 
 const SECTIONS = [
   {
-    title: "Company",
-    links: ["About", "Careers", "Blog", "Contact us"],
+    title: "Discover",
+    links: [
+      { label: "Browse tests", href: "/tests" },
+      { label: "Find labs", href: "/labs" },
+    ],
   },
   {
-    title: "Partners",
-    links: ["Labs", "Doctors", "Insurers"],
+    title: "Company",
+    links: [
+      { label: "About", href: "#" },
+      { label: "Careers", href: "#" },
+      { label: "Blog", href: "#" },
+      { label: "Contact us", href: "#" },
+    ],
   },
   {
     title: "Cities",
-    links: ["Delhi", "Gurgaon", "Noida", "Bangalore"],
+    links: [
+      { label: "Delhi", href: "/labs?q=Delhi" },
+      { label: "Gurgaon", href: "/labs?q=Gurgaon" },
+      { label: "Noida", href: "/labs?q=Noida" },
+      { label: "Bangalore", href: "/labs?q=Bangalore" },
+    ],
   },
 ];
 
 const SOCIALS = [Instagram, Facebook, Twitter, Linkedin];
 
 const Footer = () => {
-  const router = useRouter();
-
   return (
     <footer className="border-t border-border bg-background">
       <div className="mx-auto max-w-7xl px-6 py-14 lg:px-8">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-5">
           {/* Brand */}
           <div className="lg:col-span-2">
-            <button onClick={() => router.push("/")} aria-label="Labeasy home">
+            <Link href="/" aria-label="Labeasy home">
               <Image
                 src="/assets/logocbs.png"
                 alt="Labeasy"
@@ -79,7 +90,7 @@ const Footer = () => {
                 height={40}
                 className="h-9 w-auto"
               />
-            </button>
+            </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
               Compare diagnostic labs, book tests at the best prices, and keep
               your reports secure — all in one place.
@@ -106,13 +117,22 @@ const Footer = () => {
               </h3>
               <ul className="mt-4 space-y-3">
                 {section.links.map((link) => (
-                  <li key={link}>
-                    <a
-                      href="#"
-                      className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                    >
-                      {link}
-                    </a>
+                  <li key={link.label}>
+                    {link.href.startsWith("/") ? (
+                      <Link
+                        href={link.href}
+                        className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        {link.label}
+                      </Link>
+                    ) : (
+                      <a
+                        href={link.href}
+                        className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        {link.label}
+                      </a>
+                    )}
                   </li>
                 ))}
               </ul>

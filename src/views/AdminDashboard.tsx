@@ -10,8 +10,10 @@ import {
   Trash2,
   FlaskConical,
   Loader2,
+  Building2,
 } from "lucide-react";
 import { adminFetch, clearAdminToken, getAdminToken } from "@/lib/admin-client";
+import AdminLabQueue from "@/components/admin-lab-queue";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,6 +33,7 @@ export default function AdminDashboard() {
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState("");
   const [editing, setEditing] = useState<Test | null>(null);
+  const [tab, setTab] = useState<"tests" | "labs">("tests");
 
   const loadTests = useCallback(async () => {
     const res = await fetch("/api/v1/tests/gettests", { cache: "no-store" });
@@ -140,6 +143,41 @@ export default function AdminDashboard() {
       </header>
 
       <main className="mx-auto max-w-6xl px-6 py-10">
+        <div className="mb-8 flex gap-2 border-b border-border">
+          <button
+            onClick={() => setTab("tests")}
+            className={`-mb-px inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium ${
+              tab === "tests"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <FlaskConical className="h-4 w-4" /> Test catalogue
+          </button>
+          <button
+            onClick={() => setTab("labs")}
+            className={`-mb-px inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium ${
+              tab === "labs"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Building2 className="h-4 w-4" /> Lab verification
+          </button>
+        </div>
+
+        {tab === "labs" ? (
+          <>
+            <h1 className="text-2xl font-bold">Lab verification</h1>
+            <p className="mt-1 text-muted-foreground">
+              Review documents and approve, suspend, or reset labs.
+            </p>
+            <div className="mt-8">
+              <AdminLabQueue />
+            </div>
+          </>
+        ) : (
+        <>
         <h1 className="text-2xl font-bold">Test catalogue</h1>
         <p className="mt-1 text-muted-foreground">
           The master list of tests labs can offer.
@@ -240,6 +278,8 @@ export default function AdminDashboard() {
             )}
           </div>
         </div>
+        </>
+        )}
       </main>
 
       {/* Edit dialog */}

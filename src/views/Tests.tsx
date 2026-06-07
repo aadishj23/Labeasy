@@ -62,7 +62,11 @@ const Tests = ({ initialTests = [] }: { initialTests?: Test[] }) => {
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((test) => (
-              <TestCard key={test.id} name={test.test_name} testId={test.id} />
+              <TestCard
+                key={test.id}
+                name={test.test_name}
+                slug={test.slug || test.id}
+              />
             ))}
           </div>
         )}
