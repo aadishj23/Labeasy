@@ -14,12 +14,14 @@ import {
   ClipboardCheck,
   Megaphone,
   Wallet,
+  BarChart3,
 } from "lucide-react";
 import { adminFetch, clearAdminToken, getAdminToken } from "@/lib/admin-client";
 import AdminLabQueue from "@/components/admin-lab-queue";
 import AdminChangeRequests from "@/components/admin-change-requests";
 import AdminSponsored from "@/components/admin-sponsored";
 import AdminWallet from "@/components/admin-wallet";
+import AdminAnalytics from "@/components/admin-analytics";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,7 +46,7 @@ export default function AdminDashboard() {
   const [err, setErr] = useState("");
   const [editing, setEditing] = useState<Test | null>(null);
   const [tab, setTab] = useState<
-    "tests" | "labs" | "requests" | "sponsored" | "wallet"
+    "tests" | "labs" | "requests" | "sponsored" | "wallet" | "analytics"
   >("tests");
 
   const loadTests = useCallback(async () => {
@@ -215,9 +217,29 @@ export default function AdminDashboard() {
           >
             <Wallet className="h-4 w-4" /> Wallet
           </button>
+          <button
+            onClick={() => setTab("analytics")}
+            className={`-mb-px inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium ${
+              tab === "analytics"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <BarChart3 className="h-4 w-4" /> Analytics
+          </button>
         </div>
 
-        {tab === "wallet" ? (
+        {tab === "analytics" ? (
+          <>
+            <h1 className="text-2xl font-bold">Platform analytics</h1>
+            <p className="mt-1 text-muted-foreground">
+              GMV, revenue, and marketplace activity across all labs.
+            </p>
+            <div className="mt-8">
+              <AdminAnalytics />
+            </div>
+          </>
+        ) : tab === "wallet" ? (
           <>
             <h1 className="text-2xl font-bold">Wallet & settlements</h1>
             <p className="mt-1 text-muted-foreground">
