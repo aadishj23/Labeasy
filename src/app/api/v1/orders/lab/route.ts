@@ -12,7 +12,7 @@ export async function GET() {
     include: {
       items: true,
       user: { select: { name: true, phone: true, email: true } },
-      reports: { orderBy: { created_at: "desc" } },
+      reports: { orderBy: { created_at: "asc" } },
     },
   });
 

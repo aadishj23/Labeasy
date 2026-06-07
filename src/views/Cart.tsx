@@ -155,7 +155,8 @@ function Cart() {
   };
 
   const handlePay = async () => {
-    if (!activeGroup) return;
+    const group = activeGroup;
+    if (!group) return;
     if (collectionType === "HOME" && !addressId) {
       toast.error("Please select a home-collection address.");
       return;
@@ -166,11 +167,11 @@ function Cart() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          labId: activeGroup.labId,
-          testIds: activeGroup.items
+          labId: group.labId,
+          testIds: group.items
             .filter((i) => i.testId && !i.packageId)
             .map((i) => i.testId),
-          packageIds: activeGroup.items
+          packageIds: group.items
             .filter((i) => i.packageId)
             .map((i) => i.packageId),
           collectionType,
@@ -196,7 +197,7 @@ function Cart() {
         amount: data.amount,
         currency: data.currency,
         name: "Labeasy",
-        description: activeGroup.labName,
+        description: group.labName,
         prefill: { name: userName || "" },
         theme: { color: "#22d3ee" },
         handler: async (resp: any) => {
@@ -211,9 +212,8 @@ function Cart() {
             }),
           });
           if (verifyRes.ok) {
-            removeLabItems(activeGroup.labId);
-            setActiveGroup(null);
-            toast.success("Booking confirmed! View it under Results soon.");
+            removeLabItems(group.labId);
+            toast.success("Booking confirmed! Track it under Bookings.");
           } else {
             toast.error("Payment could not be verified. Contact support.");
           }
@@ -222,7 +222,14 @@ function Cart() {
           ondismiss: () => toast.info("Payment cancelled."),
         },
       });
-      rzp.open();
+
+      // Close our Radix dialog first, then wait for it to fully unmount before
+      // opening Razorpay. Radix's focus-trap + scroll-lock apply
+      // `pointer-events: none` to the page; if Razorpay mounts before that
+      // cleanup runs, its iframe stays non-interactive until you click away.
+      setActiveGroup(null);
+      setPaying(false);
+      setTimeout(() => rzp.open(), 300);
     } catch {
       toast.error("Something went wrong. Please try again.");
     } finally {

@@ -158,14 +158,14 @@ export default function ReportsInbox() {
                       <p className="mt-0.5 text-sm text-muted-foreground">
                         {r.order?.items?.map((i: any) => i.test_name).join(", ")}
                       </p>
-                      <p className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                      <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                         {new Date(r.created_at).toLocaleDateString()}
                         {r.share_token && (
                           <Badge variant="secondary" className="gap-1">
                             <Share2 className="h-3 w-3" /> Shared
                           </Badge>
                         )}
-                      </p>
+                      </div>
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">

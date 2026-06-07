@@ -2,14 +2,14 @@ import prisma from "@/lib/prisma";
 import { verifyAuth, unauthorized } from "@/lib/auth";
 import { notifyOrderStatus } from "@/lib/email";
 
-const ALLOWED = [
-  "CONFIRMED",
-  "SAMPLE_COLLECTED",
-  "PROCESSING",
-  "REPORT_READY",
-  "COMPLETED",
-  "CANCELLED",
-];
+// Forward-only manual progression; CANCELLED allowed from any non-terminal
+// state. COMPLETED is NOT settable here — it's reached only on report upload.
+const NEXT: Record<string, string> = {
+  PLACED: "CONFIRMED",
+  CONFIRMED: "SAMPLE_COLLECTED",
+  SAMPLE_COLLECTED: "PROCESSING",
+};
+const TERMINAL = ["COMPLETED", "CANCELLED", "REFUNDED"];
 
 export async function PATCH(request: Request, { params }) {
   const auth = await verifyAuth();
@@ -18,13 +18,24 @@ export async function PATCH(request: Request, { params }) {
   const { id } = await params;
   const { status } = await request.json().catch(() => ({}));
 
-  if (!ALLOWED.includes(status)) {
-    return Response.json({ message: "Invalid status." }, { status: 400 });
-  }
-
   const order = await prisma.order.findUnique({ where: { id } });
   if (!order || order.lab_id !== auth.labID) {
     return Response.json({ message: "Order not found." }, { status: 404 });
+  }
+
+  // Enforce a valid transition: next step in sequence, or cancel.
+  if (TERMINAL.includes(order.status)) {
+    return Response.json(
+      { message: `This booking is ${order.status.toLowerCase()} and can't be changed.` },
+      { status: 400 }
+    );
+  }
+  const isValid = status === NEXT[order.status] || status === "CANCELLED";
+  if (!isValid) {
+    return Response.json(
+      { message: "Bookings can only move forward one step, or be cancelled." },
+      { status: 400 }
+    );
   }
 
   const updated = await prisma.order.update({

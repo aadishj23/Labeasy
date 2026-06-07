@@ -17,11 +17,13 @@ import {
   ListPlus,
   Plus,
   X,
+  Check,
 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -30,23 +32,31 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 
-const STATUS_OPTIONS = [
-  "CONFIRMED",
-  "SAMPLE_COLLECTED",
-  "PROCESSING",
-  "REPORT_READY",
-  "COMPLETED",
-  "CANCELLED",
-];
-
 const STATUS_LABEL: Record<string, string> = {
+  PLACED: "Awaiting payment",
   CONFIRMED: "Confirmed",
   SAMPLE_COLLECTED: "Sample collected",
   PROCESSING: "Processing",
   REPORT_READY: "Report ready",
   COMPLETED: "Completed",
   CANCELLED: "Cancelled",
+  REFUNDED: "Refunded",
 };
+
+// Progress stages shown in the stepper. COMPLETED is reached only by uploading
+// a report; the lab manually advances through the first three.
+const STEPS = ["CONFIRMED", "SAMPLE_COLLECTED", "PROCESSING", "COMPLETED"];
+const MANUAL_NEXT: Record<string, string> = {
+  CONFIRMED: "SAMPLE_COLLECTED",
+  SAMPLE_COLLECTED: "PROCESSING",
+};
+const TERMINAL = ["COMPLETED", "CANCELLED", "REFUNDED"];
+
+function stepIndex(status: string) {
+  if (status === "REPORT_READY") return 2; // legacy orders -> show as processing done
+  const i = STEPS.indexOf(status);
+  return i === -1 ? 0 : i;
+}
 
 const rupees = (paise: number) => `₹${Math.round(paise / 100)}`;
 
@@ -115,11 +125,12 @@ function LabBookings() {
     setOrders((prev) =>
       prev.map((o) => (o.id === id ? { ...o, status } : o))
     );
-    await fetch(`/api/v1/orders/${id}/status`, {
+    const res = await fetch(`/api/v1/orders/${id}/status`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
     });
+    if (!res.ok) load(); // revert optimistic update on rejection
   };
 
   return (
@@ -208,19 +219,107 @@ function LabBookings() {
                   ))}
                 </div>
 
-                <div className="mt-4 flex items-center gap-3 border-t border-border pt-4">
-                  <label className="text-sm text-muted-foreground">Status</label>
-                  <select
-                    value={order.status}
-                    onChange={(e) => updateStatus(order.id, e.target.value)}
-                    className="h-9 rounded-md border border-input bg-secondary/40 px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    {STATUS_OPTIONS.map((s) => (
-                      <option key={s} value={s}>
-                        {STATUS_LABEL[s]}
-                      </option>
-                    ))}
-                  </select>
+                <div className="mt-4 border-t border-border pt-4">
+                  {order.status === "CANCELLED" || order.status === "REFUNDED" ? (
+                    <Badge variant="destructive">
+                      {STATUS_LABEL[order.status]}
+                    </Badge>
+                  ) : (
+                    <>
+                      <div className="flex items-start">
+                        {STEPS.map((step, i) => {
+                          const idx = stepIndex(order.status);
+                          const isComplete = order.status === "COMPLETED";
+                          const done = i < idx || (isComplete && i === idx);
+                          const current = i === idx && !isComplete;
+                          const isNext = step === MANUAL_NEXT[order.status];
+                          return (
+                            <div
+                              key={step}
+                              className="flex flex-1 flex-col items-center"
+                            >
+                              <div className="flex w-full items-center">
+                                <div
+                                  className={`h-0.5 flex-1 ${
+                                    i === 0
+                                      ? "opacity-0"
+                                      : i <= idx
+                                        ? "bg-primary"
+                                        : "bg-border"
+                                  }`}
+                                />
+                                <button
+                                  type="button"
+                                  disabled={!isNext}
+                                  onClick={() =>
+                                    isNext && updateStatus(order.id, step)
+                                  }
+                                  title={
+                                    isNext
+                                      ? `Mark ${STATUS_LABEL[step]}`
+                                      : undefined
+                                  }
+                                  className={`flex h-8 w-8 items-center justify-center rounded-full border-2 text-xs font-semibold transition-colors ${
+                                    done
+                                      ? "border-primary bg-primary text-primary-foreground"
+                                      : current
+                                        ? "border-primary text-primary"
+                                        : isNext
+                                          ? "cursor-pointer border-dashed border-primary/60 text-primary hover:bg-primary/10"
+                                          : "border-border text-muted-foreground"
+                                  }`}
+                                >
+                                  {done ? (
+                                    <Check className="h-4 w-4" />
+                                  ) : (
+                                    i + 1
+                                  )}
+                                </button>
+                                <div
+                                  className={`h-0.5 flex-1 ${
+                                    i === STEPS.length - 1
+                                      ? "opacity-0"
+                                      : i < idx
+                                        ? "bg-primary"
+                                        : "bg-border"
+                                  }`}
+                                />
+                              </div>
+                              <span
+                                className={`mt-1.5 text-center text-[11px] leading-tight ${
+                                  current
+                                    ? "font-medium text-foreground"
+                                    : "text-muted-foreground"
+                                }`}
+                              >
+                                {STATUS_LABEL[step]}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {order.status === "PROCESSING" && (
+                        <p className="mt-3 text-center text-xs text-muted-foreground">
+                          Upload a report below to complete this booking.
+                        </p>
+                      )}
+
+                      <div className="mt-3 flex justify-end">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => {
+                            if (confirm("Cancel this booking?"))
+                              updateStatus(order.id, "CANCELLED");
+                          }}
+                        >
+                          <X className="h-4 w-4" /> Cancel booking
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -284,7 +383,7 @@ function LabBookings() {
           </DialogHeader>
 
           <div className="space-y-2">
-            <div className="hidden gap-2 px-1 text-xs font-medium text-muted-foreground sm:grid sm:grid-cols-[1.4fr_0.8fr_0.7fr_0.7fr_0.7fr_auto]">
+            <div className="hidden gap-2 px-2 text-xs font-medium text-muted-foreground sm:grid sm:grid-cols-[1.4fr_0.8fr_0.7fr_0.7fr_0.7fr_auto]">
               <span>Analyte</span>
               <span>Value</span>
               <span>Unit</span>
@@ -292,7 +391,7 @@ function LabBookings() {
               <span>Ref high</span>
               <span />
             </div>
-            <div className="max-h-72 space-y-2 overflow-y-auto">
+            <div className="max-h-72 space-y-2 overflow-y-auto px-2 py-2">
               {rows.map((row, i) => (
                 <div
                   key={i}

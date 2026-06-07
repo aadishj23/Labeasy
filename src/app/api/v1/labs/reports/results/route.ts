@@ -65,16 +65,19 @@ export async function POST(request: Request) {
     },
   });
 
-  const firstReport = !["REPORT_READY", "COMPLETED"].includes(order.status);
-  if (firstReport) {
+  // Entering results completes the order (the only path to COMPLETED).
+  const notTerminal = !["COMPLETED", "CANCELLED", "REFUNDED"].includes(
+    order.status
+  );
+  if (notTerminal) {
     await prisma.order.update({
       where: { id: order.id },
-      data: { status: "REPORT_READY" },
+      data: { status: "COMPLETED" },
     });
     void notifyOrderStatus({
       patientEmail: order.user?.email,
       labName: order.lab?.lab_name,
-      status: "REPORT_READY",
+      status: "COMPLETED",
       items: order.items,
     });
   }

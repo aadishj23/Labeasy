@@ -100,9 +100,10 @@ const STATUS_EMAIL: Record<
     intro: "Good news — your report is ready. View it from your bookings.",
   },
   COMPLETED: {
-    subject: "Your Labeasy order is complete",
-    heading: "Order completed",
-    intro: "This order is now complete. Thank you for using Labeasy.",
+    subject: "Your report is ready — Labeasy",
+    heading: "Report ready",
+    intro:
+      "Your report is ready and your order is complete — view or download it from your bookings.",
   },
   CANCELLED: {
     subject: "Your Labeasy booking was cancelled",

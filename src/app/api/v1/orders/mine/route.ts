@@ -12,7 +12,7 @@ export async function GET() {
       items: true,
       lab: { select: { lab_name: true } },
       payment: { select: { status: true } },
-      reports: { orderBy: { created_at: "desc" } },
+      reports: { orderBy: { created_at: "asc" } },
     },
   });
 
