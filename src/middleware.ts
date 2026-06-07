@@ -6,6 +6,7 @@ import { jwtVerify } from "jose";
 const RULES: { prefix: string; role: "lab" | "user"; signin: string }[] = [
   { prefix: "/labsdashboard", role: "lab", signin: "/signinlab" },
   { prefix: "/results", role: "user", signin: "/signinuser" },
+  { prefix: "/bookings", role: "user", signin: "/signinuser" },
 ];
 
 async function getRole(token?: string): Promise<string | null> {
@@ -39,5 +40,12 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/labsdashboard", "/labsdashboard/:path*", "/results", "/results/:path*"],
+  matcher: [
+    "/labsdashboard",
+    "/labsdashboard/:path*",
+    "/results",
+    "/results/:path*",
+    "/bookings",
+    "/bookings/:path*",
+  ],
 };

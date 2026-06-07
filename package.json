@@ -29,6 +29,7 @@
     "nanoid": "^3.3.4",
     "next": "^15.1.0",
     "pg": "^8.21.0",
+    "razorpay": "^2.9.6",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-toastify": "^10.0.6",

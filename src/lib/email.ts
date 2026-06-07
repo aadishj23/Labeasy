@@ -8,6 +8,73 @@ function getResend() {
   return resendClient;
 }
 
+const shell = (heading: string, intro: string, inner: string) => `
+  <div style="background:#070b14;padding:40px 0;font-family:Inter,Arial,sans-serif;">
+    <div style="max-width:480px;margin:0 auto;background:#0f1623;border:1px solid #1e293b;border-radius:16px;padding:32px;color:#e2e8f0;">
+      <h1 style="margin:0 0 4px;font-size:20px;color:#ffffff;">${heading}</h1>
+      <p style="margin:0 0 20px;font-size:14px;color:#94a3b8;">${intro}</p>
+      ${inner}
+      <p style="margin:24px 0 0;font-size:12px;color:#64748b;">— The Labeasy team</p>
+    </div>
+  </div>`;
+
+/**
+ * Notify the patient (confirmation) and the lab (new booking) after payment.
+ * Fire-and-forget friendly: failures are swallowed so they never block checkout.
+ */
+export async function notifyOrderConfirmed(opts: {
+  patientEmail?: string | null;
+  patientName?: string | null;
+  labEmail?: string | null;
+  labName?: string | null;
+  items: { test_name: string }[];
+  total: number; // paise
+}) {
+  const from = process.env.RESEND_FROM_EMAIL;
+  const amount = `₹${Math.round(opts.total / 100)}`;
+  const list = `<ul style="margin:0 0 16px;padding-left:18px;font-size:14px;color:#e2e8f0;">${opts.items
+    .map((i) => `<li>${i.test_name}</li>`)
+    .join("")}</ul>`;
+  const totalRow = `<p style="margin:0 0 4px;font-size:15px;color:#38bdf8;"><strong>Total paid: ${amount}</strong></p>`;
+
+  const sends: Promise<unknown>[] = [];
+
+  if (opts.patientEmail) {
+    sends.push(
+      getResend().emails.send({
+        from,
+        to: opts.patientEmail,
+        subject: "Your Labeasy booking is confirmed",
+        html: shell(
+          "Booking confirmed",
+          `Your tests at ${opts.labName ?? "the lab"} are booked.`,
+          list + totalRow
+        ),
+      })
+    );
+  }
+  if (opts.labEmail) {
+    sends.push(
+      getResend().emails.send({
+        from,
+        to: opts.labEmail,
+        subject: "New booking on Labeasy",
+        html: shell(
+          "New booking received",
+          `${opts.patientName ?? "A patient"} booked the following tests.`,
+          list + totalRow
+        ),
+      })
+    );
+  }
+
+  try {
+    await Promise.allSettled(sends);
+  } catch {
+    /* never block on email */
+  }
+}
+
 const PURPOSE_COPY = {
   signup: {
     subject: "Verify your Labeasy account",

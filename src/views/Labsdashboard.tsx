@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import axios from "axios";
-import { ChevronDown, Trash2, Plus, FlaskConical, LayoutDashboard } from "lucide-react";
+import { ChevronDown, Trash2, Plus, FlaskConical, LayoutDashboard, ClipboardList } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
@@ -93,16 +94,25 @@ function Labsdashboard() {
       <Navbar />
 
       <section className="mx-auto max-w-6xl px-6 pb-24 pt-28 lg:px-8 lg:pt-36">
-        <div className="mb-8 flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/15 text-primary">
-            <LayoutDashboard className="h-5 w-5" />
-          </span>
-          <div>
-            <h1 className="text-3xl font-bold sm:text-4xl">Lab dashboard</h1>
-            <p className="text-muted-foreground">
-              Add tests to your catalogue and manage pricing.
-            </p>
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/15 text-primary">
+              <LayoutDashboard className="h-5 w-5" />
+            </span>
+            <div>
+              <h1 className="text-3xl font-bold sm:text-4xl">Lab dashboard</h1>
+              <p className="text-muted-foreground">
+                Add tests to your catalogue and manage pricing.
+              </p>
+            </div>
           </div>
+          <Link
+            href="/labsdashboard/bookings"
+            className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          >
+            <ClipboardList className="h-4 w-4" />
+            Bookings
+          </Link>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-[400px_1fr]">

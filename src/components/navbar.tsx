@@ -7,6 +7,7 @@ import {
   FlaskConical,
   ShoppingCart,
   LineChart,
+  ClipboardList,
   Menu,
   User,
   LogOut,
@@ -45,6 +46,7 @@ import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
   { label: "Tests", href: "/tests", icon: FlaskConical },
+  { label: "Bookings", href: "/bookings", icon: ClipboardList },
   { label: "Results", href: "/results", icon: LineChart },
   { label: "Cart", href: "/cart", icon: ShoppingCart },
 ];
