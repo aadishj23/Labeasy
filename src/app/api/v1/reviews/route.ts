@@ -1,18 +1,24 @@
 import prisma from "@/lib/prisma";
 import { verifyAuth, unauthorized } from "@/lib/auth";
-import { recomputeLabRating } from "@/lib/reviews";
+import { recomputeRating } from "@/lib/reviews";
 
-// Fetch the patient's review for one lab (?labId=) or all their reviews (no param).
+// The patient's own review for one target (?targetType=&targetId=) or all theirs.
 export async function GET(request: Request) {
   const auth = await verifyAuth();
   if (!auth || auth.type !== "user") return unauthorized();
 
-  const labId = new URL(request.url).searchParams.get("labId");
+  const { searchParams } = new URL(request.url);
+  const targetType = searchParams.get("targetType");
+  const targetId = searchParams.get("targetId");
 
-  if (labId) {
+  if (targetType && targetId) {
     const review = await prisma.review.findUnique({
       where: {
-        user_id_lab_id: { user_id: auth.userID as string, lab_id: labId },
+        user_id_target_type_target_id: {
+          user_id: auth.userID as string,
+          target_type: targetType,
+          target_id: targetId,
+        },
       },
       select: { rating: true, comment: true },
     });
@@ -21,7 +27,7 @@ export async function GET(request: Request) {
 
   const reviews = await prisma.review.findMany({
     where: { user_id: auth.userID },
-    select: { lab_id: true, rating: true, comment: true },
+    select: { target_type: true, target_id: true, rating: true, comment: true },
   });
   return Response.json({ reviews });
 }
@@ -30,31 +36,49 @@ export async function POST(request: Request) {
   const auth = await verifyAuth();
   if (!auth || auth.type !== "user") return unauthorized();
 
-  const { labId, orderId, rating, comment } = await request
+  const { targetType, targetId, refId, rating, comment } = await request
     .json()
     .catch(() => ({}));
 
-  if (!labId || !orderId || !rating || rating < 1 || rating > 5) {
+  if (
+    !["LAB", "DOCTOR"].includes(targetType) ||
+    !targetId ||
+    !rating ||
+    rating < 1 ||
+    rating > 5
+  ) {
     return Response.json(
-      { message: "A booking and a rating (1–5) are required." },
+      { message: "A valid target and rating (1–5) are required." },
       { status: 400 }
     );
   }
 
-  // Order-gated: the order must belong to this patient + lab and be paid.
-  const order = await prisma.order.findFirst({
-    where: {
-      id: orderId,
-      user_id: auth.userID,
-      lab_id: labId,
-      NOT: { status: "PLACED" },
-    },
-  });
-  if (!order) {
-    return Response.json(
-      { message: "You can review a lab only after a booking with it." },
-      { status: 403 }
-    );
+  // Booking-gated: must have transacted with the target.
+  if (targetType === "LAB") {
+    const order = await prisma.order.findFirst({
+      where: {
+        ...(refId ? { id: refId } : {}),
+        user_id: auth.userID,
+        lab_id: targetId,
+        NOT: { status: "PLACED" },
+      },
+    });
+    if (!order) {
+      return Response.json(
+        { message: "You can review a lab only after a booking with it." },
+        { status: 403 }
+      );
+    }
+  } else {
+    const appt = await prisma.appointment.findFirst({
+      where: { user_id: auth.userID, doctor_id: targetId, status: "COMPLETED" },
+    });
+    if (!appt) {
+      return Response.json(
+        { message: "You can review a doctor only after a completed consultation." },
+        { status: 403 }
+      );
+    }
   }
 
   const user = await prisma.user.findUnique({
@@ -62,26 +86,26 @@ export async function POST(request: Request) {
     select: { name: true },
   });
 
-  // One review per patient per lab — upsert by (user_id, lab_id); editable later.
   await prisma.review.upsert({
     where: {
-      user_id_lab_id: {
+      user_id_target_type_target_id: {
         user_id: auth.userID as string,
-        lab_id: labId,
+        target_type: targetType,
+        target_id: targetId,
       },
     },
-    update: { rating, comment: comment || null, order_id: orderId, reviewer_name: user?.name },
+    update: { rating, comment: comment || null, reviewer_name: user?.name },
     create: {
       user_id: auth.userID,
-      lab_id: labId,
-      order_id: orderId,
+      target_type: targetType,
+      target_id: targetId,
+      order_id: targetType === "LAB" ? refId || null : null,
       rating,
       comment: comment || null,
       reviewer_name: user?.name,
     },
   });
 
-  await recomputeLabRating(labId);
-
+  await recomputeRating(targetType, targetId);
   return Response.json({ ok: true });
 }

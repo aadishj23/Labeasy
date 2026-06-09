@@ -28,7 +28,8 @@ export async function POST(
   }
 
   await postEntry({
-    labId,
+    ownerType: "LAB",
+    ownerId: labId,
     amount: -settle,
     type: "PAYOUT",
     description: reference ? `Settlement · ${reference}` : "Settlement",

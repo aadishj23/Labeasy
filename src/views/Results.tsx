@@ -13,7 +13,6 @@ import {
   AlertTriangle,
   Stethoscope,
   Phone,
-  ExternalLink,
   MapPin,
   Sparkles,
 } from "lucide-react";
@@ -386,22 +385,12 @@ const Results = () => {
                             .join(", ")}
                         </p>
                       )}
-                      {d.blurb && (
+                      {d.description && (
                         <p className="mt-2 text-xs text-muted-foreground">
-                          {d.blurb}
+                          {d.description}
                         </p>
                       )}
                       <div className="mt-3 flex gap-2">
-                        {d.consult_url && (
-                          <a
-                            href={d.consult_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 rounded-lg bg-primary/15 px-2.5 py-1.5 text-xs font-medium text-primary hover:bg-primary/25"
-                          >
-                            Book <ExternalLink className="h-3 w-3" />
-                          </a>
-                        )}
                         {d.phone && (
                           <a
                             href={`tel:${d.phone}`}

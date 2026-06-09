@@ -24,6 +24,9 @@ import {
   Wallet,
   Megaphone,
   ShieldCheck,
+  Stethoscope,
+  CalendarClock,
+  Star,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Button } from "@/components/ui/button";
@@ -35,13 +38,6 @@ import {
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -57,6 +53,7 @@ import { readCartCount, CART_EVENT } from "@/lib/cart";
 const NAV_LINKS = [
   { label: "Tests", href: "/tests", icon: FlaskConical },
   { label: "Labs", href: "/labs", icon: Building2 },
+  { label: "Doctors", href: "/doctors", icon: Stethoscope },
   { label: "Insurance", href: "/insurance", icon: ShieldCheck },
   { label: "Bookings", href: "/bookings", icon: ClipboardList },
   { label: "Reports", href: "/reports", icon: FileText },
@@ -72,12 +69,26 @@ const LAB_NAV_LINKS = [
   { label: "Coupons", href: "/labsdashboard/coupons", icon: Ticket },
   { label: "Promote", href: "/labsdashboard/sponsorships", icon: Megaphone },
   { label: "Wallet", href: "/labsdashboard/wallet", icon: Wallet },
+  { label: "Reviews", href: "/labsdashboard/reviews", icon: Star },
+];
+
+const DOCTOR_NAV_LINKS = [
+  { label: "Dashboard", href: "/doctordashboard", icon: LayoutDashboard },
+  { label: "Slots", href: "/doctordashboard/slots", icon: CalendarClock },
+  { label: "Appointments", href: "/doctordashboard/appointments", icon: ClipboardList },
+  { label: "Wallet", href: "/doctordashboard/wallet", icon: Wallet },
+  { label: "Reviews", href: "/doctordashboard/reviews", icon: Star },
+  { label: "Profile", href: "/doctordashboard/profile", icon: UserRound },
+];
+
+const INSURANCE_NAV_LINKS = [
+  { label: "Dashboard", href: "/insurancedashboard", icon: LayoutDashboard },
+  { label: "Reviews", href: "/insurancedashboard/reviews", icon: Star },
+  { label: "Profile", href: "/insurancedashboard/profile", icon: UserRound },
 ];
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [showAuthDialog, setShowAuthDialog] = useState(false);
-  const [authMode, setAuthMode] = useState("signin"); // "signin" | "signup"
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [cartCount, setCartCount] = useState(0);
@@ -134,13 +145,20 @@ export default function Navbar() {
     router.push(href);
   };
 
+  // Header auth is patient-only; partners onboard via the footer.
   const openAuth = (mode) => {
-    setAuthMode(mode);
-    setShowAuthDialog(true);
+    router.push(mode === "signin" ? "/signinuser" : "/signupuser");
   };
 
   const isActive = (href) => pathname === href;
-  const visibleLinks = userType === "lab" ? LAB_NAV_LINKS : NAV_LINKS;
+  const visibleLinks =
+    userType === "lab"
+      ? LAB_NAV_LINKS
+      : userType === "doctor"
+        ? DOCTOR_NAV_LINKS
+        : userType === "insurance"
+          ? INSURANCE_NAV_LINKS
+          : NAV_LINKS;
 
   return (
     <>
@@ -342,37 +360,20 @@ export default function Navbar() {
                       </Button>
                     </div>
                   ) : (
-                    <div className="space-y-3">
-                      <div className="space-y-2">
-                        <p className="px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    <div className="space-y-2">
+                      <SheetClose asChild>
+                        <Button variant="outline" className="w-full" onClick={() => go("/signinuser")}>
                           Sign in
-                        </p>
-                        <SheetClose asChild>
-                          <Button variant="outline" className="w-full justify-start" onClick={() => go("/signinuser")}>
-                            <UserRound className="h-4 w-4" /> Patient
-                          </Button>
-                        </SheetClose>
-                        <SheetClose asChild>
-                          <Button variant="outline" className="w-full justify-start" onClick={() => go("/signinlab")}>
-                            <Building2 className="h-4 w-4" /> Lab
-                          </Button>
-                        </SheetClose>
-                      </div>
-                      <div className="space-y-2">
-                        <p className="px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                          Sign up
-                        </p>
-                        <SheetClose asChild>
-                          <Button variant="gradient" className="w-full justify-start" onClick={() => go("/signupuser")}>
-                            <UserRound className="h-4 w-4" /> Patient
-                          </Button>
-                        </SheetClose>
-                        <SheetClose asChild>
-                          <Button variant="gradient" className="w-full justify-start" onClick={() => go("/signuplab")}>
-                            <Building2 className="h-4 w-4" /> Lab
-                          </Button>
-                        </SheetClose>
-                      </div>
+                        </Button>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Button variant="gradient" className="w-full" onClick={() => go("/signupuser")}>
+                          Get started
+                        </Button>
+                      </SheetClose>
+                      <p className="px-1 pt-1 text-center text-xs text-muted-foreground">
+                        Partner with us via the footer.
+                      </p>
                     </div>
                   )}
                 </div>
@@ -381,54 +382,6 @@ export default function Navbar() {
           </div>
         </div>
       </header>
-
-      {/* Auth role-choice dialog (desktop, logged out) */}
-      <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>
-              {authMode === "signin" ? "Sign in to Labeasy" : "Create your account"}
-            </DialogTitle>
-            <DialogDescription>Choose how you want to continue.</DialogDescription>
-          </DialogHeader>
-          <div className="mt-2 grid gap-3">
-            <button
-              onClick={() => {
-                setShowAuthDialog(false);
-                router.push(authMode === "signin" ? "/signinuser" : "/signupuser");
-              }}
-              className="group flex items-center gap-4 rounded-xl border border-border bg-secondary/30 p-4 text-left transition-all hover:border-primary/50 hover:bg-secondary/60"
-            >
-              <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/15 text-primary">
-                <UserRound className="h-5 w-5" />
-              </span>
-              <span>
-                <span className="block font-semibold">Patient</span>
-                <span className="block text-sm text-muted-foreground">
-                  Book tests &amp; view reports
-                </span>
-              </span>
-            </button>
-            <button
-              onClick={() => {
-                setShowAuthDialog(false);
-                router.push(authMode === "signin" ? "/signinlab" : "/signuplab");
-              }}
-              className="group flex items-center gap-4 rounded-xl border border-border bg-secondary/30 p-4 text-left transition-all hover:border-primary/50 hover:bg-secondary/60"
-            >
-              <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/15 text-primary">
-                <Building2 className="h-5 w-5" />
-              </span>
-              <span>
-                <span className="block font-semibold">Laboratory</span>
-                <span className="block text-sm text-muted-foreground">
-                  Manage tests &amp; pricing
-                </span>
-              </span>
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       <ChangePasswordDialog
         open={showChangePassword}

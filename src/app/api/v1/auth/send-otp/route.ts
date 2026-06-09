@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { createOtp, getResendWaitMs } from "@/lib/otp";
 import { sendOtpEmail } from "@/lib/email";
 import { isAdminEmail } from "@/lib/api";
+import { emailExists, phoneExists } from "@/lib/identity";
 
 export async function POST(request: Request) {
   try {
@@ -13,7 +14,6 @@ export async function POST(request: Request) {
     if (!["signup", "reset"].includes(purpose)) {
       return Response.json({ message: "Invalid purpose" }, { status: 400 });
     }
-    const accountType = type === "lab" ? "lab" : "user";
     const normalized = email.toLowerCase().trim();
 
     if (purpose === "signup") {
@@ -23,28 +23,18 @@ export async function POST(request: Request) {
           { status: 409 }
         );
       }
-      const existing =
-        accountType === "lab"
-          ? await prisma.lab.findUnique({ where: { email: normalized } })
-          : await prisma.user.findUnique({ where: { email: normalized } });
-      if (existing) {
+      // Global, cross-role uniqueness.
+      if (await emailExists(normalized)) {
         return Response.json(
           { message: "An account with this email already exists." },
           { status: 409 }
         );
       }
-      // Catch duplicate phone early (before sending a code) for clearer feedback.
-      if (phone) {
-        const phoneTaken =
-          accountType === "lab"
-            ? await prisma.lab.findUnique({ where: { phone } })
-            : await prisma.user.findUnique({ where: { phone } });
-        if (phoneTaken) {
-          return Response.json(
-            { message: "This phone number is already registered." },
-            { status: 409 }
-          );
-        }
+      if (phone && (await phoneExists(phone))) {
+        return Response.json(
+          { message: "This phone number is already registered." },
+          { status: 409 }
+        );
       }
     } else {
       // reset: the email must belong to a user OR a lab

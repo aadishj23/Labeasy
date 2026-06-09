@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-type AccountType = "user" | "lab" | null;
+type AccountType = "user" | "lab" | "doctor" | "insurance" | null;
 
 interface AuthState {
   isLoggedIn: boolean;

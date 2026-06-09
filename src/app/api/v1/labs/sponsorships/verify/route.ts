@@ -48,7 +48,8 @@ export async function POST(request: Request) {
     const exists = await prisma.walletEntry.findFirst({ where: { ref_id: refId } });
     if (!exists) {
       await postEntry({
-        labId: listing.lab_id,
+        ownerType: "LAB",
+        ownerId: listing.lab_id,
         amount: -listing.wallet_applied,
         type: "SPONSORSHIP",
         description: `Sponsorship — ${listing.scope.toLowerCase()}`,

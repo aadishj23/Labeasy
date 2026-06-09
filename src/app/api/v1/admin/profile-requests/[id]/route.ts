@@ -35,15 +35,24 @@ export async function POST(
       return Response.json({ ok: true, status: "REJECTED" });
     }
 
-    // approve → apply changes to the lab
+    // approve → apply changes to the relevant vendor
     const changes = (req.changes || {}) as Record<string, string>;
     const data: Record<string, unknown> = { ...changes };
-    if (changes.lab_name) {
-      data.slug = `${slugify(changes.lab_name)}-${req.lab_id.slice(-4).toLowerCase()}`;
+
+    let applyVendor;
+    if (req.vendor_type === "LAB") {
+      if (changes.lab_name) {
+        data.slug = `${slugify(changes.lab_name)}-${req.vendor_id.slice(-4).toLowerCase()}`;
+      }
+      applyVendor = prisma.lab.update({ where: { id: req.vendor_id }, data });
+    } else if (req.vendor_type === "DOCTOR") {
+      applyVendor = prisma.doctor.update({ where: { id: req.vendor_id }, data });
+    } else {
+      applyVendor = prisma.insuranceCompany.update({ where: { id: req.vendor_id }, data });
     }
 
     await prisma.$transaction([
-      prisma.lab.update({ where: { id: req.lab_id }, data }),
+      applyVendor,
       prisma.profileChangeRequest.update({
         where: { id },
         data: { status: "APPROVED", reviewed_by: admin.email },

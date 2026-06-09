@@ -11,6 +11,8 @@ import {
   ArrowRight,
   Star,
   FileText,
+  Stethoscope,
+  ShieldCheck,
 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
@@ -39,6 +41,8 @@ const rupees = (paise: number) => `₹${Math.round(paise / 100)}`;
 
 function Bookings() {
   const [orders, setOrders] = useState<any[]>([]);
+  const [appts, setAppts] = useState<any[]>([]);
+  const [tab, setTab] = useState<"all" | "tests" | "doctors" | "insurance">("all");
   const [loading, setLoading] = useState(true);
 
   // review dialog
@@ -53,16 +57,27 @@ function Bookings() {
   const [reviewsByLab, setReviewsByLab] = useState<Record<string, any>>({});
 
   useEffect(() => {
-    fetch("/api/v1/orders/mine", { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : { orders: [] }))
-      .then((d) => setOrders(d.orders || []))
+    Promise.all([
+      fetch("/api/v1/orders/mine", { cache: "no-store" }).then((r) =>
+        r.ok ? r.json() : { orders: [] }
+      ),
+      fetch("/api/v1/appointments/mine", { cache: "no-store" }).then((r) =>
+        r.ok ? r.json() : { appointments: [] }
+      ),
+    ])
+      .then(([o, a]) => {
+        setOrders(o.orders || []);
+        setAppts(a.appointments || []);
+      })
       .finally(() => setLoading(false));
 
     fetch("/api/v1/reviews", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : { reviews: [] }))
       .then((d) => {
         const map: Record<string, any> = {};
-        (d.reviews || []).forEach((rv: any) => (map[rv.lab_id] = rv));
+        (d.reviews || [])
+          .filter((rv: any) => rv.target_type === "LAB")
+          .forEach((rv: any) => (map[rv.target_id] = rv));
         setReviewsByLab(map);
       })
       .catch(() => {});
@@ -87,8 +102,9 @@ function Bookings() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          labId: reviewOrder.lab_id,
-          orderId: reviewOrder.id,
+          targetType: "LAB",
+          targetId: reviewOrder.lab_id,
+          refId: reviewOrder.id,
           rating,
           comment,
         }),
@@ -110,6 +126,9 @@ function Bookings() {
     }
   };
 
+  const showOrders = tab === "all" || tab === "tests" ? orders : [];
+  const showAppts = tab === "all" || tab === "doctors" ? appts : [];
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -121,34 +140,92 @@ function Bookings() {
           </span>
           <div>
             <h1 className="text-3xl font-bold sm:text-4xl">My bookings</h1>
-            <p className="text-muted-foreground">Track your test orders.</p>
+            <p className="text-muted-foreground">Tests, consultations & insurance.</p>
           </div>
+        </div>
+
+        {/* Type filter */}
+        <div className="mb-6 flex flex-wrap gap-2">
+          {[
+            { v: "all", label: "All" },
+            { v: "tests", label: "Lab tests" },
+            { v: "doctors", label: "Doctors" },
+            { v: "insurance", label: "Insurance" },
+          ].map((t) => (
+            <button
+              key={t.v}
+              onClick={() => setTab(t.v as any)}
+              className={`rounded-lg border px-3 py-1.5 text-sm transition-colors ${
+                tab === t.v
+                  ? "border-primary/60 bg-primary/10 text-foreground"
+                  : "border-border text-muted-foreground hover:bg-secondary/40"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
 
         {loading ? (
           <div className="flex justify-center py-20">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
-        ) : orders.length === 0 ? (
+        ) : tab === "insurance" ? (
+          <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border bg-card py-16 text-center text-muted-foreground">
+            <ShieldCheck className="h-8 w-8 text-muted-foreground/60" />
+            <p>Insurance purchases will appear here soon.</p>
+            <Button asChild variant="outline">
+              <Link href="/insurance">Browse plans</Link>
+            </Button>
+          </div>
+        ) : showOrders.length === 0 && showAppts.length === 0 ? (
           <div className="flex flex-col items-center gap-4 rounded-2xl border border-border bg-card py-20 text-center">
             <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary text-muted-foreground">
               <ClipboardList className="h-8 w-8" />
             </span>
             <div>
-              <h2 className="text-xl font-semibold">No bookings yet</h2>
+              <h2 className="text-xl font-semibold">Nothing here yet</h2>
               <p className="mt-1 text-muted-foreground">
-                Book a test to see it here.
+                {tab === "doctors" ? "Book a consultation to see it here." : "Book a test to see it here."}
               </p>
             </div>
             <Button asChild variant="gradient">
-              <Link href="/tests">
-                Browse tests <ArrowRight className="h-4 w-4" />
+              <Link href={tab === "doctors" ? "/doctors" : "/tests"}>
+                {tab === "doctors" ? "Find a doctor" : "Browse tests"} <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
           </div>
         ) : (
           <div className="space-y-4">
-            {orders.map((order) => {
+            {/* Doctor appointments */}
+            {showAppts.map((a: any) => (
+              <div key={a.id} className="rounded-2xl border border-border bg-card p-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
+                      <Stethoscope className="h-5 w-5" />
+                    </span>
+                    <div>
+                      <h3 className="font-semibold">{a.doctor?.name}</h3>
+                      <p className="text-xs text-muted-foreground">
+                        {a.doctor?.specialty}
+                        {a.doctor?.clinic ? ` · ${a.doctor.clinic}` : ""}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant={a.status === "COMPLETED" ? "success" : a.status === "CANCELLED" ? "destructive" : "default"}>
+                    {a.status}
+                  </Badge>
+                </div>
+                <p className="mt-3 text-sm text-muted-foreground">
+                  {new Date(a.scheduled_at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}
+                  {" · "}{rupees(a.fee)}
+                </p>
+              </div>
+            ))}
+
+            {/* Lab orders */}
+            {showOrders.map((order) => {
               const meta = STATUS_META[order.status] || {
                 label: order.status,
                 variant: "secondary",

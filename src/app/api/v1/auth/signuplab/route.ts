@@ -5,6 +5,7 @@ import { signupLabSchema } from "@/lib/validation";
 import { verifyOtp } from "@/lib/otp";
 import { prismaErrorResponse, isAdminEmail } from "@/lib/api";
 import { slugify } from "@/lib/slug";
+import { emailExists, phoneExists } from "@/lib/identity";
 
 export async function POST(request) {
   try {
@@ -32,6 +33,18 @@ export async function POST(request) {
     if (isAdminEmail(email)) {
       return Response.json(
         { message: "This email address is not available." },
+        { status: 409 }
+      );
+    }
+    if (await emailExists(email)) {
+      return Response.json(
+        { message: "An account with this email already exists." },
+        { status: 409 }
+      );
+    }
+    if (await phoneExists(phone)) {
+      return Response.json(
+        { message: "This phone number is already registered." },
         { status: 409 }
       );
     }

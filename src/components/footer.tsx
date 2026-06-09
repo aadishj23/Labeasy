@@ -71,6 +71,14 @@ const SECTIONS = [
       { label: "Bangalore", href: "/labs?q=Bangalore" },
     ],
   },
+  {
+    title: "For partners",
+    links: [
+      { label: "Partner as a lab", href: "/signuplab" },
+      { label: "Join as a doctor", href: "/signupdoctor" },
+      { label: "Register as insurer", href: "/signupinsurance" },
+    ],
+  },
 ];
 
 const SOCIALS = [Instagram, Facebook, Twitter, Linkedin];
@@ -79,7 +87,7 @@ const Footer = () => {
   return (
     <footer className="border-t border-border bg-background">
       <div className="mx-auto max-w-7xl px-6 py-14 lg:px-8">
-        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-6">
           {/* Brand */}
           <div className="lg:col-span-2">
             <Link href="/" aria-label="Labeasy home">

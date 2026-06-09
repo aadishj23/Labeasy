@@ -11,7 +11,7 @@ export async function GET() {
     labBalance(auth.labID as string),
     labPending(auth.labID as string),
     prisma.walletEntry.findMany({
-      where: { lab_id: auth.labID },
+      where: { owner_type: "LAB", owner_id: auth.labID },
       orderBy: { created_at: "desc" },
       take: 100,
     }),

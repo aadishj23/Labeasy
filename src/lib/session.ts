@@ -5,9 +5,11 @@ const COOKIE_NAME = "session";
 const MAX_AGE_SECONDS = 60 * 60 * 24 * 10; // 10 days
 
 export type SessionToken = {
-  type: "user" | "lab";
+  type: "user" | "lab" | "doctor" | "insurance";
   userid?: string;
   labid?: string;
+  doctorid?: string;
+  insuranceid?: string;
   name?: string;
 };
 

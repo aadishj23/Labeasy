@@ -3,8 +3,14 @@ import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
 // Role-gated pages. Wrong role -> home; not signed in -> the relevant sign-in.
-const RULES: { prefix: string; role: "lab" | "user"; signin: string }[] = [
+const RULES: {
+  prefix: string;
+  role: "lab" | "user" | "doctor" | "insurance";
+  signin: string;
+}[] = [
   { prefix: "/labsdashboard", role: "lab", signin: "/signinlab" },
+  { prefix: "/doctordashboard", role: "doctor", signin: "/signindoctor" },
+  { prefix: "/insurancedashboard", role: "insurance", signin: "/signininsurance" },
   { prefix: "/results", role: "user", signin: "/signinuser" },
   { prefix: "/bookings", role: "user", signin: "/signinuser" },
   { prefix: "/profile", role: "user", signin: "/signinuser" },
@@ -45,6 +51,10 @@ export const config = {
   matcher: [
     "/labsdashboard",
     "/labsdashboard/:path*",
+    "/doctordashboard",
+    "/doctordashboard/:path*",
+    "/insurancedashboard",
+    "/insurancedashboard/:path*",
     "/results",
     "/results/:path*",
     "/bookings",

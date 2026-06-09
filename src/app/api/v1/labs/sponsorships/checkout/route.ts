@@ -65,7 +65,8 @@ export async function POST(request: Request) {
         },
       });
       await postEntry({
-        labId: auth.labID as string,
+        ownerType: "LAB",
+        ownerId: auth.labID as string,
         amount: -fromWallet,
         type: "SPONSORSHIP",
         description: `Sponsorship — ${scope.toLowerCase()}`,

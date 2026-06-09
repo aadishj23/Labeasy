@@ -16,7 +16,11 @@ export async function GET(request: Request) {
 
   const [labs, balances, pendings] = await Promise.all([
     prisma.lab.findMany({ select: { id: true, lab_name: true } }),
-    prisma.walletEntry.groupBy({ by: ["lab_id"], _sum: { amount: true } }),
+    prisma.walletEntry.groupBy({
+      by: ["owner_id"],
+      where: { owner_type: "LAB" },
+      _sum: { amount: true },
+    }),
     prisma.order.groupBy({
       by: ["lab_id"],
       where: { status: { in: PENDING_STATUSES as any } },
@@ -24,7 +28,7 @@ export async function GET(request: Request) {
     }),
   ]);
 
-  const balMap = new Map(balances.map((b) => [b.lab_id, b._sum.amount || 0]));
+  const balMap = new Map(balances.map((b) => [b.owner_id, b._sum.amount || 0]));
   const penMap = new Map(pendings.map((p) => [p.lab_id, p._sum.total || 0]));
 
   const rows = labs

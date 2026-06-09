@@ -51,7 +51,8 @@ export async function runPlatformFees(period: string) {
     if (exists) continue; // already charged this month
     await prisma.walletEntry.create({
       data: {
-        lab_id,
+        owner_type: "LAB",
+        owner_id: lab_id,
         amount: -feePaise,
         type: "PLATFORM_FEE",
         description: `Platform fee for ${period} (GMV ₹${Math.round(gmv / 100)})`,

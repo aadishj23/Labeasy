@@ -39,7 +39,7 @@ export async function GET() {
   if (!lab) return unauthorized();
 
   const pending = await prisma.profileChangeRequest.findFirst({
-    where: { lab_id: auth.labID, status: "PENDING" },
+    where: { vendor_type: "LAB", vendor_id: auth.labID as string, status: "PENDING" },
     orderBy: { created_at: "desc" },
   });
 
@@ -87,7 +87,7 @@ export async function PATCH(request: Request) {
     let pending = null;
     if (Object.keys(changes).length) {
       const existing = await prisma.profileChangeRequest.findFirst({
-        where: { lab_id: auth.labID, status: "PENDING" },
+        where: { vendor_type: "LAB", vendor_id: auth.labID as string, status: "PENDING" },
       });
       pending = existing
         ? await prisma.profileChangeRequest.update({
@@ -95,7 +95,7 @@ export async function PATCH(request: Request) {
             data: { changes },
           })
         : await prisma.profileChangeRequest.create({
-            data: { lab_id: auth.labID as string, changes },
+            data: { vendor_type: "LAB", vendor_id: auth.labID as string, changes },
           });
     }
 

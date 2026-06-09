@@ -30,14 +30,15 @@ async function getLab(slug: string) {
         orderBy: { created_at: "desc" },
         include: { _count: { select: { items: true } } },
       },
-      reviews: {
-        where: { status: "published" },
-        orderBy: { created_at: "desc" },
-        take: 12,
-      },
     },
   });
-  return lab;
+  if (!lab) return null;
+  const reviews = await prisma.review.findMany({
+    where: { target_type: "LAB", target_id: lab.id, status: "published" },
+    orderBy: { created_at: "desc" },
+    take: 12,
+  });
+  return { ...lab, reviews };
 }
 
 export async function generateMetadata({

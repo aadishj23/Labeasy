@@ -18,7 +18,7 @@ export async function GET() {
   }
 
   const doctors = await prisma.doctor.findMany({
-    where: { active: true, pincode },
+    where: { active: true, status: "APPROVED", pincode },
     orderBy: { created_at: "desc" },
     take: 24,
   });

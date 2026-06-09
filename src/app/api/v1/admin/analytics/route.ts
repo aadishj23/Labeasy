@@ -35,7 +35,11 @@ export async function GET(request: Request) {
         where: { active: true },
         _sum: { amount: true },
       }),
-      prisma.walletEntry.groupBy({ by: ["lab_id"], _sum: { amount: true } }),
+      prisma.walletEntry.groupBy({
+        by: ["owner_id"],
+        where: { owner_type: "LAB" },
+        _sum: { amount: true },
+      }),
     ]);
 
   const paid = orders.filter((o) => PAID.includes(o.status));

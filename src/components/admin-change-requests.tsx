@@ -4,12 +4,21 @@ import { useEffect, useState, useCallback } from "react";
 import { Building2, Check, X, Loader2, ArrowRight } from "lucide-react";
 import { adminFetch } from "@/lib/admin-client";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 type Req = {
   id: string;
+  vendor_type: "LAB" | "DOCTOR" | "INSURANCE";
+  vendorName: string;
   changes: Record<string, string>;
   created_at: string;
-  lab: Record<string, any> & { id: string; lab_name: string };
+  current: Record<string, any> | null;
+};
+
+const TYPE_LABEL: Record<string, string> = {
+  LAB: "Lab",
+  DOCTOR: "Doctor",
+  INSURANCE: "Insurer",
 };
 
 export default function AdminChangeRequests() {
@@ -71,7 +80,8 @@ export default function AdminChangeRequests() {
             <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/15 text-primary">
               <Building2 className="h-5 w-5" />
             </span>
-            <h3 className="font-semibold">{r.lab.lab_name}</h3>
+            <h3 className="font-semibold">{r.vendorName}</h3>
+            <Badge variant="secondary">{TYPE_LABEL[r.vendor_type] || r.vendor_type}</Badge>
           </div>
 
           <div className="mt-4 space-y-2">
@@ -84,7 +94,7 @@ export default function AdminChangeRequests() {
                   {field.replace(/_/g, " ")}
                 </span>
                 <span className="text-muted-foreground line-through">
-                  {String(r.lab[field] ?? "—")}
+                  {String(r.current?.[field] ?? "—")}
                 </span>
                 <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
                 <span className="font-medium text-foreground">{String(next)}</span>

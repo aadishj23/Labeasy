@@ -17,6 +17,7 @@ export async function GET(request: Request) {
   const doctors = await prisma.doctor.findMany({
     where: {
       active: true,
+      status: "APPROVED",
       OR: specialties.map((s) => ({
         specialty: { equals: s, mode: "insensitive" as const },
       })),
