@@ -70,15 +70,15 @@ const FEATURES = [
   },
   {
     icon: Stethoscope,
-    title: "Doctor recommendations",
+    title: "Book doctor consultations",
     description:
-      "Specialists near you, matched to your flagged results — book or call in a tap.",
+      "Find doctors near you by specialty, pick a time slot, and pay for the consult online.",
   },
   {
     icon: ShieldCheck,
-    title: "Insurance & savings",
+    title: "Buy insurance plans",
     description:
-      "Get insured through partner insurers and unlock extra discounts on every test.",
+      "Compare health plans from partner insurers and buy in a few taps — right here.",
   },
   {
     icon: BellRing,
@@ -113,10 +113,10 @@ const STATS = [
   { value: 98, suffix: "%", label: "Satisfaction" },
 ];
 
-const LAB_PERKS = [
-  { icon: Building2, label: "List your full test catalogue" },
+const PARTNER_PERKS = [
+  { icon: Building2, label: "Your own vendor dashboard" },
   { icon: BarChart3, label: "Bookings & revenue analytics" },
-  { icon: Megaphone, label: "Promote with sponsored listings" },
+  { icon: Megaphone, label: "Promote with featured placement" },
   { icon: Wallet, label: "Wallet & automated settlements" },
 ];
 
@@ -182,16 +182,16 @@ const Home = () => {
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/20 text-primary">
                 <Sparkles className="h-3 w-3" />
               </span>
-              Compare labs · book · AI-powered health insights
+              Labs · doctors · insurance · AI health insights
             </Badge>
             <h1 className="text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
-              Diagnostics, from booking to{" "}
+              Your whole health journey, from booking to{" "}
               <span className="text-gradient-primary">understanding.</span>
             </h1>
             <p className="mt-6 max-w-lg text-base leading-relaxed text-muted-foreground sm:text-lg">
-              Compare accredited labs, book tests at the best price, and get your
-              reports explained in plain language — with trends, a health score,
-              and the right specialist, all in one place.
+              Compare accredited labs and book tests, consult doctors near you,
+              and buy health insurance — all in one place, with AI-explained
+              reports, trends, and a health score.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button asChild variant="gradient" size="lg">
@@ -473,25 +473,31 @@ const Home = () => {
           <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
             <div>
               <Badge variant="outline" className="mb-4 gap-1.5">
-                <Building2 className="h-3.5 w-3.5 text-primary" /> For diagnostic labs
+                <Building2 className="h-3.5 w-3.5 text-primary" /> For labs, doctors & insurers
               </Badge>
               <h2 className="text-3xl font-bold sm:text-4xl">
-                Run a lab? <span className="text-gradient-primary">Grow with Labeasy.</span>
+                Run a lab, clinic, or insurer?{" "}
+                <span className="text-gradient-primary">Grow with Labeasy.</span>
               </h2>
               <p className="mt-4 max-w-md text-muted-foreground">
-                Reach more patients, manage bookings and reports, and get paid —
-                all from one dashboard, with analytics and a settlement wallet
-                built in.
+                List your tests, consults, or plans; manage bookings; and get paid
+                — all from one dashboard, with analytics, featured promotion, and a
+                settlement wallet built in.
               </p>
-              <Button asChild variant="gradient" size="lg" className="mt-8">
-                <Link href="/signuplab">
-                  Partner with us
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Button asChild variant="gradient">
+                  <Link href="/signuplab">List a lab <ArrowRight className="h-4 w-4" /></Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link href="/signupdoctor">Join as a doctor</Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link href="/signupinsurance">Partner as an insurer</Link>
+                </Button>
+              </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
-              {LAB_PERKS.map((perk) => (
+              {PARTNER_PERKS.map((perk) => (
                 <div
                   key={perk.label}
                   className="flex items-center gap-3 rounded-2xl border border-border bg-background/40 p-4"
@@ -516,15 +522,18 @@ const Home = () => {
             <span className="text-gradient-primary">Start your health journey.</span>
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
-            Compare the best diagnostic labs in your city, save on every test, and
+            Book tests, consult doctors, and get insured — save on every step and
             finally understand what your results mean.
           </p>
-          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+          <div className="mt-8 flex flex-col flex-wrap justify-center gap-3 sm:flex-row">
             <Button asChild variant="gradient" size="lg">
               <Link href="/tests">
                 Book a test
                 <ArrowRight className="h-4 w-4" />
               </Link>
+            </Button>
+            <Button asChild variant="outline" size="lg">
+              <Link href="/doctors">Find a doctor</Link>
             </Button>
             <Button asChild variant="outline" size="lg">
               <Link href="/insurance">Explore insurance</Link>

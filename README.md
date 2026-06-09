@@ -333,7 +333,21 @@ docker run -d --env-file .env -p 3000:3000 labeasy
 
 ### Scheduled jobs
 
-Point a cron/scheduler at `POST /api/v1/reminders/run` with the `x-cron-secret` header to send due re‑test reminder emails.
+Point your server's cron/scheduler at these endpoints with the `x-cron-secret: $CRON_SECRET` header:
+
+| Job | Endpoint | Suggested schedule |
+| --- | --- | --- |
+| Re‑test reminder emails | `POST /api/v1/reminders/run` | hourly / daily |
+| Monthly platform fees (labs & doctors) | `POST /api/v1/cron/monthly-fees` | `0 0 1 * *` (1st of month) |
+
+Example host crontab (self‑hosted):
+
+```cron
+# 1st of each month — charge the previous month's GMV‑slab fee to labs & doctors
+0 0 1 * * curl -fsS -X POST -H "x-cron-secret: $CRON_SECRET" https://<your-domain>/api/v1/cron/monthly-fees
+```
+
+Both jobs are idempotent, so an accidental re‑run won't double‑charge or double‑send.
 
 ---
 
