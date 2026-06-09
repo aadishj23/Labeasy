@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     .catch(() => ({}));
 
   if (
-    !["LAB", "DOCTOR"].includes(targetType) ||
+    !["LAB", "DOCTOR", "INSURANCE"].includes(targetType) ||
     !targetId ||
     !rating ||
     rating < 1 ||
@@ -69,13 +69,23 @@ export async function POST(request: Request) {
         { status: 403 }
       );
     }
-  } else {
+  } else if (targetType === "DOCTOR") {
     const appt = await prisma.appointment.findFirst({
       where: { user_id: auth.userID, doctor_id: targetId, status: "COMPLETED" },
     });
     if (!appt) {
       return Response.json(
         { message: "You can review a doctor only after a completed consultation." },
+        { status: 403 }
+      );
+    }
+  } else {
+    const policy = await prisma.policyPurchase.findFirst({
+      where: { user_id: auth.userID, company_id: targetId, status: "CONFIRMED" },
+    });
+    if (!policy) {
+      return Response.json(
+        { message: "You can review an insurer only after buying a plan." },
         { status: 403 }
       );
     }
