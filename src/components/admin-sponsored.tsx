@@ -11,16 +11,25 @@ const rupee = (paise: number) =>
 const fmt = (d?: string | null) => (d ? new Date(d).toLocaleDateString() : "—");
 
 const placement = (l: any) =>
-  l.scope === "EVERYWHERE"
-    ? "Everywhere"
-    : l.scope === "DIRECTORY"
-      ? "Labs directory"
-      : l.test_names?.length
-        ? `Tests: ${l.test_names.join(", ")}`
-        : "Tests";
+  l.scope === "FEATURED"
+    ? "Featured"
+    : l.scope === "EVERYWHERE"
+      ? "Everywhere"
+      : l.scope === "DIRECTORY"
+        ? "Labs directory"
+        : l.test_names?.length
+          ? `Tests: ${l.test_names.join(", ")}`
+          : "Tests";
+
+const TYPE_LABEL: Record<string, string> = {
+  LAB: "Lab",
+  DOCTOR: "Doctor",
+  INSURANCE: "Insurer",
+};
 
 export default function AdminSponsored() {
   const [listings, setListings] = useState<any[]>([]);
+  const [filter, setFilter] = useState<"ALL" | "LAB" | "DOCTOR" | "INSURANCE">("ALL");
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
@@ -58,17 +67,41 @@ export default function AdminSponsored() {
     );
   }
 
-  if (listings.length === 0) {
-    return (
-      <div className="rounded-2xl border border-border bg-card py-16 text-center text-muted-foreground">
-        No sponsorships yet. Labs purchase these from their dashboard.
-      </div>
-    );
-  }
+  const filtered = filter === "ALL" ? listings : listings.filter((l) => l.owner_type === filter);
+
+  const Filters = (
+    <div className="mb-4 flex flex-wrap gap-2">
+      {[
+        { v: "ALL", label: "All" },
+        { v: "LAB", label: "Labs" },
+        { v: "DOCTOR", label: "Doctors" },
+        { v: "INSURANCE", label: "Insurance" },
+      ].map((t) => (
+        <button
+          key={t.v}
+          onClick={() => setFilter(t.v as any)}
+          className={`rounded-lg border px-3 py-1.5 text-sm transition-colors ${
+            filter === t.v
+              ? "border-primary/60 bg-primary/10 text-foreground"
+              : "border-border text-muted-foreground hover:bg-secondary/40"
+          }`}
+        >
+          {t.label}
+        </button>
+      ))}
+    </div>
+  );
 
   return (
-    <div className="space-y-3">
-      {listings.map((l) => {
+    <div>
+      {Filters}
+      {filtered.length === 0 ? (
+        <div className="rounded-2xl border border-border bg-card py-16 text-center text-muted-foreground">
+          No sponsorships{filter === "ALL" ? " yet" : ` for ${filter.toLowerCase()}s`}. Vendors buy these from their dashboard.
+        </div>
+      ) : (
+      <div className="space-y-3">
+      {filtered.map((l) => {
         const live =
           l.active && (!l.ends_at || new Date(l.ends_at) >= new Date());
         return (
@@ -82,7 +115,8 @@ export default function AdminSponsored() {
               </span>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="font-semibold">{l.lab?.lab_name}</h3>
+                  <h3 className="font-semibold">{l.ownerName}</h3>
+                  <Badge variant="outline">{TYPE_LABEL[l.owner_type] || l.owner_type}</Badge>
                   <Badge variant={live ? "success" : "secondary"}>
                     {live ? "Live" : l.active ? "Expired" : "Paused"}
                   </Badge>
@@ -116,6 +150,8 @@ export default function AdminSponsored() {
           </div>
         );
       })}
+      </div>
+      )}
     </div>
   );
 }

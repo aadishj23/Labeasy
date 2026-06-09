@@ -10,9 +10,9 @@ import {
   Building2,
   Users,
   ClipboardList,
-  CheckCircle2,
-  XCircle,
   TrendingUp,
+  Stethoscope,
+  ShieldCheck,
 } from "lucide-react";
 import { adminFetch } from "@/lib/admin-client";
 
@@ -44,6 +44,7 @@ function Stat({
 export default function AdminAnalytics() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [vertical, setVertical] = useState<"all" | "lab" | "doctor" | "insurance">("all");
   const chartRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -55,6 +56,7 @@ export default function AdminAnalytics() {
 
   useEffect(() => {
     if (!data || !chartRef.current) return;
+    const seriesKey = vertical === "all" ? "gmv" : vertical;
     const ctx = chartRef.current.getContext("2d");
     if (!ctx) return;
     const gradient = ctx.createLinearGradient(0, 0, 0, 280);
@@ -67,7 +69,7 @@ export default function AdminAnalytics() {
         datasets: [
           {
             label: "GMV (₹)",
-            data: data.monthly.map((m: any) => m.gmv),
+            data: data.monthly.map((m: any) => m[seriesKey] ?? 0),
             backgroundColor: gradient,
             borderColor: "#22d3ee",
             borderWidth: 1.5,
@@ -91,7 +93,7 @@ export default function AdminAnalytics() {
       },
     });
     return () => chart.destroy();
-  }, [data]);
+  }, [data, vertical]);
 
   if (loading) {
     return (
@@ -107,13 +109,18 @@ export default function AdminAnalytics() {
   return (
     <>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat icon={IndianRupee} label="Total GMV" value={rupee(s.gmvTotal)} />
+        <Stat
+          icon={IndianRupee}
+          label="Total GMV"
+          value={rupee(s.gmvTotal)}
+          hint={`Labs ${rupee(s.labGmv ?? 0)} · Consults ${rupee(s.consultGmv ?? 0)} · Policies ${rupee(s.insuranceGmv ?? 0)}`}
+        />
         <Stat icon={CalendarClock} label="GMV this month" value={rupee(s.gmvMonth)} />
         <Stat
           icon={TrendingUp}
           label="Platform revenue"
           value={rupee(s.platformRevenue)}
-          hint={`Fees ${rupee(s.platformFees)} · Ads ${rupee(s.sponsorRevenue)}`}
+          hint={`Fees ${rupee(s.platformFees)} · Ads ${rupee(s.sponsorRevenue)} · Ins. ${rupee(s.insuranceCommission)}`}
         />
         <Stat
           icon={Wallet}
@@ -123,23 +130,60 @@ export default function AdminAnalytics() {
         />
         <Stat
           icon={Building2}
-          label="Labs"
-          value={String(s.labs)}
-          hint={`${s.verifiedLabs} verified`}
+          label="Vendors"
+          value={`${s.labs}/${s.doctors ?? 0}/${s.insurers ?? 0}`}
+          hint="labs / doctors / insurers"
         />
         <Stat icon={Users} label="Patients" value={String(s.patients)} />
-        <Stat icon={ClipboardList} label="Bookings" value={String(s.bookings)} />
         <Stat
-          icon={CheckCircle2}
-          label="Completed"
-          value={String(s.completed)}
-          hint={`${s.active} active · ${s.cancelled} cancelled`}
+          icon={ClipboardList}
+          label="Lab bookings"
+          value={String(s.bookings)}
+          hint={`${s.completed} completed`}
+        />
+        <Stat
+          icon={Stethoscope}
+          label="Consults"
+          value={String(s.consults ?? 0)}
+          hint={`${rupee(s.consultGmv ?? 0)} GMV`}
+        />
+        <Stat
+          icon={ShieldCheck}
+          label="Policies sold"
+          value={String(s.policies ?? 0)}
+          hint={`${rupee(s.insuranceGmv ?? 0)} GMV`}
         />
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_320px]">
         <div className="rounded-2xl border border-border bg-card p-6">
-          <h2 className="mb-4 text-lg font-semibold">GMV — last 6 months</h2>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold">Bookings & GMV — last 6 months</h2>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                { v: "all", label: "All" },
+                { v: "lab", label: "Labs" },
+                { v: "doctor", label: "Doctors" },
+                { v: "insurance", label: "Insurance" },
+              ].map((t) => (
+                <button
+                  key={t.v}
+                  onClick={() => setVertical(t.v as any)}
+                  className={`rounded-lg border px-2.5 py-1 text-xs transition-colors ${
+                    vertical === t.v
+                      ? "border-primary/60 bg-primary/10 text-foreground"
+                      : "border-border text-muted-foreground hover:bg-secondary/40"
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="mb-4 flex gap-6 text-sm">
+            <span><span className="text-muted-foreground">Bookings: </span><span className="font-semibold">{data.byType?.[vertical]?.bookings ?? 0}</span></span>
+            <span><span className="text-muted-foreground">GMV: </span><span className="font-semibold">{rupee(data.byType?.[vertical]?.gmv ?? 0)}</span></span>
+          </div>
           <div className="h-[280px]">
             <canvas ref={chartRef} />
           </div>

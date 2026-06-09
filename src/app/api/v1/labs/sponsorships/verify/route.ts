@@ -19,7 +19,7 @@ export async function POST(request: Request) {
   });
   if (
     !listing ||
-    listing.lab_id !== auth.labID ||
+    listing.owner_id !== auth.labID ||
     listing.provider_order_id !== razorpay_order_id
   ) {
     return Response.json({ message: "Sponsorship not found." }, { status: 404 });
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     if (!exists) {
       await postEntry({
         ownerType: "LAB",
-        ownerId: listing.lab_id,
+        ownerId: listing.owner_id,
         amount: -listing.wallet_applied,
         type: "SPONSORSHIP",
         description: `Sponsorship — ${listing.scope.toLowerCase()}`,

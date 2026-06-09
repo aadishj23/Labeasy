@@ -14,7 +14,7 @@ const ACTIVE = ["CONFIRMED", "SAMPLE_COLLECTED", "PROCESSING", "REPORT_READY"];
 export async function GET(request: Request) {
   if (!verifyAdmin(request)) return forbidden();
 
-  const [labs, patients, orders, feeAgg, sponsorAgg, balances] =
+  const [labs, patients, orders, feeAgg, sponsorAgg, balances, doctorCount, insurerCount, apptAgg, policyAgg, commissionAgg] =
     await Promise.all([
       prisma.lab.findMany({ select: { id: true, lab_name: true, status: true } }),
       prisma.user.count(),
@@ -40,33 +40,68 @@ export async function GET(request: Request) {
         where: { owner_type: "LAB" },
         _sum: { amount: true },
       }),
+      prisma.doctor.count({ where: { status: "APPROVED" } }),
+      prisma.insuranceCompany.count({ where: { status: "APPROVED" } }),
+      prisma.appointment.findMany({
+        where: { status: "COMPLETED", source: "PLATFORM" },
+        select: { fee: true, created_at: true },
+      }),
+      prisma.policyPurchase.findMany({
+        where: { status: "CONFIRMED" },
+        select: { amount: true, commission: true, created_at: true },
+      }),
+      prisma.walletEntry.aggregate({
+        where: { type: "COMMISSION" },
+        _sum: { amount: true },
+      }),
     ]);
 
   const paid = orders.filter((o) => PAID.includes(o.status));
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  const gmvTotal = paid.reduce((s, o) => s + o.total, 0);
-  const gmvMonth = paid
-    .filter((o) => new Date(o.created_at) >= monthStart)
-    .reduce((s, o) => s + o.total, 0);
+  // Combined platform GMV = lab orders + doctor consults + insurance policies.
+  const inMonth = (d: any) => new Date(d) >= monthStart;
+  const sum = (arr: any[], key: string, pred?: (x: any) => boolean) =>
+    arr.filter((x) => (pred ? pred(x) : true)).reduce((s, x) => s + x[key], 0);
 
-  // 6-month GMV trend (rupees).
-  const monthly: { label: string; gmv: number }[] = [];
+  const labGmvTotal = sum(paid, "total");
+  const consultGmvTotal = sum(apptAgg, "fee");
+  const insuranceGmvTotal = sum(policyAgg, "amount");
+  const gmvTotal = labGmvTotal + consultGmvTotal + insuranceGmvTotal;
+  const gmvMonth =
+    sum(paid, "total", (o) => inMonth(o.created_at)) +
+    sum(apptAgg, "fee", (a) => inMonth(a.created_at)) +
+    sum(policyAgg, "amount", (p) => inMonth(p.created_at));
+
+  // 6-month combined GMV trend (rupees).
+  const monthly: { label: string; gmv: number; lab: number; doctor: number; insurance: number }[] = [];
   for (let i = 5; i >= 0; i--) {
     const from = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const to = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
-    const g = paid
-      .filter((o) => {
-        const c = new Date(o.created_at);
-        return c >= from && c < to;
-      })
-      .reduce((s, o) => s + o.total, 0);
+    const inRange = (d: any) => {
+      const c = new Date(d);
+      return c >= from && c < to;
+    };
+    const lab = sum(paid, "total", (o) => inRange(o.created_at));
+    const doctor = sum(apptAgg, "fee", (a) => inRange(a.created_at));
+    const insurance = sum(policyAgg, "amount", (p) => inRange(p.created_at));
     monthly.push({
       label: from.toLocaleString("en-US", { month: "short" }),
-      gmv: Math.round(g / 100),
+      gmv: Math.round((lab + doctor + insurance) / 100),
+      lab: Math.round(lab / 100),
+      doctor: Math.round(doctor / 100),
+      insurance: Math.round(insurance / 100),
     });
   }
+
+  // Bookings + GMV per vertical (for the analytics filter).
+  const byType = {
+    all: { bookings: paid.length + apptAgg.length + policyAgg.length, gmv: Math.round(gmvTotal / 100) },
+    lab: { bookings: paid.length, gmv: Math.round(labGmvTotal / 100) },
+    doctor: { bookings: apptAgg.length, gmv: Math.round(consultGmvTotal / 100) },
+    insurance: { bookings: policyAgg.length, gmv: Math.round(insuranceGmvTotal / 100) },
+  };
 
   // Top labs by GMV.
   const labGmv: Record<string, number> = {};
@@ -91,6 +126,12 @@ export async function GET(request: Request) {
 
   const platformFees = Math.abs(feeAgg._sum.amount || 0);
   const sponsorRevenue = sponsorAgg._sum.amount || 0;
+  // On-platform commission (from purchases) + referral commission (off-platform
+  // conversions, debited to insurer wallets as negative COMMISSION entries).
+  const insuranceCommission =
+    sum(policyAgg, "commission") + Math.abs(commissionAgg._sum.amount || 0);
+  const consultGmv = consultGmvTotal;
+  const insuranceGmv = insuranceGmvTotal;
   const owedToLabs = balances
     .map((b) => b._sum.amount || 0)
     .filter((a) => a > 0)
@@ -100,21 +141,30 @@ export async function GET(request: Request) {
     summary: {
       labs: labs.length,
       verifiedLabs: labs.filter((l) => l.status === "VERIFIED").length,
+      doctors: doctorCount,
+      insurers: insurerCount,
       patients,
       gmvTotal: Math.round(gmvTotal / 100),
       gmvMonth: Math.round(gmvMonth / 100),
+      labGmv: Math.round(labGmvTotal / 100),
       bookings: paid.length,
       completed: orders.filter((o) => o.status === "COMPLETED").length,
       active: orders.filter((o) => ACTIVE.includes(o.status)).length,
       cancelled: orders.filter((o) =>
         ["CANCELLED", "REFUNDED"].includes(o.status)
       ).length,
-      platformRevenue: Math.round((platformFees + sponsorRevenue) / 100),
+      consults: apptAgg.length,
+      consultGmv: Math.round(consultGmv / 100),
+      policies: policyAgg.length,
+      insuranceGmv: Math.round(insuranceGmv / 100),
+      platformRevenue: Math.round((platformFees + sponsorRevenue + insuranceCommission) / 100),
       platformFees: Math.round(platformFees / 100),
       sponsorRevenue: Math.round(sponsorRevenue / 100),
+      insuranceCommission: Math.round(insuranceCommission / 100),
       owedToLabs: Math.round(owedToLabs / 100),
     },
     monthly,
+    byType,
     topLabs,
     topTests,
   });

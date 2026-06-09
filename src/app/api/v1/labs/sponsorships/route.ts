@@ -7,7 +7,7 @@ export async function GET() {
   if (!auth || auth.type !== "lab") return unauthorized();
 
   const listings = await prisma.sponsoredListing.findMany({
-    where: { lab_id: auth.labID, active: true },
+    where: { owner_type: "LAB", owner_id: auth.labID as string, active: true },
     orderBy: { created_at: "desc" },
   });
 

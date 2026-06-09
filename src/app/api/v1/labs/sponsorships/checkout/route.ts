@@ -54,7 +54,8 @@ export async function POST(request: Request) {
     if (payOnline === 0) {
       const listing = await prisma.sponsoredListing.create({
         data: {
-          lab_id: auth.labID as string,
+          owner_type: "LAB",
+          owner_id: auth.labID as string,
           scope,
           test_ids: validTestIds,
           amount,
@@ -84,7 +85,8 @@ export async function POST(request: Request) {
     });
     const listing = await prisma.sponsoredListing.create({
       data: {
-        lab_id: auth.labID as string,
+        owner_type: "LAB",
+        owner_id: auth.labID as string,
         scope,
         test_ids: validTestIds,
         amount,
