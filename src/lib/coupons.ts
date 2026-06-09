@@ -5,9 +5,10 @@ type CouponResult =
   | { error: string };
 
 // Validate a lab-scoped coupon and compute its discount (paise).
-// `subtotal` = cart value before discounts; `payable` = after storefront discount.
+// `subtotal` = value before discounts; `payable` = after any storefront discount.
 export async function validateCoupon(opts: {
-  labId: string;
+  ownerType: "LAB" | "DOCTOR" | "INSURANCE";
+  ownerId: string;
   code: string;
   subtotal: number;
   payable: number;
@@ -17,7 +18,7 @@ export async function validateCoupon(opts: {
   if (!code) return { error: "Enter a coupon code." };
 
   const coupon = await prisma.coupon.findFirst({
-    where: { lab_id: opts.labId, code, active: true },
+    where: { owner_type: opts.ownerType, owner_id: opts.ownerId, code, active: true },
   });
   if (!coupon) return { error: "Invalid or inactive coupon code." };
 

@@ -2,9 +2,12 @@ import prisma from "@/lib/prisma";
 
 /** Recompute a target's cached rating aggregate from its published reviews. */
 export async function recomputeRating(
-  targetType: "LAB" | "DOCTOR",
+  targetType: "LAB" | "DOCTOR" | "INSURANCE",
   targetId: string
 ) {
+  // Insurers have no cached rating column — their rating is computed on the fly.
+  if (targetType !== "LAB" && targetType !== "DOCTOR") return;
+
   const agg = await prisma.review.aggregate({
     where: { target_type: targetType, target_id: targetId, status: "published" },
     _avg: { rating: true },

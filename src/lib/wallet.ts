@@ -4,6 +4,7 @@ export type WalletEntryType =
   | "ORDER_EARNING"
   | "PLATFORM_FEE"
   | "SPONSORSHIP"
+  | "COMMISSION"
   | "TOPUP"
   | "PAYOUT"
   | "ADJUSTMENT";

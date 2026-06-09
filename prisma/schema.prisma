@@ -76,6 +76,7 @@ model User {
   healthSummary  HealthSummary?
   testReminders  TestReminder[]
   appointments   Appointment[]
+  policyPurchases PolicyPurchase[]
 }
 
 model TestReminder {
@@ -117,22 +118,45 @@ model InsuranceCompany {
   created_at  DateTime        @default(now())
   plans       InsurancePlan[]
   leads       InsuranceLead[]
+  purchases   PolicyPurchase[]
 
   @@index([status])
 }
 
 model InsurancePlan {
-  id             String           @id @default(cuid())
-  company_id     String
-  name           String
-  description    String // detailed plan description
-  price          Int // paise
-  commission_pct Int              @default(0) // admin-approved
-  active         Boolean          @default(true)
-  created_at     DateTime         @default(now())
-  company        InsuranceCompany @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  id                  String           @id @default(cuid())
+  company_id          String
+  name                String
+  description         String // detailed plan description
+  price               Int // paise
+  commission_pct      Int              @default(0)
+  commission_approved Boolean          @default(false) // admin must approve before it's sellable
+  active              Boolean          @default(true)
+  created_at          DateTime         @default(now())
+  company             InsuranceCompany @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  purchases           PolicyPurchase[]
 
   @@index([company_id])
+}
+
+model PolicyPurchase {
+  id                  String           @id @default(cuid())
+  plan_id             String
+  company_id          String
+  user_id             String
+  amount              Int // gross paise paid by the patient
+  commission          Int              @default(0) // paise — platform's cut
+  coupon_id           String? // applied vendor coupon
+  status              String           @default("PLACED") // PLACED | CONFIRMED
+  provider_order_id   String?
+  provider_payment_id String?
+  created_at          DateTime         @default(now())
+  plan                InsurancePlan    @relation(fields: [plan_id], references: [id])
+  company             InsuranceCompany @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  user                User             @relation(fields: [user_id], references: [id])
+
+  @@index([company_id])
+  @@index([user_id])
 }
 
 model Doctor {
@@ -184,6 +208,7 @@ model Appointment {
   source              String      @default("PLATFORM") // PLATFORM | MANUAL
   paid_status         String? // PAID | UNPAID | PARTIAL (manual bookings)
   amount_paid         Int         @default(0) // paise collected off-platform
+  coupon_id           String? // applied vendor coupon
   slot_id             String?
   scheduled_at        DateTime
   fee                 Int // paise — total paid by the patient
@@ -263,8 +288,6 @@ model Lab {
   slots           Slot[]
   orders          Order[]
   packages        Package[]
-  coupons         Coupon[]
-  sponsorships    SponsoredListing[]
 }
 
 model LabDocument {
@@ -497,7 +520,8 @@ model PackageItem {
 
 model Coupon {
   id             String             @id @default(cuid())
-  lab_id         String
+  owner_type     String // LAB | DOCTOR | INSURANCE
+  owner_id       String
   code           String // stored uppercase
   type           CouponType         @default(PERCENT)
   value          Int // percent (e.g. 20) or flat rupees
@@ -510,17 +534,16 @@ model Coupon {
   used_count     Int                @default(0)
   active         Boolean            @default(true)
   created_at     DateTime           @default(now())
-  lab            Lab                @relation(fields: [lab_id], references: [id], onDelete: Cascade)
   redemptions    CouponRedemption[]
 
-  @@unique([lab_id, code])
-  @@index([lab_id])
+  @@unique([owner_type, owner_id, code])
+  @@index([owner_type, owner_id])
 }
 
 model CouponRedemption {
   id         String   @id @default(cuid())
   coupon_id  String
-  order_id   String   @unique
+  ref_id     String   @unique // order / appointment / policy id
   user_id    String
   created_at DateTime @default(now())
   coupon     Coupon   @relation(fields: [coupon_id], references: [id], onDelete: Cascade)
@@ -545,8 +568,9 @@ model WalletEntry {
 
 model SponsoredListing {
   id                  String    @id @default(cuid())
-  lab_id              String
-  scope               String    @default("DIRECTORY") // EVERYWHERE | DIRECTORY | TESTS
+  owner_type          String // LAB | DOCTOR | INSURANCE
+  owner_id            String
+  scope               String    @default("DIRECTORY") // LAB: EVERYWHERE|DIRECTORY|TESTS · others: FEATURED
   test_ids            String[]  @default([]) // targeted tests when scope = TESTS
   amount              Int       @default(0) // paise — total price
   wallet_applied      Int       @default(0) // paise paid from wallet balance
@@ -556,8 +580,7 @@ model SponsoredListing {
   provider_order_id   String?
   provider_payment_id String?
   created_at          DateTime  @default(now())
-  lab                 Lab       @relation(fields: [lab_id], references: [id], onDelete: Cascade)
 
-  @@index([lab_id])
+  @@index([owner_type, owner_id])
 }
 

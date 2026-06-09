@@ -42,17 +42,33 @@ export async function runPlatformFees(period: string) {
     gmvByLab.set(o.lab_id, (gmvByLab.get(o.lab_id) || 0) + o.total);
   }
 
+  // Doctor consult GMV for the same period (completed, on-platform).
+  const appts = await prisma.appointment.findMany({
+    where: { status: "COMPLETED", source: "PLATFORM", scheduled_at: { gte: from, lt: to } },
+    select: { doctor_id: true, fee: true },
+  });
+  const gmvByDoctor = new Map<string, number>();
+  for (const a of appts) {
+    gmvByDoctor.set(a.doctor_id, (gmvByDoctor.get(a.doctor_id) || 0) + a.fee);
+  }
+
   let charged = 0;
-  for (const [lab_id, gmv] of gmvByLab) {
+
+  // The same GMV-slab fee applies to labs and doctors (deducted from each wallet).
+  const chargeVendor = async (
+    ownerType: "LAB" | "DOCTOR",
+    ownerId: string,
+    gmv: number,
+    refId: string
+  ) => {
     const feePaise = feeForGmv(Math.round(gmv / 100)) * 100;
-    if (feePaise <= 0) continue;
-    const refId = `fee:${lab_id}:${period}`;
+    if (feePaise <= 0) return;
     const exists = await prisma.walletEntry.findFirst({ where: { ref_id: refId } });
-    if (exists) continue; // already charged this month
+    if (exists) return; // already charged this month
     await prisma.walletEntry.create({
       data: {
-        owner_type: "LAB",
-        owner_id: lab_id,
+        owner_type: ownerType,
+        owner_id: ownerId,
         amount: -feePaise,
         type: "PLATFORM_FEE",
         description: `Platform fee for ${period} (GMV ₹${Math.round(gmv / 100)})`,
@@ -60,6 +76,12 @@ export async function runPlatformFees(period: string) {
       },
     });
     charged++;
-  }
+  };
+
+  // Keep the lab ref_id format unchanged for backward-compatible idempotency.
+  for (const [lab_id, gmv] of gmvByLab) await chargeVendor("LAB", lab_id, gmv, `fee:${lab_id}:${period}`);
+  for (const [doctor_id, gmv] of gmvByDoctor)
+    await chargeVendor("DOCTOR", doctor_id, gmv, `fee:DOCTOR:${doctor_id}:${period}`);
+
   return charged;
 }
