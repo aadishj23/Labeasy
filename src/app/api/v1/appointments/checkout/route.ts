@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { verifyAuth, unauthorized } from "@/lib/auth";
 import { getRazorpay, RAZORPAY_KEY_ID } from "@/lib/razorpay";
+import { validateCoupon } from "@/lib/coupons";
 
 // Patient books a doctor slot — recomputes the fee server-side, creates a
 // Razorpay order + a pending appointment.
@@ -14,7 +15,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const { slotId } = await request.json().catch(() => ({}));
+  const { slotId, couponCode } = await request.json().catch(() => ({}));
   if (!slotId) {
     return Response.json({ message: "A slot is required." }, { status: 400 });
   }
@@ -34,9 +35,28 @@ export async function POST(request: Request) {
     return Response.json({ message: "Doctor unavailable." }, { status: 400 });
   }
 
-  const amount = Math.max(0, Math.round((doctor.fee || 0) * 100)); // paise
-  if (amount <= 0) {
+  const fullFee = Math.max(0, Math.round((doctor.fee || 0) * 100)); // paise
+  if (fullFee <= 0) {
     return Response.json({ message: "Invalid consultation fee." }, { status: 400 });
+  }
+
+  // Apply a doctor coupon, if any.
+  let amount = fullFee;
+  let coupon_id: string | null = null;
+  if (couponCode) {
+    const result = await validateCoupon({
+      ownerType: "DOCTOR",
+      ownerId: doctor.id,
+      code: couponCode,
+      subtotal: fullFee,
+      payable: fullFee,
+      userId: auth.userID,
+    });
+    if ("error" in result) {
+      return Response.json({ message: result.error }, { status: 400 });
+    }
+    amount = fullFee - result.discount;
+    coupon_id = result.coupon!.id;
   }
 
   try {
@@ -54,6 +74,7 @@ export async function POST(request: Request) {
         slot_id: slot.id,
         scheduled_at: slot.start_at,
         fee: amount,
+        coupon_id,
         status: "PLACED",
         provider_order_id: rzpOrder.id,
       },

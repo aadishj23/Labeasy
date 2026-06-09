@@ -27,7 +27,8 @@ export async function POST(request: Request) {
   }
 
   const result = await validateCoupon({
-    labId,
+    ownerType: "LAB",
+    ownerId: labId,
     code,
     subtotal,
     payable,

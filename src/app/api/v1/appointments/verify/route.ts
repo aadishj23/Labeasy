@@ -46,5 +46,22 @@ export async function POST(request: Request) {
       : []),
   ]);
 
+  // Record coupon redemption (idempotent via ref_id unique).
+  if (appt.coupon_id) {
+    try {
+      await prisma.$transaction([
+        prisma.couponRedemption.create({
+          data: { coupon_id: appt.coupon_id, ref_id: appt.id, user_id: appt.user_id! },
+        }),
+        prisma.coupon.update({
+          where: { id: appt.coupon_id },
+          data: { used_count: { increment: 1 } },
+        }),
+      ]);
+    } catch {
+      /* already recorded */
+    }
+  }
+
   return Response.json({ ok: true });
 }

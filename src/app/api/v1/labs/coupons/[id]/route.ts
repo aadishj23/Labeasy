@@ -3,7 +3,7 @@ import { verifyAuth, unauthorized } from "@/lib/auth";
 
 async function ownCoupon(labId: string, id: string) {
   const c = await prisma.coupon.findUnique({ where: { id } });
-  return c && c.lab_id === labId ? c : null;
+  return c && c.owner_type === "LAB" && c.owner_id === labId ? c : null;
 }
 
 // Toggle active (or other simple edits).

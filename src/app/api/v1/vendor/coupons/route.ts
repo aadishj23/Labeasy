@@ -9,12 +9,18 @@ const intOrNull = (v: unknown) => {
 };
 const dateOrNull = (v: unknown) => (v ? new Date(String(v)) : null);
 
+function vendor(auth: any) {
+  if (auth?.type === "doctor") return { ownerType: "DOCTOR", ownerId: auth.doctorID as string };
+  if (auth?.type === "insurance") return { ownerType: "INSURANCE", ownerId: auth.insuranceID as string };
+  return null;
+}
+
 export async function GET() {
   const auth = await verifyAuth();
-  if (!auth || auth.type !== "lab") return unauthorized();
-
+  const v = vendor(auth);
+  if (!v) return unauthorized();
   const coupons = await prisma.coupon.findMany({
-    where: { owner_type: "LAB", owner_id: auth.labID as string },
+    where: { owner_type: v.ownerType, owner_id: v.ownerId },
     orderBy: { created_at: "desc" },
   });
   return Response.json({ coupons });
@@ -22,7 +28,8 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const auth = await verifyAuth();
-  if (!auth || auth.type !== "lab") return unauthorized();
+  const v = vendor(auth);
+  if (!v) return unauthorized();
 
   const body = await request.json().catch(() => ({}));
   const code = String(body.code || "").trim().toUpperCase();
@@ -40,8 +47,8 @@ export async function POST(request: Request) {
   try {
     const coupon = await prisma.coupon.create({
       data: {
-        owner_type: "LAB",
-        owner_id: auth.labID as string,
+        owner_type: v.ownerType,
+        owner_id: v.ownerId,
         code,
         type,
         value,

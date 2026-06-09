@@ -69,14 +69,14 @@ export async function POST(request: Request) {
       }),
     ]);
 
-    // Record coupon redemption on successful payment (idempotent via order_id unique).
+    // Record coupon redemption on successful payment (idempotent via ref_id unique).
     if (order.coupon_id) {
       try {
         await prisma.$transaction([
           prisma.couponRedemption.create({
             data: {
               coupon_id: order.coupon_id,
-              order_id: order.id,
+              ref_id: order.id,
               user_id: order.user_id,
             },
           }),

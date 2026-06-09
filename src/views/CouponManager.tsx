@@ -23,7 +23,11 @@ const EMPTY = {
   ends_at: "",
 };
 
-export default function CouponManager() {
+export default function CouponManager({
+  endpoint = "/api/v1/labs/coupons",
+}: {
+  endpoint?: string;
+}) {
   const [coupons, setCoupons] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ ...EMPTY });
@@ -32,7 +36,7 @@ export default function CouponManager() {
 
   const load = async () => {
     try {
-      const res = await fetch("/api/v1/labs/coupons", { cache: "no-store" });
+      const res = await fetch(endpoint, { cache: "no-store", method: "GET" });
       if (res.ok) setCoupons((await res.json()).coupons || []);
     } finally {
       setLoading(false);
@@ -50,7 +54,7 @@ export default function CouponManager() {
     setErr("");
     setSubmitting(true);
     try {
-      const res = await fetch("/api/v1/labs/coupons", {
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
@@ -68,7 +72,7 @@ export default function CouponManager() {
   };
 
   const toggle = async (id: string, active: boolean) => {
-    await fetch(`/api/v1/labs/coupons/${id}`, {
+    await fetch(`${endpoint}/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ active }),
@@ -77,7 +81,7 @@ export default function CouponManager() {
   };
 
   const remove = async (id: string) => {
-    await fetch(`/api/v1/labs/coupons/${id}`, { method: "DELETE" });
+    await fetch(`${endpoint}/${id}`, { method: "DELETE" }); // remove
     load();
   };
 
