@@ -35,7 +35,7 @@ export default function Doctors() {
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [specialty, setSpecialty] = useState("");
-  const [available, setAvailable] = useState(false);
+  const [prefTime, setPrefTime] = useState("");
   const [pin, setPin] = useState("");
   const [allAreas, setAllAreas] = useState(false);
   const [shownPin, setShownPin] = useState<string | null>(null);
@@ -43,10 +43,10 @@ export default function Doctors() {
   const [detail, setDetail] = useState<any>(null); // { doctor, slots }
   const [detailLoading, setDetailLoading] = useState(false);
   const [booking, setBooking] = useState("");
-  const [reviews, setReviews] = useState<any[]>([]);
-  const [myRating, setMyRating] = useState(5);
-  const [myComment, setMyComment] = useState("");
-  const [reviewMsg, setReviewMsg] = useState("");
+  const [coupon, setCoupon] = useState("");
+  const [couponInfo, setCouponInfo] = useState<{ discount: number; final: number } | null>(null);
+  const [couponMsg, setCouponMsg] = useState("");
+  const [applying, setApplying] = useState(false);
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const userType = useAuthStore((s) => s.type);
 
@@ -55,7 +55,7 @@ export default function Doctors() {
     const p = new URLSearchParams();
     if (q.trim()) p.set("q", q.trim());
     if (specialty) p.set("specialty", specialty);
-    if (available) p.set("available", "1");
+    if (prefTime) p.set("time", prefTime);
     if (pin.trim()) p.set("pincode", pin.trim());
     if (allAreas) p.set("all", "1");
     return fetch(`/api/v1/doctors/browse?${p.toString()}`, { cache: "no-store" })
@@ -71,59 +71,40 @@ export default function Doctors() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     load();
-  }, [specialty, available, allAreas]);
+  }, [specialty, prefTime, allAreas]);
+
+  const applyCoupon = async () => {
+    if (!active || !coupon.trim()) return;
+    setApplying(true);
+    setCouponMsg("");
+    setCouponInfo(null);
+    try {
+      const res = await fetch("/api/v1/coupons/validate-vendor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ownerType: "DOCTOR", ownerId: active.id, code: coupon.trim(), amount: Math.round((active.fee || 0) * 100) }),
+      });
+      const d = await res.json();
+      if (d.valid) setCouponInfo({ discount: d.discount, final: d.final });
+      else setCouponMsg(d.message || "Invalid coupon.");
+    } finally {
+      setApplying(false);
+    }
+  };
 
   const openDoctor = async (d: any) => {
     setActive(d);
     setDetail(null);
-    setReviews([]);
-    setReviewMsg("");
-    setMyRating(5);
-    setMyComment("");
+    setCoupon("");
+    setCouponInfo(null);
+    setCouponMsg("");
     setDetailLoading(true);
     try {
       const res = await fetch(`/api/v1/doctors/${d.id}`, { cache: "no-store" });
       setDetail(res.ok ? await res.json() : null);
-      fetch(`/api/v1/reviews/list?targetType=DOCTOR&targetId=${d.id}`, { cache: "no-store" })
-        .then((r) => (r.ok ? r.json() : { reviews: [] }))
-        .then((j) => setReviews(j.reviews || []));
-      if (isLoggedIn && userType === "user") {
-        fetch(`/api/v1/reviews?targetType=DOCTOR&targetId=${d.id}`, { cache: "no-store" })
-          .then((r) => (r.ok ? r.json() : { review: null }))
-          .then((j) => {
-            if (j.review) {
-              setMyRating(j.review.rating);
-              setMyComment(j.review.comment || "");
-            }
-          });
-      }
     } finally {
       setDetailLoading(false);
     }
-  };
-
-  const submitReview = async () => {
-    if (!active) return;
-    setReviewMsg("");
-    const res = await fetch("/api/v1/reviews", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        targetType: "DOCTOR",
-        targetId: active.id,
-        rating: myRating,
-        comment: myComment,
-      }),
-    });
-    const d = await res.json();
-    if (!res.ok) {
-      setReviewMsg(d.message || "Could not submit review.");
-      return;
-    }
-    setReviewMsg("Thanks for your review!");
-    fetch(`/api/v1/reviews/list?targetType=DOCTOR&targetId=${active.id}`, { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : { reviews: [] }))
-      .then((j) => setReviews(j.reviews || []));
   };
 
   const book = async (slot: any) => {
@@ -136,7 +117,7 @@ export default function Doctors() {
       const res = await fetch("/api/v1/appointments/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slotId: slot.id }),
+        body: JSON.stringify({ slotId: slot.id, couponCode: coupon.trim() || undefined }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -175,8 +156,11 @@ export default function Doctors() {
         },
         modal: { ondismiss: () => toast.info("Booking cancelled.") },
       });
+      // Close the Radix dialog first so its pointer-events lock is gone before
+      // Razorpay mounts (otherwise the payment iframe is non-interactive).
+      setActive(null);
       setBooking("");
-      setTimeout(() => rzp.open(), 200);
+      setTimeout(() => rzp.open(), 300);
     } catch {
       toast.error("Something went wrong.");
     } finally {
@@ -229,10 +213,16 @@ export default function Doctors() {
             placeholder="Pincode"
             className="h-11 w-28 rounded-xl border border-input bg-secondary/40 px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
           />
-          <label className="flex h-11 cursor-pointer items-center gap-2 rounded-xl border border-input bg-secondary/40 px-3 text-sm">
-            <input type="checkbox" checked={available} onChange={(e) => setAvailable(e.target.checked)} className="h-4 w-4 accent-primary" />
-            Has slots
-          </label>
+          <select
+            value={prefTime}
+            onChange={(e) => setPrefTime(e.target.value)}
+            className="h-11 rounded-xl border border-input bg-secondary/40 px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <option value="">Any time</option>
+            <option value="morning">Morning (before 12 PM)</option>
+            <option value="afternoon">Afternoon (12–5 PM)</option>
+            <option value="evening">Evening (after 5 PM)</option>
+          </select>
           <Button variant="outline" className="h-11" onClick={() => load()}>Apply</Button>
         </div>
         <p className="mb-6 text-sm text-muted-foreground">
@@ -266,7 +256,8 @@ export default function Doctors() {
                   <h3 className="font-semibold">{d.name}</h3>
                   {d.fee != null && <span className="text-sm text-muted-foreground">₹{d.fee}</span>}
                 </div>
-                <div className="mt-1 flex items-center gap-2">
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  {d.featured && <Badge variant="default">Featured</Badge>}
                   <Badge variant="secondary" className="w-fit">{d.specialty}</Badge>
                   {d.rating_count > 0 && (
                     <span className="inline-flex items-center gap-0.5 text-xs text-amber-400">
@@ -315,6 +306,27 @@ export default function Doctors() {
             <p className="mb-2 flex items-center gap-1.5 text-sm font-medium">
               <CalendarClock className="h-4 w-4 text-primary" /> Available slots
             </p>
+            {detail?.slots?.length > 0 && (
+              <div className="mb-2">
+                <div className="flex gap-2">
+                  <input
+                    value={coupon}
+                    onChange={(e) => { setCoupon(e.target.value.toUpperCase()); setCouponInfo(null); setCouponMsg(""); }}
+                    placeholder="Coupon code (optional)"
+                    className="h-10 w-full rounded-md border border-input bg-secondary/40 px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  />
+                  <Button variant="outline" onClick={applyCoupon} disabled={applying || !coupon.trim()}>
+                    {applying ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
+                  </Button>
+                </div>
+                {couponMsg && <p className="mt-1 text-xs text-destructive">{couponMsg}</p>}
+                {couponInfo && (
+                  <p className="mt-1 text-xs text-emerald-400">
+                    Coupon applied — pay ₹{Math.round(couponInfo.final / 100)} (save ₹{Math.round(couponInfo.discount / 100)}).
+                  </p>
+                )}
+              </div>
+            )}
             {detailLoading ? (
               <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
             ) : !detail?.slots?.length ? (
@@ -336,54 +348,6 @@ export default function Doctors() {
             )}
           </div>
 
-          {/* Reviews */}
-          <div className="mt-2 border-t border-border pt-3">
-            <p className="mb-2 flex items-center gap-1.5 text-sm font-medium">
-              <Star className="h-4 w-4 text-amber-400" /> Reviews
-            </p>
-            {reviews.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No reviews yet.</p>
-            ) : (
-              <div className="max-h-40 space-y-2 overflow-y-auto">
-                {reviews.map((r, i) => (
-                  <div key={i} className="rounded-lg border border-border p-2.5 text-sm">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">{r.reviewer_name || "Patient"}</span>
-                      <span className="inline-flex items-center gap-0.5 text-amber-400">
-                        <Star className="h-3 w-3 fill-current" /> {r.rating}
-                      </span>
-                    </div>
-                    {r.comment && <p className="mt-1 text-muted-foreground">{r.comment}</p>}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {isLoggedIn && userType === "user" && (
-              <div className="mt-3 rounded-lg border border-border p-3">
-                <p className="mb-2 text-sm font-medium">Rate this doctor</p>
-                <div className="flex gap-1">
-                  {[1, 2, 3, 4, 5].map((n) => (
-                    <button key={n} type="button" onClick={() => setMyRating(n)} aria-label={`${n} stars`}>
-                      <Star className={`h-5 w-5 ${n <= myRating ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`} />
-                    </button>
-                  ))}
-                </div>
-                <textarea
-                  value={myComment}
-                  onChange={(e) => setMyComment(e.target.value)}
-                  placeholder="Share your experience (optional)"
-                  className="mt-2 min-h-[60px] w-full rounded-md border border-input bg-secondary/40 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                />
-                <div className="mt-2 flex items-center justify-between gap-2">
-                  <span className="text-xs text-muted-foreground">{reviewMsg}</span>
-                  <Button size="sm" variant="gradient" onClick={submitReview}>
-                    Submit review
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
         </DialogContent>
       </Dialog>
 

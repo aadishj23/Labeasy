@@ -195,7 +195,7 @@ export default function AdminDashboard() {
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
-            <Building2 className="h-4 w-4" /> Lab verification
+            <Building2 className="h-4 w-4" /> Labs
           </button>
           <button
             onClick={() => setTab("requests")}
@@ -261,9 +261,9 @@ export default function AdminDashboard() {
 
         {tab === "doctors" ? (
           <>
-            <h1 className="text-2xl font-bold">Doctor directory</h1>
+            <h1 className="text-2xl font-bold">Doctors</h1>
             <p className="mt-1 text-muted-foreground">
-              Specialists recommended to patients from their flagged results.
+              Approve, suspend, and monitor doctor vendors.
             </p>
             <div className="mt-8">
               <AdminDoctors />
@@ -271,9 +271,9 @@ export default function AdminDashboard() {
           </>
         ) : tab === "insurance" ? (
           <>
-            <h1 className="text-2xl font-bold">Insurance partners</h1>
+            <h1 className="text-2xl font-bold">Insurance</h1>
             <p className="mt-1 text-muted-foreground">
-              Manage partner insurers and reconcile referral commissions.
+              Approve insurers, their plan commissions, and monitor sales.
             </p>
             <div className="mt-8">
               <AdminInsurance />
@@ -283,7 +283,7 @@ export default function AdminDashboard() {
           <>
             <h1 className="text-2xl font-bold">Platform analytics</h1>
             <p className="mt-1 text-muted-foreground">
-              GMV, revenue, and marketplace activity across all labs.
+              GMV, revenue, and activity across labs, doctors & insurers.
             </p>
             <div className="mt-8">
               <AdminAnalytics />
@@ -293,7 +293,7 @@ export default function AdminDashboard() {
           <>
             <h1 className="text-2xl font-bold">Wallet & settlements</h1>
             <p className="mt-1 text-muted-foreground">
-              Run monthly platform fees and settle balances owed to labs.
+              Pay out balances we owe partners and follow up on dues partners owe us.
             </p>
             <div className="mt-8">
               <AdminWallet />
@@ -303,7 +303,7 @@ export default function AdminDashboard() {
           <>
             <h1 className="text-2xl font-bold">Sponsored listings</h1>
             <p className="mt-1 text-muted-foreground">
-              Promote labs to the top of the directory or specific test pages.
+              Featured placements across labs, doctors & insurers.
             </p>
             <div className="mt-8">
               <AdminSponsored />
@@ -313,7 +313,7 @@ export default function AdminDashboard() {
           <>
             <h1 className="text-2xl font-bold">Change requests</h1>
             <p className="mt-1 text-muted-foreground">
-              Approve or reject lab profile changes to verified details.
+              Approve or reject vendor profile changes to verified details.
             </p>
             <div className="mt-8">
               <AdminChangeRequests />
@@ -321,7 +321,7 @@ export default function AdminDashboard() {
           </>
         ) : tab === "labs" ? (
           <>
-            <h1 className="text-2xl font-bold">Lab verification</h1>
+            <h1 className="text-2xl font-bold">Labs</h1>
             <p className="mt-1 text-muted-foreground">
               Review documents and approve, suspend, or reset labs.
             </p>

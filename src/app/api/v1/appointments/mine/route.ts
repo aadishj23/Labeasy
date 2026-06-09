@@ -6,7 +6,8 @@ export async function GET() {
   const auth = await verifyAuth();
   if (!auth || auth.type !== "user") return unauthorized();
   const appointments = await prisma.appointment.findMany({
-    where: { user_id: auth.userID, source: "PLATFORM" },
+    // Hide abandoned (PLACED, unpaid) bookings — only confirmed/completed/cancelled.
+    where: { user_id: auth.userID, source: "PLATFORM", status: { not: "PLACED" } },
     orderBy: { scheduled_at: "desc" },
     include: {
       doctor: { select: { name: true, specialty: true, clinic: true, city: true } },

@@ -27,6 +27,8 @@ import {
   Stethoscope,
   CalendarClock,
   Star,
+  Receipt,
+  Users,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Button } from "@/components/ui/button";
@@ -77,12 +79,22 @@ const DOCTOR_NAV_LINKS = [
   { label: "Slots", href: "/doctordashboard/slots", icon: CalendarClock },
   { label: "Appointments", href: "/doctordashboard/appointments", icon: ClipboardList },
   { label: "Wallet", href: "/doctordashboard/wallet", icon: Wallet },
+  { label: "Coupons", href: "/doctordashboard/coupons", icon: Ticket },
+  { label: "Promote", href: "/doctordashboard/promote", icon: Megaphone },
+  { label: "Analytics", href: "/doctordashboard/analytics", icon: BarChart3 },
   { label: "Reviews", href: "/doctordashboard/reviews", icon: Star },
   { label: "Profile", href: "/doctordashboard/profile", icon: UserRound },
 ];
 
 const INSURANCE_NAV_LINKS = [
   { label: "Dashboard", href: "/insurancedashboard", icon: LayoutDashboard },
+  { label: "Plans", href: "/insurancedashboard/plans", icon: ClipboardList },
+  { label: "Sales", href: "/insurancedashboard/purchases", icon: Receipt },
+  { label: "Leads", href: "/insurancedashboard/leads", icon: Users },
+  { label: "Wallet", href: "/insurancedashboard/wallet", icon: Wallet },
+  { label: "Coupons", href: "/insurancedashboard/coupons", icon: Ticket },
+  { label: "Promote", href: "/insurancedashboard/promote", icon: Megaphone },
+  { label: "Analytics", href: "/insurancedashboard/analytics", icon: BarChart3 },
   { label: "Reviews", href: "/insurancedashboard/reviews", icon: Star },
   { label: "Profile", href: "/insurancedashboard/profile", icon: UserRound },
 ];
@@ -151,6 +163,8 @@ export default function Navbar() {
   };
 
   const isActive = (href) => pathname === href;
+  const isVendor =
+    userType === "lab" || userType === "doctor" || userType === "insurance";
   const visibleLinks =
     userType === "lab"
       ? LAB_NAV_LINKS
@@ -171,22 +185,26 @@ export default function Navbar() {
         )}
       >
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:h-[72px] lg:px-8">
-          {/* Logo */}
-          <Link
-            href="/"
-            onClick={() => setIsMenuOpen(false)}
-            className="flex items-center gap-2 transition-transform hover:scale-[1.02]"
-            aria-label="Labeasy home"
-          >
-            <Image
-              src="/assets/logocbs.png"
-              alt="Labeasy"
-              width={140}
-              height={40}
-              priority
-              className="h-8 w-auto lg:h-9"
-            />
-          </Link>
+          {/* Logo — hidden entirely for vendor dashboards (lab/doctor/insurer) */}
+          {isVendor ? (
+            <span aria-hidden />
+          ) : (
+            <Link
+              href="/"
+              onClick={() => setIsMenuOpen(false)}
+              className="flex items-center gap-2 transition-transform hover:scale-[1.02]"
+              aria-label="Labeasy home"
+            >
+              <Image
+                src="/assets/logocbs.png"
+                alt="Labeasy"
+                width={140}
+                height={40}
+                priority
+                className="h-8 w-auto lg:h-9"
+              />
+            </Link>
+          )}
 
           {/* Desktop nav */}
           <nav className="hidden items-center gap-1 lg:flex">

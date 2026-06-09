@@ -6,7 +6,8 @@ export async function GET() {
   if (!auth || auth.type !== "user") return unauthorized();
 
   const orders = await prisma.order.findMany({
-    where: { user_id: auth.userID },
+    // Only paid/confirmed orders — abandoned (PLACED, unpaid) ones never show.
+    where: { user_id: auth.userID, status: { not: "PLACED" } },
     orderBy: { created_at: "desc" },
     include: {
       items: true,
