@@ -307,7 +307,7 @@ export default function Navbar() {
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="flex w-[300px] flex-col border-border">
+              <SheetContent side="right" className="flex w-[300px] flex-col overflow-hidden border-border">
                 <SheetHeader>
                   <SheetTitle className="flex items-center gap-2">
                     <Image
@@ -334,7 +334,7 @@ export default function Navbar() {
                   </div>
                 )}
 
-                <nav className="mt-6 flex flex-col gap-1">
+                <nav className="mt-6 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto">
                   {visibleLinks.map(({ label, href, icon: Icon }) => (
                     <Link
                       key={href}
