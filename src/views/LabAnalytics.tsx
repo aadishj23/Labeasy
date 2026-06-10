@@ -50,6 +50,7 @@ function Stat({
 export default function LabAnalytics() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [included, setIncluded] = useState(false);
   const chartRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -135,11 +136,21 @@ export default function LabAnalytics() {
           <p className="text-muted-foreground">Please sign in as a lab.</p>
         ) : (
           <>
+            <label className="mb-4 flex w-fit cursor-pointer items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm">
+              <input
+                type="checkbox"
+                checked={included}
+                onChange={(e) => setIncluded(e.target.checked)}
+                className="h-4 w-4 accent-primary"
+              />
+              Include off-platform (manual) orders
+            </label>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <Stat
                 icon={IndianRupee}
                 label="Total revenue"
-                value={rupee(s.gmvTotal)}
+                value={rupee(s.gmvTotal + (included ? s.offPlatformGmv || 0 : 0))}
+                hint={included ? "incl. off-platform" : undefined}
               />
               <Stat
                 icon={CalendarClock}
@@ -149,7 +160,8 @@ export default function LabAnalytics() {
               <Stat
                 icon={ClipboardList}
                 label="Bookings"
-                value={String(s.bookings)}
+                value={String(s.bookings + (included ? s.offPlatformOrders || 0 : 0))}
+                hint={included ? "incl. off-platform" : undefined}
               />
               <Stat
                 icon={Receipt}

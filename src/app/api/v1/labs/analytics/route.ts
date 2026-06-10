@@ -21,6 +21,7 @@ export async function GET() {
       select: {
         status: true,
         total: true,
+        source: true,
         created_at: true,
         items: { select: { test_name: true } },
       },
@@ -31,7 +32,10 @@ export async function GET() {
     }),
   ]);
 
-  const paid = orders.filter((o) => PAID.includes(o.status));
+  const allPaid = orders.filter((o) => PAID.includes(o.status));
+  const paid = allPaid.filter((o) => o.source === "PLATFORM");
+  const manualPaid = allPaid.filter((o) => o.source === "MANUAL");
+  const platformOrders = orders.filter((o) => o.source === "PLATFORM");
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
@@ -39,8 +43,9 @@ export async function GET() {
   const gmvMonth = paid
     .filter((o) => new Date(o.created_at) >= monthStart)
     .reduce((s, o) => s + o.total, 0);
+  const offPlatformGmv = manualPaid.reduce((s, o) => s + o.total, 0);
 
-  // Last 6 months revenue (rupees).
+  // Last 6 months revenue (rupees, on-platform).
   const monthly: { label: string; revenue: number }[] = [];
   for (let i = 5; i >= 0; i--) {
     const from = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -76,11 +81,13 @@ export async function GET() {
       gmvTotal: Math.round(gmvTotal / 100),
       gmvMonth: gmvMonthRupees,
       bookings: paid.length,
-      completed: orders.filter((o) => o.status === "COMPLETED").length,
-      active: orders.filter((o) => ACTIVE.includes(o.status)).length,
-      cancelled: orders.filter((o) =>
+      completed: platformOrders.filter((o) => o.status === "COMPLETED").length,
+      active: platformOrders.filter((o) => ACTIVE.includes(o.status)).length,
+      cancelled: platformOrders.filter((o) =>
         ["CANCELLED", "REFUNDED"].includes(o.status)
       ).length,
+      offPlatformOrders: manualPaid.length,
+      offPlatformGmv: Math.round(offPlatformGmv / 100),
       ratingAvg: lab?.rating_avg || 0,
       ratingCount: lab?.rating_count || 0,
       platformFee: feeForGmv(gmvMonthRupees),

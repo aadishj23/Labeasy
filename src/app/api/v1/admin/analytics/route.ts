@@ -19,6 +19,7 @@ export async function GET(request: Request) {
       prisma.lab.findMany({ select: { id: true, lab_name: true, status: true } }),
       prisma.user.count(),
       prisma.order.findMany({
+        where: { source: "PLATFORM" }, // exclude labs' off-platform/manual orders
         select: {
           status: true,
           total: true,
