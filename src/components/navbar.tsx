@@ -66,6 +66,7 @@ const NAV_LINKS = [
 const LAB_NAV_LINKS = [
   { label: "Dashboard", href: "/labsdashboard", icon: LayoutDashboard },
   { label: "Bookings", href: "/labsdashboard/bookings", icon: ClipboardList },
+  { label: "Patients", href: "/labsdashboard/patients", icon: Users },
   { label: "Analytics", href: "/labsdashboard/analytics", icon: BarChart3 },
   { label: "Packages", href: "/labsdashboard/packages", icon: Package },
   { label: "Coupons", href: "/labsdashboard/coupons", icon: Ticket },
@@ -78,6 +79,7 @@ const DOCTOR_NAV_LINKS = [
   { label: "Dashboard", href: "/doctordashboard", icon: LayoutDashboard },
   { label: "Slots", href: "/doctordashboard/slots", icon: CalendarClock },
   { label: "Appointments", href: "/doctordashboard/appointments", icon: ClipboardList },
+  { label: "Patients", href: "/doctordashboard/patients", icon: Users },
   { label: "Wallet", href: "/doctordashboard/wallet", icon: Wallet },
   { label: "Coupons", href: "/doctordashboard/coupons", icon: Ticket },
   { label: "Promote", href: "/doctordashboard/promote", icon: Megaphone },

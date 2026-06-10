@@ -77,6 +77,25 @@ model User {
   testReminders  TestReminder[]
   appointments   Appointment[]
   policyPurchases PolicyPurchase[]
+  vendorPatients VendorPatient[]
+}
+
+model VendorPatient {
+  id          String    @id @default(cuid())
+  vendor_type String // LAB | DOCTOR
+  vendor_id   String
+  name        String
+  phone       String
+  gender      String? // MALE | FEMALE | OTHER (required on manual add)
+  dob         DateTime? // required on manual add
+  user_id     String? // linked Labeasy user (matched by phone)
+  source      String    @default("MANUAL") // MANUAL | PLATFORM
+  created_at  DateTime  @default(now())
+  user        User?     @relation(fields: [user_id], references: [id], onDelete: SetNull)
+
+  @@unique([vendor_type, vendor_id, phone])
+  @@index([vendor_type, vendor_id])
+  @@index([user_id])
 }
 
 model TestReminder {
@@ -367,7 +386,7 @@ model Slot {
 
 model Order {
   id              String         @id @default(cuid())
-  user_id         String
+  user_id         String? // null for manual (off-platform) orders
   lab_id          String
   status          OrderStatus    @default(PLACED)
   collection_type CollectionType @default(LAB_VISIT)
@@ -381,9 +400,14 @@ model Order {
   total           Int
   coupon_id       String?
   cancel_reason   String?
+  source          String         @default("PLATFORM") // PLATFORM | MANUAL
+  patient_name    String? // manual orders
+  patient_phone   String?
+  paid_status     String? // PAID | UNPAID | PARTIAL (manual orders)
+  amount_paid     Int            @default(0)
   created_at      DateTime       @default(now())
   updated_at      DateTime       @updatedAt
-  user            User           @relation(fields: [user_id], references: [id])
+  user            User?          @relation(fields: [user_id], references: [id])
   lab             Lab            @relation(fields: [lab_id], references: [id])
   address         Address?       @relation(fields: [address_id], references: [id])
   slot            Slot?          @relation(fields: [slot_id], references: [id])

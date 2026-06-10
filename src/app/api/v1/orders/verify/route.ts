@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { verifyAuth, unauthorized } from "@/lib/auth";
 import { verifyPaymentSignature } from "@/lib/razorpay";
 import { notifyOrderConfirmed } from "@/lib/email";
+import { upsertVendorPatient } from "@/lib/vendor-patient";
 
 export async function POST(request: Request) {
   const authData = await verifyAuth();
@@ -99,6 +100,21 @@ export async function POST(request: Request) {
       items: order.items,
       total: order.total,
     }).catch(() => {});
+
+    // Tag the lab's patient catalogue (links by phone).
+    const buyer = await prisma.user.findUnique({
+      where: { id: order.user_id as string },
+      select: { name: true, phone: true },
+    });
+    if (buyer) {
+      await upsertVendorPatient({
+        vendorType: "LAB",
+        vendorId: order.lab_id,
+        name: buyer.name,
+        phone: buyer.phone,
+        userId: order.user_id,
+      });
+    }
 
     return Response.json({ ok: true, orderId: order.id });
   } catch (error) {

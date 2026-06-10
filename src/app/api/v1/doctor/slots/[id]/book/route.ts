@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { verifyAuth, unauthorized } from "@/lib/auth";
+import { upsertVendorPatient } from "@/lib/vendor-patient";
 
 // Doctor manually marks a slot booked for an off-platform patient.
 export async function POST(
@@ -60,6 +61,16 @@ export async function POST(
       data: { booked_count: { increment: 1 } },
     }),
   ]);
+
+  // Keep the patient catalogue in sync (links by phone if a Labeasy user matches later).
+  if (patient_phone) {
+    await upsertVendorPatient({
+      vendorType: "DOCTOR",
+      vendorId: auth.doctorID as string,
+      name: String(patient_name).trim(),
+      phone: String(patient_phone).trim(),
+    });
+  }
 
   return Response.json({ ok: true });
 }

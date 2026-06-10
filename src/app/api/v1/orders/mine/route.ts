@@ -6,8 +6,8 @@ export async function GET() {
   if (!auth || auth.type !== "user") return unauthorized();
 
   const orders = await prisma.order.findMany({
-    // Only paid/confirmed orders — abandoned (PLACED, unpaid) ones never show.
-    where: { user_id: auth.userID, status: { not: "PLACED" } },
+    // Only the patient's own paid/confirmed online orders (not lab-logged manual ones).
+    where: { user_id: auth.userID, source: "PLATFORM", status: { not: "PLACED" } },
     orderBy: { created_at: "desc" },
     include: {
       items: true,

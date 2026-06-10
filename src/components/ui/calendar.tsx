@@ -12,17 +12,23 @@ function Calendar({
   className,
   classNames,
   showOutsideDays = true,
+  captionLayout,
   ...props
 }: CalendarProps) {
+  // With dropdown captions, RDP still renders the text label — hide it so the
+  // month/year don't appear twice.
+  const isDropdown =
+    typeof captionLayout === "string" && captionLayout.startsWith("dropdown");
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
+      captionLayout={captionLayout}
       className={cn("p-3", className)}
       classNames={{
         months: "flex flex-col gap-4",
         month: "flex flex-col gap-4",
         month_caption: "relative flex items-center justify-center pt-1",
-        caption_label: "text-sm font-medium",
+        caption_label: isDropdown ? "hidden" : "text-sm font-medium",
         dropdowns: "flex items-center justify-center gap-1.5",
         dropdown_root: "relative inline-flex items-center",
         dropdown:

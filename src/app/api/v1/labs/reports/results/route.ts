@@ -75,13 +75,15 @@ export async function POST(request: Request) {
       where: { id: order.id },
       data: { status: "COMPLETED" },
     });
-    // Order is now complete — credit the lab's wallet.
-    await creditOrderEarning({
-      id: order.id,
-      lab_id: order.lab_id,
-      total: order.total,
-      platform_discount: order.platform_discount,
-    });
+    // Order is now complete — credit the lab's wallet (skip manual/offline orders).
+    if (order.source !== "MANUAL") {
+      await creditOrderEarning({
+        id: order.id,
+        lab_id: order.lab_id,
+        total: order.total,
+        platform_discount: order.platform_discount,
+      });
+    }
     void notifyOrderStatus({
       patientEmail: order.user?.email,
       labName: order.lab?.lab_name,

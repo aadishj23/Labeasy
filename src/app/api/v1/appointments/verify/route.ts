@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { verifyAuth, unauthorized } from "@/lib/auth";
 import { verifyPaymentSignature } from "@/lib/razorpay";
+import { upsertVendorPatient } from "@/lib/vendor-patient";
 
 // Confirm a paid appointment + reserve the slot.
 export async function POST(request: Request) {
@@ -61,6 +62,21 @@ export async function POST(request: Request) {
     } catch {
       /* already recorded */
     }
+  }
+
+  // Tag the doctor's patient catalogue (links by phone).
+  const user = await prisma.user.findUnique({
+    where: { id: appt.user_id as string },
+    select: { name: true, phone: true },
+  });
+  if (user) {
+    await upsertVendorPatient({
+      vendorType: "DOCTOR",
+      vendorId: appt.doctor_id,
+      name: user.name,
+      phone: user.phone,
+      userId: appt.user_id,
+    });
   }
 
   return Response.json({ ok: true });
