@@ -7,6 +7,7 @@ import {
   Loader2,
   Package as PackageIcon,
   Plus,
+  Pencil,
   Trash2,
   ArrowLeft,
 } from "lucide-react";
@@ -28,6 +29,7 @@ export default function PackageManager() {
     mrp: "",
   });
   const [selected, setSelected] = useState<string[]>([]);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState("");
 
@@ -57,7 +59,27 @@ export default function PackageManager() {
       s.includes(id) ? s.filter((x) => x !== id) : [...s, id]
     );
 
-  const create = async (e: React.FormEvent) => {
+  const resetForm = () => {
+    setForm({ name: "", description: "", price: "", mrp: "" });
+    setSelected([]);
+    setEditingId(null);
+    setErr("");
+  };
+
+  const startEdit = (p: any) => {
+    setEditingId(p.id);
+    setForm({
+      name: p.name || "",
+      description: p.description || "",
+      price: String(p.price ?? ""),
+      mrp: p.mrp != null ? String(p.mrp) : "",
+    });
+    setSelected((p.items || []).map((i: any) => i.test_id));
+    setErr("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const save = async (e: React.FormEvent) => {
     e.preventDefault();
     setErr("");
     if (selected.length < 2) {
@@ -66,24 +88,30 @@ export default function PackageManager() {
     }
     setSubmitting(true);
     try {
-      const res = await fetch("/api/v1/labs/packages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: form.name,
-          description: form.description,
-          price: Number(form.price),
-          mrp: form.mrp ? Number(form.mrp) : null,
-          testIds: selected,
-        }),
-      });
+      const payload = {
+        name: form.name,
+        description: form.description,
+        price: Number(form.price),
+        mrp: form.mrp ? Number(form.mrp) : null,
+        testIds: selected,
+      };
+      const res = editingId
+        ? await fetch(`/api/v1/labs/packages/${editingId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          })
+        : await fetch("/api/v1/labs/packages", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
       const d = await res.json();
       if (!res.ok) {
-        setErr(d.message || "Could not create package.");
+        setErr(d.message || "Could not save package.");
         return;
       }
-      setForm({ name: "", description: "", price: "", mrp: "" });
-      setSelected([]);
+      resetForm();
       load();
     } finally {
       setSubmitting(false);
@@ -136,8 +164,8 @@ export default function PackageManager() {
             {/* Create */}
             <div className="lg:sticky lg:top-24 lg:h-fit">
               <div className="rounded-2xl border border-border bg-card p-6">
-                <h2 className="text-lg font-semibold">New package</h2>
-                <form className="mt-5 space-y-4" onSubmit={create}>
+                <h2 className="text-lg font-semibold">{editingId ? "Edit package" : "New package"}</h2>
+                <form className="mt-5 space-y-4" onSubmit={save}>
                   <div className="space-y-2">
                     <Label htmlFor="name">Name</Label>
                     <Input
@@ -216,15 +244,28 @@ export default function PackageManager() {
                   </div>
 
                   {err && <p className="text-sm text-destructive">{err}</p>}
-                  <Button
-                    type="submit"
-                    variant="gradient"
-                    className="w-full"
-                    disabled={submitting}
-                  >
-                    <Plus className="h-4 w-4" />
-                    {submitting ? "Creating…" : "Create package"}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      type="submit"
+                      variant="gradient"
+                      className="flex-1"
+                      disabled={submitting}
+                    >
+                      {submitting ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : editingId ? (
+                        <Pencil className="h-4 w-4" />
+                      ) : (
+                        <Plus className="h-4 w-4" />
+                      )}
+                      {submitting ? "Saving…" : editingId ? "Save changes" : "Create package"}
+                    </Button>
+                    {editingId && (
+                      <Button type="button" variant="ghost" onClick={resetForm}>
+                        Cancel
+                      </Button>
+                    )}
+                  </div>
                 </form>
               </div>
             </div>
@@ -257,6 +298,9 @@ export default function PackageManager() {
                               <Badge variant="secondary">Inactive</Badge>
                             )}
                           </div>
+                          {p.description && (
+                            <p className="mt-0.5 text-sm text-muted-foreground">{p.description}</p>
+                          )}
                           <p className="mt-0.5 text-sm text-muted-foreground">
                             ₹{p.price}
                             {p.mrp ? (
@@ -276,6 +320,15 @@ export default function PackageManager() {
                           <Button
                             size="icon"
                             variant="ghost"
+                            className="h-9 w-9"
+                            onClick={() => startEdit(p)}
+                            aria-label="Edit package"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
                             className="h-9 w-9 text-muted-foreground hover:text-destructive"
                             onClick={() => remove(p.id)}
                             aria-label="Delete package"
@@ -284,6 +337,19 @@ export default function PackageManager() {
                           </Button>
                         </div>
                       </div>
+
+                      {p.items?.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-1.5">
+                          {p.items.map((it: any) => (
+                            <span
+                              key={it.id}
+                              className="rounded-md border border-border bg-background px-2 py-0.5 text-xs text-muted-foreground"
+                            >
+                              {it.test?.test_name || "Test"}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

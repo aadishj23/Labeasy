@@ -32,7 +32,28 @@ export async function PATCH(
   }
   if (body.mrp !== undefined) data.mrp = body.mrp ? Math.round(Number(body.mrp)) : null;
 
-  const pkg = await prisma.package.update({ where: { id }, data });
+  // Replace the package's tests (only ones this lab offers).
+  if (body.testIds !== undefined) {
+    const ids: string[] = Array.isArray(body.testIds) ? body.testIds : [];
+    const offered = await prisma.labTest.findMany({
+      where: { lab_id: auth.labID as string, test_id: { in: ids } },
+      select: { test_id: true },
+    });
+    const validIds = offered.map((o) => o.test_id);
+    if (validIds.length < 2) {
+      return Response.json(
+        { message: "A package needs at least 2 tests your lab offers." },
+        { status: 400 }
+      );
+    }
+    data.items = { deleteMany: {}, create: validIds.map((test_id) => ({ test_id })) };
+  }
+
+  const pkg = await prisma.package.update({
+    where: { id },
+    data,
+    include: { items: { include: { test: { select: { test_name: true } } } } },
+  });
   return Response.json({ package: pkg });
 }
 
