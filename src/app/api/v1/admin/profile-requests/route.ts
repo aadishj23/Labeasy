@@ -26,11 +26,14 @@ export async function GET(request: Request) {
     }),
     prisma.doctor.findMany({
       where: { id: { in: idsByType("DOCTOR") } },
-      select: { id: true, name: true, specialty: true },
+      select: {
+        id: true, name: true, specialty: true, clinic: true, city: true,
+        phone: true, pincode: true, fee: true, description: true,
+      },
     }),
     prisma.insuranceCompany.findMany({
       where: { id: { in: idsByType("INSURANCE") } },
-      select: { id: true, name: true },
+      select: { id: true, name: true, description: true, logo_url: true },
     }),
   ]);
 

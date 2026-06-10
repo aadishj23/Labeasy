@@ -2,8 +2,7 @@ import prisma from "@/lib/prisma";
 import { verifyAuth, unauthorized } from "@/lib/auth";
 import { SPECIALTIES } from "@/lib/doctor-suggestions";
 
-// Operational fields apply instantly; identity/credential fields need approval.
-const SENSITIVE_FIELDS = ["name", "specialty"] as const;
+// Every profile field needs admin approval (like labs) — nothing applies instantly.
 
 export async function GET() {
   const auth = await verifyAuth();
@@ -33,35 +32,28 @@ export async function PATCH(request: Request) {
   const current = await prisma.doctor.findUnique({ where: { id: auth.doctorID } });
   if (!current) return unauthorized();
 
-  // Direct (self-service) fields.
-  const directData: Record<string, unknown> = {};
-  if (body.fee !== undefined) directData.fee = Math.max(0, Math.round(Number(body.fee) || 0));
-  if (body.description !== undefined) directData.description = String(body.description).trim();
-  if (body.clinic !== undefined) directData.clinic = String(body.clinic).trim();
-  if (body.city !== undefined) directData.city = String(body.city).trim();
-  if (body.phone !== undefined) directData.phone = String(body.phone).trim();
+  // Collect every changed field into a pending change request (admin-approved).
+  const changes: Record<string, any> = {};
+  const str = (f: string) => {
+    if (body[f] === undefined) return;
+    const val = String(body[f]).trim();
+    if (val && val !== (current as any)[f]) changes[f] = val;
+  };
+  ["name", "specialty", "clinic", "city", "phone", "description"].forEach(str);
+
   if (body.pincode !== undefined) {
     const pin = String(body.pincode).trim();
     if (!/^\d{6}$/.test(pin)) {
       return Response.json({ message: "Pincode must be 6 digits." }, { status: 400 });
     }
-    directData.pincode = pin;
+    if (pin !== current.pincode) changes.pincode = pin;
   }
-
-  // Sensitive fields → admin approval.
-  const changes: Record<string, string> = {};
-  for (const f of SENSITIVE_FIELDS) {
-    if (body[f] !== undefined) {
-      const val = String(body[f]).trim();
-      if (val && val !== (current as any)[f]) changes[f] = val;
-    }
+  if (body.fee !== undefined) {
+    const fee = Math.max(0, Math.round(Number(body.fee) || 0));
+    if (fee !== current.fee) changes.fee = fee;
   }
   if (changes.specialty && !SPECIALTIES.includes(changes.specialty)) {
     return Response.json({ message: "Pick a valid specialty." }, { status: 400 });
-  }
-
-  if (Object.keys(directData).length) {
-    await prisma.doctor.update({ where: { id: auth.doctorID }, data: directData });
   }
 
   let pending = null;
@@ -76,5 +68,5 @@ export async function PATCH(request: Request) {
         });
   }
 
-  return Response.json({ ok: true, appliedFields: Object.keys(directData), pending });
+  return Response.json({ ok: true, pending });
 }

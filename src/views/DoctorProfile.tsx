@@ -47,7 +47,7 @@ export default function DoctorProfile() {
       });
       const d = await res.json();
       if (!res.ok) return setMsg(d.message || "Update failed.");
-      setMsg(d.pending ? "Saved. Name/specialty changes are pending admin approval." : "Profile updated.");
+      setMsg(d.pending ? "Submitted — your changes are pending admin approval." : "No changes to submit.");
       load();
     } finally {
       setSaving(false);
@@ -67,7 +67,7 @@ export default function DoctorProfile() {
           </span>
           <div>
             <h1 className="text-3xl font-bold sm:text-4xl">Profile</h1>
-            <p className="text-muted-foreground">Name &amp; specialty changes need admin approval.</p>
+            <p className="text-muted-foreground">All profile changes need admin approval.</p>
           </div>
         </div>
 
