@@ -2,9 +2,9 @@
 
 # 🧪 Labeasy
 
-### Compare diagnostic labs, book tests, and *understand* your results with AI.
+### Book lab tests, consult doctors, buy insurance — and *understand* your health with AI.
 
-Labeasy is a full-stack diagnostics marketplace built for Tier‑2/3 India — connecting patients with accredited labs, and turning raw lab reports into plain‑language insight, health trends, and the right next step.
+Labeasy is a full-stack **multi-vendor healthcare marketplace** built for Tier‑2/3 India. Patients compare accredited **labs**, consult **doctors**, and buy **health insurance** in one place — while every lab report is turned into plain‑language insight, health trends, and the right next step. Labs, doctors, and insurers each run their own storefront, bookings, wallet, and analytics.
 
 🌐 **Live:** [labeasy.aadishjain.dev](https://labeasy.aadishjain.dev/)
 
@@ -21,7 +21,7 @@ Labeasy is a full-stack diagnostics marketplace built for Tier‑2/3 India — c
 - [Screenshots](#-screenshots)
   - [Patient Experience](#patient-experience)
   - [AI & Health Intelligence](#ai--health-intelligence)
-  - [Lab Console](#lab-console)
+  - [Vendor Console](#vendor-console)
   - [Admin Console](#admin-console)
   - [Authentication](#authentication)
 - [Tech Stack](#-tech-stack)
@@ -41,9 +41,9 @@ Most diagnostic discovery in smaller Indian cities is offline, opaque, and fragm
 
 Labeasy solves this end‑to‑end:
 
-- **For patients** — compare accredited labs by price/rating/location, book online (home collection or lab visit), pay securely, and get every report **explained by AI**, tracked over time, and paired with the right specialist.
-- **For labs** — a complete storefront and operations console: list tests & packages, manage bookings, upload reports, run promotions & coupons, and get paid through an automated **wallet & settlement** system with analytics.
-- **For the platform** — multiple revenue streams (commission, sponsored listings, insurance referrals) and an admin console to run the marketplace.
+- **For patients** — compare accredited labs by price/rating/location and book tests (home collection or lab visit); **book doctor consultations** by specialty, pincode and time; **buy health insurance** plans — all paid securely, with every report **explained by AI**, tracked over time, and paired with the right specialist.
+- **For vendors (labs, doctors & insurers)** — each gets a full storefront and operations console: list tests/packages, slots, or insurance plans; manage bookings; a **patient catalogue** (CRM); coupons & featured promotion; analytics; and an automated **wallet & settlement** system. Profile edits are admin‑approved.
+- **For the platform** — multiple revenue streams (per‑vendor commission/GMV fees, sponsored listings, insurance commission, platform‑funded coupons) and an admin console to run the whole marketplace.
 
 ---
 
@@ -52,26 +52,33 @@ Labeasy solves this end‑to‑end:
 ### For Patients
 - 🔎 **Lab & test discovery** — search by **city or pincode**, compare prices, ratings, and turnaround; sponsored labs surfaced first.
 - 📦 **Tests & packages** — book individual tests or curated multi‑test packages from any lab.
-- 🛒 **Smart checkout** — cart grouped by lab, **home collection or lab visit**, date/time slot picker (only future slots for today), **coupons**, and **insured‑user discounts**, paid via **Razorpay**.
+- 🩺 **Doctor consultations** — find doctors by **specialty, pincode, and preferred time**, view open slots, and **book & pay** for a consult (featured doctors surfaced first).
+- 🛡️ **Health insurance** — browse partner insurers' plans and **buy in‑app** (Razorpay).
+- 🛒 **Smart checkout** — cart grouped by lab, **home collection or lab visit**, date/time slot picker, **discoverable coupons** (vendor & platform), insured‑user discounts.
+- 🧾 **Unified bookings** — tests, consultations, and insurance in one place, sorted by date, with booking‑gated **reviews** for labs, doctors & insurers.
 - 📁 **Secure reports** — digital report inbox with **download** and **revocable share links**.
 - 🧠 **AI report summaries** — plain‑language explanations of each report, abnormal values highlighted.
 - 📈 **Health dashboard** — a **health score**, per‑marker **trends**, and "needs attention" flags.
-- 🩻 **Doctor recommendations** — specialists **near you (by pincode)**, matched to your flagged results.
-- 🛡️ **Insurance** — discover partner insurers and unlock **extra discounts** on tests.
 - 🔔 **Re‑test reminders** — never miss a follow‑up.
-- ⭐ **Reviews & ratings** — one editable review per lab.
 
-### For Labs
-- 🏢 **Storefront & catalogue** — list tests with your own pricing, build **packages**, manage your **profile** (verified changes go through admin approval).
-- 📋 **Bookings & reports** — manage orders through their lifecycle and upload reports (PDF/image) — with **AI auto‑extraction** of analyte values.
-- 🎟️ **Coupons & promotions** — issue discount codes and buy **sponsored placements** (priced per placement type).
-- 💰 **Wallet & settlements** — order revenue is credited on completion; platform fees & ad spend are debited; net balance is settled to you.
-- 📊 **Analytics** — bookings, revenue, and GMV trends.
+### For Vendors — Labs · Doctors · Insurers
+- 🏢 **Storefront** — labs list tests & **packages**; doctors manage **slots** (single + recurring, cancel slot/day); insurers list **plans** (commission admin‑approved).
+- 📋 **Bookings** — labs manage orders & upload reports (with **AI analyte extraction**); doctors manage appointments (incl. off‑platform "mark booked" with paid status); insurers track **sales & leads**.
+- 👥 **Patient catalogue** *(labs & doctors)* — a built‑in CRM: add patients manually or auto‑gathered from bookings, **auto‑linked by phone**, with full per‑vendor **history**, and **book a patient** straight into a slot/test.
+- 🎟️ **Coupons** — issue your own discount codes; **platform (admin) coupons** are funded by Labeasy (you're still paid in full).
+- 📣 **Promote** — buy **featured placement** to rank first in discovery.
+- 💰 **Wallet & settlements** — earnings credit on completion; fees/ad spend/commission debit; net is settled to you.
+- 📊 **Analytics** — bookings, revenue & GMV trends, with an **off‑platform** toggle.
+- ✏️ **Profile** — all profile edits go through **admin approval**.
 
 ### For Admins
-- 🧾 **Test catalogue**, **lab verification**, and **profile change requests**.
-- 📣 **Sponsored listings** monitoring, **wallet & settlements**, and platform **analytics**.
-- 🤝 **Insurance partners** + referral/commission tracking, and a **doctor directory**.
+- 🧾 **Test catalogue**, **vendor verification** (labs/doctors/insurers: approve / suspend), and **profile change requests** across all vendor types.
+- 🎟️ **Platform coupons** — create platform‑funded coupons scoped to all / labs / doctors / insurers.
+- 📣 **Sponsored listings** (all vendors), **wallet & settlements** (payouts to whom we owe, reminders for who owes us, per‑vendor ledgers), and platform **analytics** (consults + policy GMV, per‑vertical filter).
+- 🤝 **Insurance** approvals + lead/commission tracking, and **doctor** approvals.
+
+### Automation
+- ⏱️ **Auto‑billing** — monthly GMV‑slab platform fees for labs & doctors run automatically (cron, `x-cron-secret`).
 
 ### AI & Intelligence (Google Gemini)
 - **Report summaries** at both the **dashboard** and **per‑report** level — including reading the **PDF directly** when no structured data exists.
@@ -116,31 +123,36 @@ Labeasy solves this end‑to‑end:
 **AI Summary of a Report**
 ![AI Summary of Report](./public/Readme%20Photos/AI%20Summary%20of%20Report.png)
 
-### Lab Console
+### Vendor Console
 
-**Lab Dashboard**
-![Lab Dashboard](./public/Readme%20Photos/Lab%20Dashboard.png)
+> Labs, doctors, and insurers share the same console primitives — storefront, bookings, patient catalogue, coupons, promotion, wallet, analytics, and approval‑gated profiles. The lab views below are representative.
+
+**Vendor Dashboard**
+![Vendor Dashboard](./public/Readme%20Photos/Lab%20Dashboard.png)
+
+**Patient Catalogue & History** (labs & doctors)
+![Patient Catalogue](./public/Readme%20Photos/Patient%20Catalogue.png)
 
 **Bookings & Report Upload**
-![Lab Bookings](./public/Readme%20Photos/Lab%20Bookings.png)
+![Bookings](./public/Readme%20Photos/Lab%20Bookings.png)
 
-**Test Packages**
+**Test Packages** (labs)
 ![Test Packages Creation](./public/Readme%20Photos/Test%20Packages%20Creation%20Lab.png)
 
 **Coupon Generation**
-![Lab Coupon Generation](./public/Readme%20Photos/Lab%20Coupon%20Generaiton.png)
+![Coupon Generation](./public/Readme%20Photos/Lab%20Coupon%20Generaiton.png)
 
-**Promote Your Lab (Sponsored Listings)**
-![Promote Your Lab](./public/Readme%20Photos/Promote%20Your%20lab.png)
+**Promote (Featured Placement)**
+![Promote](./public/Readme%20Photos/Promote%20Your%20lab.png)
 
 **Wallet & Earnings**
-![Lab Wallet](./public/Readme%20Photos/Lab%20Wallet.png)
+![Wallet](./public/Readme%20Photos/Lab%20Wallet.png)
 
 **Analytics**
-![Lab Analytics](./public/Readme%20Photos/Lab%20Analytics.png)
+![Analytics](./public/Readme%20Photos/Lab%20Analytics.png)
 
-**Lab Profile**
-![Lab Profile](./public/Readme%20Photos/Lab%20Profile.png)
+**Profile (admin‑approved edits)**
+![Profile](./public/Readme%20Photos/Lab%20Profile.png)
 
 ### Admin Console
 
@@ -173,8 +185,8 @@ Labeasy solves this end‑to‑end:
 **Patient Sign Up**
 ![User Signup](./public/Readme%20Photos/User%20Singup.png)
 
-**Lab Sign Up**
-![Lab Signup](./public/Readme%20Photos/Lab%20Signup.png)
+**Vendor Sign Up** (lab/doctor/insurer — license upload + email OTP)
+![Vendor Signup](./public/Readme%20Photos/Lab%20Signup.png)
 
 **Sign In**
 ![Sign In](./public/Readme%20Photos/Signin.png)
@@ -196,7 +208,7 @@ Labeasy solves this end‑to‑end:
 | **Database** | PostgreSQL + Prisma 7 (via `@prisma/adapter-pg`) |
 | **State** | Zustand (`useAuthStore`) |
 | **Styling** | Tailwind CSS + shadcn‑style UI primitives |
-| **Auth** | httpOnly cookie sessions (patient/lab) + JWT (admin), RBAC via middleware |
+| **Auth** | httpOnly cookie sessions (patient/lab/doctor/insurer) + JWT (admin), RBAC via middleware |
 | **Payments** | Razorpay (orders + HMAC verification) |
 | **File storage** | Cloudinary (report PDFs/images) |
 | **Email** | Resend (order lifecycle, OTP, reminders) |
@@ -215,15 +227,16 @@ A single, unified Next.js app (frontend + API in one same‑origin project):
 src/
 ├── app/
 │   ├── (routes)/            # each */page.tsx re-exports a view from src/views
-│   ├── api/v1/**            # REST endpoints (auth, tests, orders, reports,
-│   │                        #   labs, admin, insurance, doctors, health, reminders)
+│   ├── api/v1/**            # REST endpoints (auth, tests, orders, reports, labs,
+│   │                        #   doctor, insurance, vendor, coupons, admin, cron…)
 │   ├── sitemap.ts / robots  # SEO
 │   └── layout.tsx
 ├── views/                   # page bodies (Home, Tests, Cart, Results, dashboards…)
 ├── components/              # shared UI + admin/lab widgets + ui/ primitives
 ├── store/                   # Zustand auth store
 ├── lib/                     # prisma, auth, redis, gemini, ai-summary, wallet,
-│                            #   billing, coupons, pricing, cloudinary, email, geo…
+│                            #   billing, coupons, sponsored, vendor-patient,
+│                            #   pricing, cloudinary, email, geo…
 prisma/                      # schema.prisma + migrations
 public/                      # assets + Readme Photos
 Dockerfile / .dockerignore   # standalone container build
@@ -231,7 +244,7 @@ Dockerfile / .dockerignore   # standalone container build
 
 **Key design choices**
 - **Same‑origin API** — no separate backend/CORS; route handlers run on the Node runtime (needed for Prisma, bcrypt, JWT).
-- **Role‑gated** — middleware protects `/labsdashboard`, `/admin`, and patient‑only pages; APIs verify the session/role and return `403` otherwise.
+- **Role‑gated** — middleware protects `/labsdashboard`, `/doctordashboard`, `/insurancedashboard`, `/admin`, and patient‑only pages; APIs verify the session/role and return `403` otherwise.
 - **Graceful degradation** — Redis caching and AI calls fall back safely; a cache miss or AI/quota error never breaks a request.
 - **Money in paise** (integers) throughout orders, invoices, wallet, and payouts.
 
@@ -241,23 +254,25 @@ Dockerfile / .dockerignore   # standalone container build
 
 Core entities (Prisma / PostgreSQL):
 
-- **Users & Auth** — `User` (patients), `Lab`, `Admin`, OTP/verification, `Address` (with default).
-- **Catalogue** — `Tests` (global), `LabTest` (per‑lab pricing), `Package` + `PackageTest`.
-- **Orders** — `Order`, `OrderItem`, `Payment`, `Slot`.
-- **Reports & Health** — `Report` (file + structured results + cached `ai_summary`), `Review`, `HealthSummary`, `TestReminder`.
-- **Monetization** — `Coupon` + `CouponRedemption`, `SponsoredListing`, `WalletEntry` (unified ledger).
-- **Ecosystem** — `InsurancePartner`, `InsuranceLead`, `Doctor`.
+- **Vendors & Auth** — `User` (patients), `Lab`, `Doctor`, `InsuranceCompany`, `Admin`; OTP/verification, `Address`, cross‑vendor unique email/phone, and `ProfileChangeRequest` (vendor‑generic, admin‑approved edits).
+- **Catalogue** — `Tests` (global), `LabTest` (per‑lab pricing), `Package` + `PackageItem`.
+- **Lab orders** — `Order` (platform + **manual/offline** orders), `OrderItem`, `Payment`, `Slot`.
+- **Doctors** — `DoctorSlot`, `Appointment` (platform + manual, with paid status).
+- **Insurance** — `InsurancePlan` (commission %, admin‑approved), `PolicyPurchase`, `InsuranceLead`.
+- **Patient catalogue** — `VendorPatient` (per vendor, **phone‑keyed**, links to a `User` by phone).
+- **Reports & Health** — `Report` (file + structured results + cached `ai_summary`), `Review` (target‑generic: lab/doctor/insurer), `HealthSummary`, `TestReminder`.
+- **Monetization** — `Coupon` (owner‑based: vendor **or** ADMIN with scope) + `CouponRedemption`, `SponsoredListing` (owner‑based), `WalletEntry` (unified ledger across all vendors).
 
-The **wallet** is a single signed ledger per lab: order earnings credit it **on completion**, platform fees & sponsorships debit it, and admins settle the net balance — Ola/Uber style.
+The **wallet** is a single signed ledger per vendor (`owner_type`/`owner_id`): earnings credit it **on completion**, platform fees / ad spend / commission debit it, and admins settle the net balance — Ola/Uber style. Manual (off‑platform) bookings never touch the wallet; **admin‑coupon discounts are funded by Labeasy**, so the vendor is always paid in full.
 
 ---
 
 ## 💸 Revenue Model
 
-1. **Commission on GMV** — a performance‑based platform fee on monthly lab GMV (slab model), deducted from the wallet.
-2. **Sponsored listings** — labs buy priced placements (everywhere / directory / specific tests).
-3. **Insurance referrals** — commission from partner insurers (tracked via `sub_id`), with an extra test discount for insured users.
-4. **Doctor referrals** — specialist discovery as an added channel.
+1. **GMV‑slab platform fee** — a performance‑based monthly fee on **lab & doctor** GMV (slab model), auto‑charged to the wallet.
+2. **Insurance commission** — a per‑plan commission (admin‑approved %) on every policy sold; off‑platform conversions are also charged the referral commission.
+3. **Sponsored / featured listings** — labs, doctors & insurers buy priced placements to rank first.
+4. **Platform‑funded coupons** — admin coupons drive demand; Labeasy absorbs the discount while vendors are paid in full.
 
 ---
 
