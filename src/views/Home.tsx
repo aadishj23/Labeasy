@@ -22,6 +22,8 @@ import {
   Megaphone,
   Wallet,
   HeartPulse,
+  Users,
+  Ticket,
 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
@@ -115,7 +117,9 @@ const STATS = [
 
 const PARTNER_PERKS = [
   { icon: Building2, label: "Your own vendor dashboard" },
+  { icon: Users, label: "Patient catalogue & history" },
   { icon: BarChart3, label: "Bookings & revenue analytics" },
+  { icon: Ticket, label: "Your own coupons & offers" },
   { icon: Megaphone, label: "Promote with featured placement" },
   { icon: Wallet, label: "Wallet & automated settlements" },
 ];
