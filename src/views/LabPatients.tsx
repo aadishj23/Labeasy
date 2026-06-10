@@ -120,7 +120,7 @@ export default function LabPatients() {
           </div>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-[360px_1fr]">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[360px_1fr]">
           {/* Add */}
           <div className="lg:sticky lg:top-24 lg:h-fit rounded-2xl border border-border bg-card p-6">
             <h2 className="mb-4 font-semibold">Add a patient</h2>

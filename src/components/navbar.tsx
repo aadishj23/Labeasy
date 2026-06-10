@@ -208,15 +208,15 @@ export default function Navbar() {
             </Link>
           )}
 
-          {/* Desktop nav */}
-          <nav className="hidden items-center gap-1 lg:flex">
+          {/* Desktop nav — shrinks + scrolls so many links never overflow the header */}
+          <nav className="hidden min-w-0 flex-1 items-center gap-0.5 overflow-x-auto px-2 lg:flex [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {visibleLinks.map(({ label, href, icon: Icon }) => (
               <Link
                 key={href}
                 href={href}
                 onClick={() => setIsMenuOpen(false)}
                 className={cn(
-                  "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors",
+                  "inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                   isActive(href)
                     ? "bg-primary/15 text-primary"
                     : "text-muted-foreground hover:bg-secondary hover:text-foreground"

@@ -179,7 +179,7 @@ function Labsdashboard() {
 
         <LabVerification />
 
-        <div className="grid gap-8 lg:grid-cols-[400px_1fr]">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[400px_1fr]">
           {/* Add test form */}
           <div className="lg:sticky lg:top-24 lg:h-fit">
             <div className="rounded-2xl border border-border bg-card p-6">

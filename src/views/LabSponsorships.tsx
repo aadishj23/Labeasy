@@ -210,7 +210,7 @@ export default function LabSponsorships() {
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : (
-          <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_360px]">
             {/* Builder */}
             <div className="space-y-6">
               <div>
