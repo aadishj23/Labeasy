@@ -36,8 +36,8 @@ export async function GET(request: Request) {
     prisma.insuranceCompany.findMany({ select: { id: true, name: true } }),
     prisma.order.groupBy({
       by: ["lab_id"],
-      where: { status: { in: PENDING_STATUSES as any } },
-      _sum: { total: true },
+      where: { source: "PLATFORM", status: { in: PENDING_STATUSES as any } },
+      _sum: { total: true, platform_discount: true },
     }),
   ]);
 
@@ -46,7 +46,9 @@ export async function GET(request: Request) {
     DOCTOR: Object.fromEntries(doctors.map((d) => [d.id, d.name])),
     INSURANCE: Object.fromEntries(companies.map((c) => [c.id, c.name])),
   };
-  const penMap = new Map(pendings.map((p) => [p.lab_id, p._sum.total || 0]));
+  const penMap = new Map(
+    pendings.map((p) => [p.lab_id, (p._sum.total || 0) + (p._sum.platform_discount || 0)])
+  );
 
   const vendors = balances
     .map((b) => ({

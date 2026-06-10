@@ -32,13 +32,15 @@ export async function labPending(labId: string): Promise<number> {
   const agg = await prisma.order.aggregate({
     where: {
       lab_id: labId,
+      source: "PLATFORM", // manual/off-platform orders never credit the wallet
       status: {
         in: ["CONFIRMED", "SAMPLE_COLLECTED", "PROCESSING", "REPORT_READY"],
       },
     },
-    _sum: { total: true },
+    // Include admin-funded discount: the lab is paid the full amount.
+    _sum: { total: true, platform_discount: true },
   });
-  return agg._sum.total || 0;
+  return (agg._sum.total || 0) + (agg._sum.platform_discount || 0);
 }
 
 // Post a signed ledger entry. `refId` enables idempotency where needed.

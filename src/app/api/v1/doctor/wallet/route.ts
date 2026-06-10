@@ -11,8 +11,8 @@ export async function GET() {
   const [balance, pendingAgg, entries] = await Promise.all([
     ownerBalance("DOCTOR", doctorId),
     prisma.appointment.aggregate({
-      where: { doctor_id: doctorId, status: "CONFIRMED" },
-      _sum: { fee: true },
+      where: { doctor_id: doctorId, status: "CONFIRMED", source: "PLATFORM" },
+      _sum: { fee: true, platform_discount: true },
     }),
     prisma.walletEntry.findMany({
       where: { owner_type: "DOCTOR", owner_id: doctorId },
@@ -23,7 +23,7 @@ export async function GET() {
 
   return Response.json({
     balance,
-    pending: pendingAgg._sum.fee || 0,
+    pending: (pendingAgg._sum.fee || 0) + (pendingAgg._sum.platform_discount || 0),
     entries,
   });
 }
