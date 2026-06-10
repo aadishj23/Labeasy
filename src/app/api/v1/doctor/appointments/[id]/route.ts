@@ -32,6 +32,7 @@ export async function PATCH(
       id: appt.id,
       doctor_id: appt.doctor_id,
       fee: appt.fee,
+      platform_discount: appt.platform_discount,
     });
   }
 

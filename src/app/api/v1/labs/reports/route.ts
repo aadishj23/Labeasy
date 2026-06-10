@@ -90,6 +90,7 @@ export async function POST(request: Request) {
         id: order.id,
         lab_id: order.lab_id,
         total: order.total,
+        platform_discount: order.platform_discount,
       });
       void notifyOrderStatus({
         patientEmail: order.user?.email,

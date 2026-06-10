@@ -16,6 +16,7 @@ import {
   Wallet,
   BarChart3,
   Stethoscope,
+  Ticket,
 } from "lucide-react";
 import { adminFetch, clearAdminToken, getAdminToken } from "@/lib/admin-client";
 import AdminLabQueue from "@/components/admin-lab-queue";
@@ -25,6 +26,7 @@ import AdminWallet from "@/components/admin-wallet";
 import AdminAnalytics from "@/components/admin-analytics";
 import AdminInsurance from "@/components/admin-insurance";
 import AdminDoctors from "@/components/admin-doctors";
+import AdminCoupons from "@/components/admin-coupons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -53,6 +55,7 @@ export default function AdminDashboard() {
     | "labs"
     | "requests"
     | "sponsored"
+    | "coupons"
     | "wallet"
     | "analytics"
     | "insurance"
@@ -218,6 +221,16 @@ export default function AdminDashboard() {
             <Megaphone className="h-4 w-4" /> Sponsored
           </button>
           <button
+            onClick={() => setTab("coupons")}
+            className={`-mb-px inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium ${
+              tab === "coupons"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Ticket className="h-4 w-4" /> Coupons
+          </button>
+          <button
             onClick={() => setTab("wallet")}
             className={`-mb-px inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium ${
               tab === "wallet"
@@ -307,6 +320,16 @@ export default function AdminDashboard() {
             </p>
             <div className="mt-8">
               <AdminSponsored />
+            </div>
+          </>
+        ) : tab === "coupons" ? (
+          <>
+            <h1 className="text-2xl font-bold">Coupons</h1>
+            <p className="mt-1 text-muted-foreground">
+              Platform-funded coupons across labs, doctors & insurers — the discount is borne by Labeasy.
+            </p>
+            <div className="mt-8">
+              <AdminCoupons />
             </div>
           </>
         ) : tab === "requests" ? (

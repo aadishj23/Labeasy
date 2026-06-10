@@ -62,10 +62,12 @@ export async function POST(request: Request) {
   const refId = `policy:${purchase.id}`;
   const exists = await prisma.walletEntry.findFirst({ where: { ref_id: refId } });
   if (!exists) {
+    // Admin coupons: Labeasy funds the discount, so the insurer is paid on the
+    // full gross (amount paid + platform-funded discount) minus commission.
     await postEntry({
       ownerType: "INSURANCE",
       ownerId: purchase.company_id,
-      amount: purchase.amount - purchase.commission,
+      amount: purchase.amount + purchase.platform_discount - purchase.commission,
       type: "ORDER_EARNING",
       description: "Policy sale (net of commission)",
       refId,

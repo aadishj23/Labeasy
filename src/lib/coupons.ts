@@ -1,11 +1,19 @@
 import prisma from "@/lib/prisma";
 
 type CouponResult =
-  | { coupon: Awaited<ReturnType<typeof prisma.coupon.findFirst>>; discount: number }
+  | {
+      coupon: NonNullable<Awaited<ReturnType<typeof prisma.coupon.findFirst>>>;
+      discount: number;
+      platformBorne: boolean; // true for ADMIN coupons (Labeasy funds the discount)
+    }
   | { error: string };
 
-// Validate a lab-scoped coupon and compute its discount (paise).
-// `subtotal` = value before discounts; `payable` = after any storefront discount.
+/**
+ * Validate a coupon for a vendor purchase and compute its discount (paise).
+ * Matches the vendor's own coupon first, else an ADMIN coupon whose scope is
+ * ALL or this vendor's type. `subtotal` = value before discounts; `payable` =
+ * after any storefront discount.
+ */
 export async function validateCoupon(opts: {
   ownerType: "LAB" | "DOCTOR" | "INSURANCE";
   ownerId: string;
@@ -17,9 +25,19 @@ export async function validateCoupon(opts: {
   const code = (opts.code || "").trim().toUpperCase();
   if (!code) return { error: "Enter a coupon code." };
 
-  const coupon = await prisma.coupon.findFirst({
-    where: { owner_type: opts.ownerType, owner_id: opts.ownerId, code, active: true },
-  });
+  // Vendor's own coupon takes priority; fall back to an applicable admin coupon.
+  const coupon =
+    (await prisma.coupon.findFirst({
+      where: { owner_type: opts.ownerType, owner_id: opts.ownerId, code, active: true },
+    })) ||
+    (await prisma.coupon.findFirst({
+      where: {
+        owner_type: "ADMIN",
+        code,
+        active: true,
+        OR: [{ scope: "ALL" }, { scope: opts.ownerType }],
+      },
+    }));
   if (!coupon) return { error: "Invalid or inactive coupon code." };
 
   const now = new Date();
@@ -50,5 +68,5 @@ export async function validateCoupon(opts: {
   if (discount <= 0)
     return { error: "This coupon can't be applied to this order." };
 
-  return { coupon, discount };
+  return { coupon, discount, platformBorne: coupon.owner_type === "ADMIN" };
 }

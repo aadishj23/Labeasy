@@ -67,14 +67,16 @@ export async function creditOrderEarning(order: {
   id: string;
   lab_id: string;
   total: number;
+  platform_discount?: number;
 }) {
   const refId = `order:${order.id}`;
   const exists = await prisma.walletEntry.findFirst({ where: { ref_id: refId } });
   if (exists) return;
+  // Admin coupons: Labeasy funds the discount, so the lab is paid the full amount.
   await postEntry({
     ownerType: "LAB",
     ownerId: order.lab_id,
-    amount: order.total,
+    amount: order.total + (order.platform_discount || 0),
     type: "ORDER_EARNING",
     description: "Order earnings (completed)",
     refId,
@@ -86,14 +88,16 @@ export async function creditAppointmentEarning(appt: {
   id: string;
   doctor_id: string;
   fee: number;
+  platform_discount?: number;
 }) {
   const refId = `appt:${appt.id}`;
   const exists = await prisma.walletEntry.findFirst({ where: { ref_id: refId } });
   if (exists) return;
+  // Admin coupons: Labeasy funds the discount, so the doctor earns the full fee.
   await postEntry({
     ownerType: "DOCTOR",
     ownerId: appt.doctor_id,
-    amount: appt.fee,
+    amount: appt.fee + (appt.platform_discount || 0),
     type: "ORDER_EARNING",
     description: "Consultation earnings (completed)",
     refId,

@@ -40,9 +40,10 @@ export async function POST(request: Request) {
     return Response.json({ message: "Invalid consultation fee." }, { status: 400 });
   }
 
-  // Apply a doctor coupon, if any.
+  // Apply a coupon (doctor's own or an admin coupon), if any.
   let amount = fullFee;
   let coupon_id: string | null = null;
+  let platform_discount = 0;
   if (couponCode) {
     const result = await validateCoupon({
       ownerType: "DOCTOR",
@@ -57,6 +58,7 @@ export async function POST(request: Request) {
     }
     amount = fullFee - result.discount;
     coupon_id = result.coupon!.id;
+    if (result.platformBorne) platform_discount = result.discount;
   }
 
   try {
@@ -75,6 +77,7 @@ export async function POST(request: Request) {
         scheduled_at: slot.start_at,
         fee: amount,
         coupon_id,
+        platform_discount,
         status: "PLACED",
         provider_order_id: rzpOrder.id,
       },

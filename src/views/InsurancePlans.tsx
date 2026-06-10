@@ -38,11 +38,14 @@ export default function InsurancePlans() {
   const [coupon, setCoupon] = useState("");
   const [couponInfo, setCouponInfo] = useState<{ discount: number; final: number } | null>(null);
   const [couponMsg, setCouponMsg] = useState("");
+  const [availCoupons, setAvailCoupons] = useState<any[]>([]);
   const [applying, setApplying] = useState(false);
   const [buying, setBuying] = useState(false);
 
-  const applyCoupon = async () => {
-    if (!active || !coupon.trim()) return;
+  const applyCoupon = async (codeArg?: string) => {
+    const code = (codeArg ?? coupon).trim();
+    if (!active || !code) return;
+    if (codeArg) setCoupon(codeArg);
     setApplying(true);
     setCouponMsg("");
     setCouponInfo(null);
@@ -50,7 +53,7 @@ export default function InsurancePlans() {
       const res = await fetch("/api/v1/coupons/validate-vendor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ownerType: "INSURANCE", ownerId: active.companyId, code: coupon.trim(), amount: active.price }),
+        body: JSON.stringify({ ownerType: "INSURANCE", ownerId: active.companyId, code, amount: active.price }),
       });
       const d = await res.json();
       if (d.valid) setCouponInfo({ discount: d.discount, final: d.final });
@@ -74,6 +77,10 @@ export default function InsurancePlans() {
     setCoupon("");
     setCouponInfo(null);
     setCouponMsg("");
+    setAvailCoupons([]);
+    fetch(`/api/v1/coupons/available?ownerType=INSURANCE&ownerId=${p.companyId}`, { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : { coupons: [] }))
+      .then((j) => setAvailCoupons(j.coupons || []));
     // Log a lead (interest) — fire and forget.
     fetch("/api/v1/insurance/lead", {
       method: "POST",
@@ -210,10 +217,26 @@ export default function InsurancePlans() {
               placeholder="Coupon code (optional)"
               className="h-10 w-full rounded-md border border-input bg-secondary/40 px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
-            <Button variant="outline" onClick={applyCoupon} disabled={applying || !coupon.trim()}>
+            <Button variant="outline" onClick={() => applyCoupon()} disabled={applying || !coupon.trim()}>
               {applying ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
             </Button>
           </div>
+          {availCoupons.length > 0 && (
+            <div className="mt-2 space-y-1.5">
+              <p className="text-xs font-medium text-muted-foreground">Available coupons</p>
+              {availCoupons.map((c) => (
+                <div key={c.code} className="flex items-center justify-between gap-2 rounded-lg border border-dashed border-border px-3 py-1.5 text-xs">
+                  <span>
+                    <span className="font-semibold tracking-wide">{c.code}</span>
+                    <span className="ml-2 text-muted-foreground">{c.label}{c.note ? ` · ${c.note}` : ""}</span>
+                  </span>
+                  <button type="button" className="font-medium text-primary hover:underline" onClick={() => applyCoupon(c.code)}>
+                    Apply
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
           {couponMsg && <p className="mt-1 text-sm text-destructive">{couponMsg}</p>}
           {couponInfo && (
             <p className="mt-1 text-sm text-emerald-400">

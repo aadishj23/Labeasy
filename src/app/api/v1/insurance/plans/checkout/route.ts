@@ -26,9 +26,10 @@ export async function POST(request: Request) {
     return Response.json({ message: "This plan is unavailable." }, { status: 400 });
   }
 
-  // Apply an insurer coupon, if any.
+  // Apply a coupon (insurer's own or an admin coupon), if any.
   let amount = plan.price;
   let coupon_id: string | null = null;
+  let platform_discount = 0;
   if (couponCode) {
     const result = await validateCoupon({
       ownerType: "INSURANCE",
@@ -43,8 +44,12 @@ export async function POST(request: Request) {
     }
     amount = plan.price - result.discount;
     coupon_id = result.coupon!.id;
+    if (result.platformBorne) platform_discount = result.discount;
   }
-  const commission = Math.round((amount * plan.commission_pct) / 100);
+  // Commission is taken on the insurer's gross sale. For admin coupons the
+  // insurer still sells at full price (Labeasy funds the discount), so the
+  // gross = what the patient paid + the platform-funded discount.
+  const commission = Math.round(((amount + platform_discount) * plan.commission_pct) / 100);
 
   try {
     const rzpOrder = await getRazorpay().orders.create({
@@ -62,6 +67,7 @@ export async function POST(request: Request) {
         amount,
         commission,
         coupon_id,
+        platform_discount,
         status: "PLACED",
         provider_order_id: rzpOrder.id,
       },

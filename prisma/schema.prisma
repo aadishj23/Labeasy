@@ -146,7 +146,8 @@ model PolicyPurchase {
   user_id             String
   amount              Int // gross paise paid by the patient
   commission          Int              @default(0) // paise — platform's cut
-  coupon_id           String? // applied vendor coupon
+  coupon_id           String? // applied coupon
+  platform_discount   Int              @default(0) // discount funded by Labeasy (admin coupon)
   status              String           @default("PLACED") // PLACED | CONFIRMED
   provider_order_id   String?
   provider_payment_id String?
@@ -208,7 +209,8 @@ model Appointment {
   source              String      @default("PLATFORM") // PLATFORM | MANUAL
   paid_status         String? // PAID | UNPAID | PARTIAL (manual bookings)
   amount_paid         Int         @default(0) // paise collected off-platform
-  coupon_id           String? // applied vendor coupon
+  coupon_id           String? // applied coupon
+  platform_discount   Int         @default(0) // discount funded by Labeasy (admin coupon)
   slot_id             String?
   scheduled_at        DateTime
   fee                 Int // paise — total paid by the patient
@@ -374,6 +376,7 @@ model Order {
   scheduled_at    DateTime?
   subtotal        Int
   discount        Int            @default(0)
+  platform_discount Int          @default(0) // discount funded by Labeasy (admin coupon)
   platform_fee    Int            @default(0)
   total           Int
   coupon_id       String?
@@ -520,8 +523,9 @@ model PackageItem {
 
 model Coupon {
   id             String             @id @default(cuid())
-  owner_type     String // LAB | DOCTOR | INSURANCE
-  owner_id       String
+  owner_type     String // LAB | DOCTOR | INSURANCE | ADMIN
+  owner_id       String // "" for ADMIN coupons
+  scope          String? // ADMIN coupons: ALL | LAB | DOCTOR | INSURANCE
   code           String // stored uppercase
   type           CouponType         @default(PERCENT)
   value          Int // percent (e.g. 20) or flat rupees

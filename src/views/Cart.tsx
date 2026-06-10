@@ -98,6 +98,7 @@ function Cart() {
   const [couponDiscount, setCouponDiscount] = useState(0); // paise
   const [couponMsg, setCouponMsg] = useState("");
   const [couponBusy, setCouponBusy] = useState(false);
+  const [availCoupons, setAvailCoupons] = useState<any[]>([]);
 
   useEffect(() => {
     loadCartItems();
@@ -162,7 +163,12 @@ function Cart() {
     setAppliedCode("");
     setCouponDiscount(0);
     setCouponMsg("");
+    setAvailCoupons([]);
     setActiveGroup(group);
+    fetch(`/api/v1/coupons/available?ownerType=LAB&ownerId=${group.labId}`, { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : { coupons: [] }))
+      .then((j) => setAvailCoupons(j.coupons || []))
+      .catch(() => {});
     // Load saved addresses for home-collection selection.
     try {
       const res = await fetch("/api/v1/users/profile", { cache: "no-store" });
@@ -178,8 +184,10 @@ function Cart() {
     }
   };
 
-  const applyCoupon = async () => {
-    if (!activeGroup || !couponCode.trim()) return;
+  const applyCoupon = async (codeArg?: string) => {
+    const code = (codeArg ?? couponCode).trim();
+    if (!activeGroup || !code) return;
+    if (codeArg) setCouponCode(codeArg);
     setCouponBusy(true);
     setCouponMsg("");
     try {
@@ -194,7 +202,7 @@ function Cart() {
           packageIds: activeGroup.items
             .filter((i) => i.packageId)
             .map((i) => i.packageId),
-          code: couponCode.trim(),
+          code,
         }),
       });
       const d = await res.json();
@@ -574,7 +582,7 @@ function Cart() {
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={applyCoupon}
+                      onClick={() => applyCoupon()}
                       disabled={couponBusy || !couponCode.trim()}
                     >
                       {couponBusy ? (
@@ -584,6 +592,22 @@ function Cart() {
                       )}
                     </Button>
                   </div>
+                  {availCoupons.length > 0 && (
+                    <div className="mt-2 space-y-1.5">
+                      <p className="text-xs font-medium text-muted-foreground">Available coupons</p>
+                      {availCoupons.map((c) => (
+                        <div key={c.code} className="flex items-center justify-between gap-2 rounded-lg border border-dashed border-border px-3 py-1.5 text-xs">
+                          <span>
+                            <span className="font-semibold tracking-wide">{c.code}</span>
+                            <span className="ml-2 text-muted-foreground">{c.label}{c.note ? ` · ${c.note}` : ""}</span>
+                          </span>
+                          <button type="button" className="font-medium text-primary hover:underline" onClick={() => applyCoupon(c.code)}>
+                            Apply
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   {couponMsg && (
                     <p className="mt-1 text-xs text-destructive">{couponMsg}</p>
                   )}

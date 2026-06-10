@@ -67,9 +67,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // Optional lab-scoped coupon (re-validated server-side).
+    // Optional coupon (vendor's own or an admin coupon; re-validated server-side).
     let couponDiscount = 0;
     let coupon_id: string | null = null;
+    let platform_discount = 0;
     if (couponCode) {
       const result = await validateCoupon({
         ownerType: "LAB",
@@ -84,6 +85,7 @@ export async function POST(request: Request) {
       }
       couponDiscount = result.discount;
       coupon_id = result.coupon!.id;
+      if (result.platformBorne) platform_discount = result.discount;
     }
 
     // Extra discount for users insured via a partner referral.
@@ -124,6 +126,7 @@ export async function POST(request: Request) {
         scheduled_at: scheduledAt ? new Date(scheduledAt) : null,
         subtotal,
         discount,
+        platform_discount,
         total,
         coupon_id,
         items: {
